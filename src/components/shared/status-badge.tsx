@@ -1,0 +1,46 @@
+import { Badge } from "@/components/ui/badge";
+import { titleCase } from "@/lib/formatters";
+const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info"> = {
+  incomplete: "outline",
+  pending: "warning",
+  approved: "success",
+  rejected: "destructive",
+  needs_update: "warning",
+  suspended: "destructive",
+  submitted: "info",
+  under_review: "warning",
+  accepted: "success",
+  printing: "default",
+  ready: "success",
+  delivered: "secondary",
+  cancelled: "outline",
+  open: "info",
+  in_progress: "warning",
+  waiting_user: "warning",
+  resolved: "success",
+  closed: "secondary",
+  blocked: "destructive",
+  left: "outline",
+  active: "success",
+  inactive: "outline",
+  public: "success",
+  students_only: "info",
+  verified_students_only: "info",
+  major_only: "warning",
+  group_only: "warning",
+  admin_only: "secondary",
+  all_members: "success",
+  admins_only: "warning",
+  normal: "secondary",
+  student_priority: "info",
+  urgent: "destructive",
+  high: "destructive",
+  medium: "warning",
+  low: "secondary",
+  unread: "info",
+  read: "secondary",
+};
+
+export function StatusBadge({ status }: { status: string }) {
+  return <Badge variant={statusVariant[status] ?? "outline"}>{titleCase(status)}</Badge>;
+}

@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.env
+.env.*
+*.log
+dev-server.log
+.DS_Store
+coverage
+dist
+build
+*.md
+!README.md
+!docs/*.md
+tsconfig.tsbuildinfo
+npm-debug.log*

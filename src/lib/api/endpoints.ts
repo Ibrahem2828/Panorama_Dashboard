@@ -1,0 +1,71 @@
+export const endpoints = {
+  auth: {
+    login: "/api/v1/auth/login/",
+    refresh: "/api/v1/auth/token/refresh/",
+    logout: "/api/v1/auth/logout/",
+    me: "/api/v1/auth/me/",
+  },
+  dashboard: {
+    stats: "/api/v1/dashboard/stats/",
+  },
+  academic: {
+    universities: "/api/v1/dashboard/universities/",
+    faculties: "/api/v1/dashboard/faculties/",
+    majors: "/api/v1/dashboard/majors/",
+    academicYears: "/api/v1/dashboard/academic-years/",
+    semesters: "/api/v1/dashboard/semesters/",
+    subjects: "/api/v1/dashboard/subjects/",
+  },
+  verification: {
+    requests: "/api/v1/dashboard/verifications/",
+    detail: (id: number | string) => `/api/v1/dashboard/verifications/${id}/`,
+    approve: (id: number | string) => `/api/v1/dashboard/verifications/${id}/approve/`,
+    reject: (id: number | string) => `/api/v1/dashboard/verifications/${id}/reject/`,
+    needsUpdate: (id: number | string) => `/api/v1/dashboard/verifications/${id}/needs-update/`,
+    cardPreviewToken: (id: number | string) => `/api/v1/dashboard/verifications/${id}/card-preview-token/`,
+  },
+  groups: {
+    list: "/api/v1/dashboard/groups/",
+    detail: (id: number | string) => `/api/v1/dashboard/groups/${id}/`,
+    memberships: (groupId: number | string) => `/api/v1/dashboard/groups/${groupId}/memberships/`,
+    joinRequests: (groupId: number | string) => `/api/v1/dashboard/groups/${groupId}/join-requests/`,
+    approveMembership: (id: number | string) => `/api/v1/dashboard/group-memberships/${id}/approve/`,
+    rejectMembership: (id: number | string) => `/api/v1/dashboard/group-memberships/${id}/reject/`,
+    blockMembership: (id: number | string) => `/api/v1/dashboard/group-memberships/${id}/block/`,
+    membershipRole: (id: number | string) => `/api/v1/dashboard/group-memberships/${id}/role/`,
+  },
+  files: {
+    list: "/api/v1/dashboard/files/",
+    detail: (id: number | string) => `/api/v1/dashboard/files/${id}/`,
+    previewToken: (fileId: number | string) => `/api/v1/dashboard/files/${fileId}/preview-token/`,
+  },
+  announcements: {
+    list: "/api/v1/dashboard/announcements/",
+    detail: (id: number | string) => `/api/v1/dashboard/announcements/${id}/`,
+  },
+  printing: {
+    orders: "/api/v1/dashboard/printing/orders/",
+    detail: (orderId: number | string) => `/api/v1/dashboard/printing/orders/${orderId}/`,
+    assign: (orderId: number | string) => `/api/v1/dashboard/printing/orders/${orderId}/assign/`,
+    status: (orderId: number | string) => `/api/v1/dashboard/printing/orders/${orderId}/status/`,
+    note: (orderId: number | string) => `/api/v1/dashboard/printing/orders/${orderId}/note/`,
+    filePreviewToken: (orderId: number | string) => `/api/v1/dashboard/printing/orders/${orderId}/file-preview-token/`,
+  },
+  support: {
+    tickets: "/api/v1/dashboard/support/tickets/",
+    detail: (ticketId: number | string) => `/api/v1/dashboard/support/tickets/${ticketId}/`,
+    status: (ticketId: number | string) => `/api/v1/dashboard/support/tickets/${ticketId}/status/`,
+    priority: (ticketId: number | string) => `/api/v1/dashboard/support/tickets/${ticketId}/priority/`,
+    assign: (ticketId: number | string) => `/api/v1/dashboard/support/tickets/${ticketId}/assign/`,
+    messages: (ticketId: number | string) => `/api/v1/dashboard/support/tickets/${ticketId}/messages/`,
+  },
+  audit: {
+    logs: "/api/v1/dashboard/audit-logs/",
+  },
+  notifications: {
+    list: "/api/v1/notifications/",
+    unreadCount: "/api/v1/notifications/unread-count/",
+    markRead: (notificationId: number | string) => `/api/v1/notifications/${notificationId}/mark-read/`,
+    readAll: "/api/v1/notifications/read-all/",
+  },
+} as const;
