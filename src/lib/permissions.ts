@@ -16,6 +16,10 @@ export function canManageVerification(role?: UserRole | null) {
   return role === "it_support" || role === "admin";
 }
 
+export function canManageStudentAccountRequests(role?: UserRole | null) {
+  return role === "it_support" || role === "admin";
+}
+
 export function canManageGroups(role?: UserRole | null) {
   return role === "it_support" || role === "admin";
 }

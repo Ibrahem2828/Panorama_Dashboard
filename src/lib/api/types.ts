@@ -10,6 +10,7 @@ export interface PreviewTokenResponse {
   url?: string;
   preview_url?: string;
   protected_url?: string;
+  token?: string;
   expires_at?: string;
   expires_in?: number;
 }

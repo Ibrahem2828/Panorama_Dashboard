@@ -24,6 +24,15 @@ export const endpoints = {
     needsUpdate: (id: number | string) => `/api/v1/dashboard/verifications/${id}/needs-update/`,
     cardPreviewToken: (id: number | string) => `/api/v1/dashboard/verifications/${id}/card-preview-token/`,
   },
+  studentAccountRequests: {
+    list: "/api/v1/dashboard/student-account-requests/",
+    detail: (id: number | string) => `/api/v1/dashboard/student-account-requests/${id}/`,
+    approve: (id: number | string) => `/api/v1/dashboard/student-account-requests/${id}/approve/`,
+    reject: (id: number | string) => `/api/v1/dashboard/student-account-requests/${id}/reject/`,
+    needsUpdate: (id: number | string) => `/api/v1/dashboard/student-account-requests/${id}/needs-update/`,
+    resendOtp: (id: number | string) => `/api/v1/dashboard/student-account-requests/${id}/resend-otp/`,
+    cardPreviewToken: (id: number | string) => `/api/v1/dashboard/student-account-requests/${id}/card-preview-token/`,
+  },
   groups: {
     list: "/api/v1/dashboard/groups/",
     detail: (id: number | string) => `/api/v1/dashboard/groups/${id}/`,

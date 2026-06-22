@@ -12,11 +12,13 @@ import type { PreviewTokenResponse } from "@/lib/api/types";
 interface ProtectedMediaButtonProps extends Omit<ButtonProps, "onClick"> {
   getPreviewToken: () => Promise<PreviewTokenResponse>;
   label?: string;
+  formatError?: (error: unknown) => string;
 }
 
 export function ProtectedMediaButton({
   getPreviewToken,
   label = "Open preview",
+  formatError,
   children,
   disabled,
   variant = "outline",
@@ -31,7 +33,8 @@ export function ProtectedMediaButton({
       await openProtectedPreview(getPreviewToken);
     } catch (error) {
       const normalized = normalizeApiError(error);
-      toast.error(normalized.message, {
+      const message = formatError ? formatError(error) : normalized.message;
+      toast.error(message, {
         description: normalized.request_id ? `Request ID: ${normalized.request_id}` : undefined,
       });
     } finally {

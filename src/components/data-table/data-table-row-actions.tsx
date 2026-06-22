@@ -29,7 +29,7 @@ export function DataTableRowActions<TData>({ row, actions }: DataTableRowActions
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" onClick={(event) => event.stopPropagation()}>
           <MoreHorizontal />
           <span className="sr-only">Open row actions</span>
         </Button>

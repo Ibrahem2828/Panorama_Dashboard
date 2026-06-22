@@ -39,6 +39,10 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
   low: "secondary",
   unread: "info",
   read: "secondary",
+  pending_review: "warning",
+  approved_pending_otp: "info",
+  otp_sent: "info",
+  expired: "outline",
 };
 
 export function StatusBadge({ status }: { status: string }) {

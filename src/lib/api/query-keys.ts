@@ -18,6 +18,11 @@ export const queryKeys = {
     list: (params?: QueryParams) => ["verification", "list", params] as const,
     detail: (id?: number | string) => ["verification", "detail", id] as const,
   },
+  studentAccountRequests: {
+    all: ["student-account-requests"] as const,
+    list: (params?: QueryParams) => ["student-account-requests", "list", params] as const,
+    detail: (id?: number | string) => ["student-account-requests", "detail", id] as const,
+  },
   groups: {
     all: ["groups"] as const,
     list: (params?: QueryParams) => ["groups", "list", params] as const,

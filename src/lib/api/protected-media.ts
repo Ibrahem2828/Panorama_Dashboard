@@ -14,11 +14,15 @@ export function getProtectedPreviewUrl(tokenResponse: PreviewTokenResponse) {
   assertPreviewTokenIsUsable(tokenResponse);
 
   const url = tokenResponse.url ?? tokenResponse.preview_url ?? tokenResponse.protected_url;
-  if (!url) {
-    throw new AppApiError({ message: "Preview link was not returned by the API." });
+  if (url) {
+    return new URL(url, env.apiBaseUrl).toString();
   }
 
-  return new URL(url, env.apiBaseUrl).toString();
+  if (tokenResponse.token) {
+    return new URL(`/api/v1/protected-media/${tokenResponse.token}/`, env.apiBaseUrl).toString();
+  }
+
+  throw new AppApiError({ message: "Preview link was not returned by the API." });
 }
 
 export async function openProtectedPreview(getPreviewToken: () => Promise<PreviewTokenResponse>) {
