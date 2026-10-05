@@ -1,30 +1,19 @@
-"use client";
-
 import { QueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-
-import { normalizeApiError } from "@/lib/api/errors";
 
 export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 60_000,
-        retry: (failureCount, error) => {
-          const normalized = normalizeApiError(error);
-          if (normalized.status && normalized.status >= 400 && normalized.status < 500) {
-            return false;
-          }
+        staleTime: 30_000,
+        gcTime: 5 * 60_000,
+        refetchOnWindowFocus: false,
+        retry(failureCount, error) {
+          const status = typeof error === "object" && error && "status" in error ? Number(error.status) : 0;
+          if ([400, 401, 403, 404, 409, 413, 426].includes(status)) return false;
           return failureCount < 2;
         },
       },
-      mutations: {
-        retry: false,
-        onError: (error) => {
-          const normalized = normalizeApiError(error);
-          toast.error(normalized.message);
-        },
-      },
+      mutations: { retry: false },
     },
   });
 }

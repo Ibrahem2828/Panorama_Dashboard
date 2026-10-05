@@ -4,7 +4,7 @@
 
 Admin/IT support module for reviewing student account creation requests, verifying uploaded university cards, and manually delivering OTP activation codes via WhatsApp.
 
-- **Backend base:** `NEXT_PUBLIC_API_BASE_URL` (production: `https://api.xn--mgbaab0cxheq.tech`)
+- **Backend base:** server-only `BACKEND_API_BASE_URL` (production: `https://api.xn--mgbaab0cxheq.tech`); browser calls stay same-origin through the BFF.
 - **Auth:** `Authorization: Bearer <access_token>`
 - **Response envelope:** `{ success, message, data }` with paginated lists `{ count, next, previous, results }`
 

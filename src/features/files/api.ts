@@ -1,7 +1,6 @@
 import { endpoints } from "@/lib/api/endpoints";
 import { createItem, deleteItem, listItems, type QueryParams, updateItem } from "@/lib/api/crud";
 import { toFormData } from "@/lib/api/form-data";
-import { requestPreviewToken } from "@/lib/api/protected-media";
 import type { FileFormValues, FileRecord } from "@/features/files/types";
 
 const base = endpoints.files.list;
@@ -10,7 +9,10 @@ export const listFiles = (params?: QueryParams) => listItems<FileRecord>(base, p
 export const createFileRecord = (values: FileFormValues) => createItem<FileRecord, FormData | Record<string, unknown>>(base, filePayload(values));
 export const updateFileRecord = (id: number, values: FileFormValues) => updateItem<FileRecord, FormData | Record<string, unknown>>(base, id, filePayload(values));
 export const deleteFileRecord = (id: number) => deleteItem(base, id);
-export const getFilePreviewToken = (id: number) => requestPreviewToken(endpoints.files.previewToken(id));
+export const getFilePreviewToken = (id: number) => {
+  void id;
+  return Promise.reject(new Error("File preview tickets are not present in the current OpenAPI contract."));
+};
 
 function filePayload(values: FileFormValues) {
   const payload = {

@@ -1,43 +1,24 @@
-# Production Dockerfile for Next.js Panorama Dashboard (Coolify)
-FROM node:22.16.0-alpine AS base
-
-# 1. Install dependencies
-FROM base AS deps
+# syntax=docker/dockerfile:1.7
+FROM node:22.16.0-alpine AS builder
 WORKDIR /app
-
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
-RUN npm ci
-
-# 2. Build the app
-FROM base AS builder
-WORKDIR /app
-
-COPY --from=deps /app/node_modules ./node_modules
+RUN npm ci --ignore-scripts
 COPY . .
+RUN npm run contracts:check && npm run i18n:check && npm run security:check && npm run routes:check && npm run build
 
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
-
-# 3. Production runner
-FROM base AS runner
+FROM node:22.16.0-alpine AS runner
 WORKDIR /app
-
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy standalone output
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
-
 EXPOSE 3000
-
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1
 CMD ["node", "server.js"]

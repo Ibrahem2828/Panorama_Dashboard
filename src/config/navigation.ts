@@ -1,69 +1,133 @@
 import {
-  Bell,
-  BookOpen,
-  ClipboardList,
+  Activity,
+  BellRing,
+  BookOpenCheck,
+  Building2,
+  ClipboardCheck,
   FileCheck2,
-  FileText,
+  FileStack,
+  Flag,
   GraduationCap,
-  Home,
-  LifeBuoy,
+  Headphones,
+  LayoutDashboard,
+  Megaphone,
+  MessageSquareText,
+  MonitorSmartphone,
+  Network,
+  NotebookTabs,
   Printer,
   ScrollText,
   Settings,
+  ShieldCheck,
+  Smartphone,
+  Tags,
+  University,
+  UserRoundCog,
   Users,
+  Wrench,
+  type LucideIcon,
 } from "lucide-react";
 
-import {
-  canAccessSettings,
-  canManageAcademic,
-  canManageAnnouncements,
-  canManageFiles,
-  canManageGroups,
-  canManagePrinting,
-  canManageSupport,
-  canManageVerification,
-  canManageStudentAccountRequests,
-  canViewAuditLogs,
-  canViewNotifications,
-  canViewOverview,
-} from "@/lib/permissions";
-import { ROUTES } from "@/lib/routes";
-import type { UserRole } from "@/types/roles";
+import { CAPABILITIES } from "@/lib/auth/capabilities";
+import type { MessageKey } from "@/i18n/messages";
 
 export interface NavigationItem {
-  label: string;
+  key: string;
+  label: MessageKey;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  canAccess: (role?: UserRole | null) => boolean;
+  icon: LucideIcon;
+  capability?: string;
+  keywords?: string[];
 }
 
-export const navigationItems: NavigationItem[] = [
-  { label: "Overview", href: ROUTES.overview, icon: Home, canAccess: canViewOverview },
-  { label: "Academic Structure", href: ROUTES.academic, icon: GraduationCap, canAccess: canManageAcademic },
-  { label: "Verification Requests", href: ROUTES.verification, icon: FileCheck2, canAccess: canManageVerification },
-  { label: "طلبات حسابات الطلاب", href: ROUTES.studentAccountRequests, icon: ClipboardList, canAccess: canManageStudentAccountRequests },
-  { label: "Groups", href: ROUTES.groups, icon: Users, canAccess: canManageGroups },
-  { label: "Files Library", href: ROUTES.files, icon: BookOpen, canAccess: canManageFiles },
-  { label: "Announcements", href: ROUTES.announcements, icon: FileText, canAccess: canManageAnnouncements },
-  { label: "Printing Orders", href: ROUTES.printing, icon: Printer, canAccess: canManagePrinting },
-  { label: "Support Tickets", href: ROUTES.support, icon: LifeBuoy, canAccess: canManageSupport },
-  { label: "Audit Logs", href: ROUTES.auditLogs, icon: ScrollText, canAccess: canViewAuditLogs },
-  { label: "Notifications", href: ROUTES.notifications, icon: Bell, canAccess: canViewNotifications },
-  { label: "Settings", href: ROUTES.settings, icon: Settings, canAccess: canAccessSettings },
+export interface NavigationGroup {
+  key: string;
+  label?: MessageKey;
+  items: NavigationItem[];
+}
+
+export const navigationGroups: NavigationGroup[] = [
+  {
+    key: "overview",
+    items: [
+      { key: "overview", label: "nav.overview", href: "/dashboard", icon: LayoutDashboard, capability: CAPABILITIES.dashboard },
+    ],
+  },
+  {
+    key: "administration",
+    label: "nav.administration",
+    items: [
+      { key: "users", label: "nav.users", href: "/dashboard/users", icon: Users, capability: CAPABILITIES.users },
+      { key: "rbac", label: "nav.rbac", href: "/dashboard/rbac", icon: ShieldCheck, capability: CAPABILITIES.users },
+      { key: "academic", label: "nav.academic", href: "/dashboard/academic", icon: GraduationCap, capability: CAPABILITIES.academic },
+      { key: "verifications", label: "nav.verifications", href: "/dashboard/verifications", icon: ClipboardCheck, capability: CAPABILITIES.verification },
+    ],
+  },
+  {
+    key: "content",
+    label: "nav.content",
+    items: [
+      { key: "lectures", label: "nav.lectures", href: "/dashboard/lectures", icon: BookOpenCheck, capability: CAPABILITIES.lectures },
+      { key: "files", label: "nav.files", href: "/dashboard/files", icon: FileStack, capability: CAPABILITIES.files },
+      { key: "groups", label: "nav.groups", href: "/dashboard/groups", icon: Network, capability: CAPABILITIES.groups },
+      { key: "announcements", label: "nav.announcements", href: "/dashboard/announcements", icon: Megaphone, capability: CAPABILITIES.announcements },
+    ],
+  },
+  {
+    key: "operations",
+    label: "nav.operations",
+    items: [
+      { key: "printing", label: "nav.printing", href: "/dashboard/printing", icon: Printer, capability: CAPABILITIES.printing },
+      { key: "support", label: "nav.support", href: "/dashboard/support", icon: Headphones, capability: CAPABILITIES.support },
+      { key: "feedback", label: "nav.feedback", href: "/dashboard/feedback", icon: MessageSquareText, capability: CAPABILITIES.feedback },
+      { key: "notifications", label: "nav.notifications", href: "/dashboard/notifications", icon: BellRing, capability: CAPABILITIES.announcements },
+    ],
+  },
+  {
+    key: "product",
+    label: "nav.product",
+    items: [
+      { key: "releases", label: "nav.releases", href: "/dashboard/product/releases", icon: Smartphone, capability: CAPABILITIES.product },
+      { key: "maintenance", label: "nav.maintenance", href: "/dashboard/product/maintenance", icon: Wrench, capability: CAPABILITIES.product },
+      { key: "features", label: "nav.features", href: "/dashboard/product/features", icon: Flag, capability: CAPABILITIES.product },
+      { key: "devices", label: "nav.devices", href: "/dashboard/product/devices", icon: MonitorSmartphone, capability: CAPABILITIES.product },
+    ],
+  },
+  {
+    key: "governance",
+    label: "nav.governance",
+    items: [
+      { key: "policies", label: "nav.policies", href: "/dashboard/governance/policies", icon: ScrollText, capability: CAPABILITIES.product },
+      { key: "deletions", label: "nav.deletions", href: "/dashboard/governance/deletions", icon: UserRoundCog, capability: CAPABILITIES.product },
+      { key: "audit", label: "nav.audit", href: "/dashboard/audit", icon: FileCheck2, capability: CAPABILITIES.audit },
+    ],
+  },
+  {
+    key: "system",
+    items: [
+      { key: "health", label: "nav.systemHealth", href: "/dashboard/system/health", icon: Activity, capability: CAPABILITIES.dashboard },
+      { key: "settings", label: "nav.settings", href: "/dashboard/settings", icon: Settings, capability: CAPABILITIES.dashboard },
+    ],
+  },
 ];
 
-// Bilingual Arabic labels available for future i18n or tooltips (RTL friendly layout)
-export const navigationArabic: Record<string, string> = {
-  [ROUTES.overview]: "نظرة عامة",
-  [ROUTES.academic]: "الهيكل الأكاديمي",
-  [ROUTES.verification]: "طلبات التحقق",
-  [ROUTES.studentAccountRequests]: "طلبات حسابات الطلاب",
-  [ROUTES.groups]: "المجموعات",
-  [ROUTES.files]: "مكتبة الملفات",
-  [ROUTES.announcements]: "الإعلانات",
-  [ROUTES.printing]: "أوامر الطباعة",
-  [ROUTES.support]: "تذاكر الدعم",
-  [ROUTES.auditLogs]: "سجلات التدقيق",
-  [ROUTES.notifications]: "الإشعارات",
-  [ROUTES.settings]: "الإعدادات",
-};
+export const academicSubNavigation: NavigationItem[] = [
+  { key: "universities", label: "nav.universities", href: "/dashboard/academic/universities", icon: University, capability: CAPABILITIES.academic },
+  { key: "faculties", label: "nav.faculties", href: "/dashboard/academic/faculties", icon: Building2, capability: CAPABILITIES.academic },
+  { key: "majors", label: "nav.majors", href: "/dashboard/academic/majors", icon: GraduationCap, capability: CAPABILITIES.academic },
+  { key: "academicYears", label: "nav.academicYears", href: "/dashboard/academic/academic-years", icon: NotebookTabs, capability: CAPABILITIES.academic },
+  { key: "semesters", label: "nav.semesters", href: "/dashboard/academic/semesters", icon: Tags, capability: CAPABILITIES.academic },
+  { key: "subjects", label: "nav.subjects", href: "/dashboard/academic/subjects", icon: BookOpenCheck, capability: CAPABILITIES.academic },
+];
+
+export const allNavigationItems = [...navigationGroups.flatMap((group) => group.items), ...academicSubNavigation];
+
+/** Maps a canonical (optionally locale-prefixed) dashboard URL to its UI gate. */
+export function capabilityForDashboardPath(pathname: string): string | undefined {
+  const withoutLocale = pathname.replace(/^\/(?:ar|en)(?=\/|$)/u, "");
+  const normalized = withoutLocale.length > 1 ? withoutLocale.replace(/\/+$/u, "") : withoutLocale;
+  const matchingItem = [...allNavigationItems]
+    .sort((left, right) => right.href.length - left.href.length)
+    .find((item) => normalized === item.href || normalized.startsWith(`${item.href}/`));
+  return matchingItem?.capability;
+}

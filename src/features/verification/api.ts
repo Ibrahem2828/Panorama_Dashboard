@@ -23,4 +23,4 @@ export const needsUpdateVerification = (id: number, payload: VerificationDecisio
   apiClient.post<ApiResponse<VerificationRequest>>(endpoints.verification.needsUpdate(id), payload).then((response) => unwrapApiResponse(response.data));
 
 export const getVerificationCardPreviewToken = (id: number) =>
-  requestPreviewToken(endpoints.verification.cardPreviewToken(id));
+  requestPreviewToken(endpoints.verification.cardTicket(id));

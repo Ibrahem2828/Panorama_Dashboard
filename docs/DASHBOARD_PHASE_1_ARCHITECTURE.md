@@ -33,7 +33,7 @@ Public environment values are validated in `src/config/env.ts`. Only `NEXT_PUBLI
 
 Future HTTPS values are documented in `.env.example`:
 
-- `NEXT_PUBLIC_API_BASE_URL=https://api.your-domain.com`
+- `BACKEND_API_BASE_URL=https://api.xn--mgbaab0cxheq.tech`
 - `NEXT_PUBLIC_WS_BASE_URL=wss://api.your-domain.com`
 
 ## API Contract

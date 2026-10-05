@@ -1,14 +1,9 @@
-import { clearSession, getAccessToken, getRefreshToken, getUser } from "@/lib/auth/token-storage";
-import { isDashboardRole } from "@/lib/permissions";
-
+﻿/**
+ * Legacy callers must use the BFF session query. This module intentionally has
+ * no browser-token implementation and reports no persisted client session.
+ */
 export function hasValidDashboardSession() {
-  const user = getUser();
-  return Boolean(getAccessToken() && getRefreshToken() && user && isDashboardRole(user.role));
+  return false;
 }
 
-export function clearInvalidSession() {
-  const user = getUser();
-  if (!user || !isDashboardRole(user.role)) {
-    clearSession();
-  }
-}
+export function clearInvalidSession() {}

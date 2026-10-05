@@ -1,97 +1,45 @@
-import axios, { AxiosError, type AxiosRequestConfig } from "axios";
+﻿"use client";
 
-import { env } from "@/config/env";
-import { endpoints } from "@/lib/api/endpoints";
-import { toAppApiError } from "@/lib/api/errors";
-import { clearSession, getAccessToken, getRefreshToken, setAccessToken, setRefreshToken } from "@/lib/auth/token-storage";
-import { ROUTES } from "@/lib/routes";
-import type { ApiResponse } from "@/types/api";
+import { bffFetch } from "@/lib/api/browser-client";
 
-interface RetryableAxiosRequestConfig extends AxiosRequestConfig {
-  _retry?: boolean;
+export interface LegacyApiResponse<T> {
+  data: T;
+  status: number;
 }
 
-let refreshPromise: Promise<string> | null = null;
-
-export const apiClient = axios.create({
-  baseURL: env.apiBaseUrl,
-  headers: {
-    Accept: "application/json",
-  },
-});
-
-function redirectToLogin() {
-  if (typeof window !== "undefined") {
-    window.location.assign(ROUTES.login);
-  }
+export interface LegacyRequestConfig {
+  body?: unknown;
+  headers?: HeadersInit;
+  params?: Record<string, string | number | boolean | null | undefined>;
+  signal?: AbortSignal;
 }
 
-async function refreshAccessToken() {
-  if (!refreshPromise) {
-    const refresh = getRefreshToken();
-
-    if (!refresh) {
-      throw new Error("Missing refresh token.");
-    }
-
-    refreshPromise = axios
-      .post<ApiResponse<{ access: string; refresh?: string }>>(`${env.apiBaseUrl}${endpoints.auth.refresh}`, { refresh })
-      .then((response) => {
-        const payload = response.data;
-        if (!payload.success) {
-          throw new Error(payload.message);
-        }
-        setAccessToken(payload.data.access);
-        if (payload.data.refresh) {
-          setRefreshToken(payload.data.refresh);
-        }
-        return payload.data.access;
-      })
-      .finally(() => {
-        refreshPromise = null;
-      });
+function withParams(path: string, params?: LegacyRequestConfig["params"]): string {
+  if (!params) return path;
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) search.set(key, String(value));
   }
-
-  return refreshPromise;
+  const query = search.toString();
+  return query ? `${path}${path.includes("?") ? "&" : "?"}${query}` : path;
 }
 
-apiClient.interceptors.request.use((config) => {
-  const token = getAccessToken();
+async function request<T>(method: string, path: string, config: LegacyRequestConfig = {}): Promise<LegacyApiResponse<T>> {
+  const target = withParams(path, config.params);
+  const response = await bffFetch(target, {
+    method,
+    headers: config.headers,
+    body: config.body,
+    signal: config.signal,
+  });
+  return { data: (await response.json()) as T, status: response.status };
+}
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  if (config.data instanceof FormData) {
-    delete config.headers["Content-Type"];
-  } else {
-    config.headers["Content-Type"] = "application/json";
-  }
-
-  return config;
-});
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as RetryableAxiosRequestConfig | undefined;
-
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const access = await refreshAccessToken();
-        originalRequest.headers = {
-          ...originalRequest.headers,
-          Authorization: `Bearer ${access}`,
-        };
-        return apiClient(originalRequest);
-      } catch {
-        clearSession();
-        redirectToLogin();
-      }
-    }
-
-    return Promise.reject(toAppApiError(error));
-  },
-);
+// Transitional adapter for un-migrated modules. It is same-origin BFF-only.
+export const apiClient = {
+  get: <T>(path: string, config?: LegacyRequestConfig) => request<T>("GET", path, config),
+  post: <T>(path: string, body?: unknown, config?: LegacyRequestConfig) => request<T>("POST", path, { ...config, body }),
+  put: <T>(path: string, body?: unknown, config?: LegacyRequestConfig) => request<T>("PUT", path, { ...config, body }),
+  patch: <T>(path: string, body?: unknown, config?: LegacyRequestConfig) => request<T>("PATCH", path, { ...config, body }),
+  delete: <T>(path: string, config?: LegacyRequestConfig) => request<T>("DELETE", path, config),
+};

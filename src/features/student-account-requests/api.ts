@@ -1,9 +1,4 @@
-import { apiClient } from "@/lib/api/client";
-import { endpoints } from "@/lib/api/endpoints";
-import { listItems, type QueryParams } from "@/lib/api/crud";
-import { requestPreviewToken } from "@/lib/api/protected-media";
-import { unwrapApiResponse } from "@/lib/api/response";
-import type { ApiResponse } from "@/types/api";
+import type { ListResult, QueryParams } from "@/lib/api/crud";
 import type {
   NeedsUpdatePayload,
   RejectPayload,
@@ -12,35 +7,28 @@ import type {
   StudentAccountRequestOtpPayload,
 } from "@/features/student-account-requests/types";
 
-const base = endpoints.studentAccountRequests;
+function unavailable<T>(...argumentsToIgnore: unknown[]): Promise<T> {
+  void argumentsToIgnore;
+  return Promise.reject(new Error("Student account request operations are not present in the current OpenAPI contract."));
+}
 
 export const listStudentAccountRequests = (params?: QueryParams) =>
-  listItems<StudentAccountRequestListItem>(base.list, params);
+  unavailable<ListResult<StudentAccountRequestListItem>>(params);
 
 export const getStudentAccountRequest = (id: number | string) =>
-  apiClient
-    .get<ApiResponse<StudentAccountRequestDetail>>(base.detail(id))
-    .then((response) => unwrapApiResponse(response.data));
+  unavailable<StudentAccountRequestDetail>(id);
 
 export const approveStudentAccountRequest = (id: number | string) =>
-  apiClient
-    .post<ApiResponse<StudentAccountRequestOtpPayload>>(base.approve(id), {})
-    .then((response) => unwrapApiResponse(response.data));
+  unavailable<StudentAccountRequestOtpPayload>(id);
 
 export const rejectStudentAccountRequest = (id: number | string, payload: RejectPayload) =>
-  apiClient
-    .post<ApiResponse<StudentAccountRequestDetail>>(base.reject(id), payload)
-    .then((response) => unwrapApiResponse(response.data));
+  unavailable<StudentAccountRequestDetail>(id, payload);
 
 export const markStudentAccountRequestNeedsUpdate = (id: number | string, payload: NeedsUpdatePayload) =>
-  apiClient
-    .post<ApiResponse<StudentAccountRequestDetail>>(base.needsUpdate(id), payload)
-    .then((response) => unwrapApiResponse(response.data));
+  unavailable<StudentAccountRequestDetail>(id, payload);
 
 export const resendStudentOtp = (id: number | string) =>
-  apiClient
-    .post<ApiResponse<StudentAccountRequestOtpPayload>>(base.resendOtp(id), {})
-    .then((response) => unwrapApiResponse(response.data));
+  unavailable<StudentAccountRequestOtpPayload>(id);
 
 export const createCardPreviewToken = (id: number | string) =>
-  requestPreviewToken(base.cardPreviewToken(id));
+  unavailable<{ url?: string; token?: string }>(id);

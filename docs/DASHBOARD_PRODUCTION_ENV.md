@@ -1,56 +1,43 @@
-# Dashboard Production Environment
+# Panorama Dashboard production environment
 
-## Current HTTP (Development / Staging Backend)
-```
-NEXT_PUBLIC_API_BASE_URL=http://eby52x8qksscjvfeqxf0eob7.76.13.155.172.sslip.io
-NEXT_PUBLIC_WS_BASE_URL=ws://eby52x8qksscjvfeqxf0eob7.76.13.155.172.sslip.io
-NEXT_PUBLIC_APP_NAME=Panorama Dashboard
-NEXT_PUBLIC_APP_ENV=local
-```
+The browser talks only to the dashboard origin. The Django backend URL is a
+server-only runtime setting and must never use a `NEXT_PUBLIC_*` name.
 
-## Recommended Production HTTPS Values
-```
-NEXT_PUBLIC_API_BASE_URL=https://api.your-domain.com
-NEXT_PUBLIC_WS_BASE_URL=wss://api.your-domain.com
+## Required settings
+
+```dotenv
+BACKEND_API_BASE_URL=https://api.xn--mgbaab0cxheq.tech
+BACKEND_REQUEST_TIMEOUT_MS=12000
 NEXT_PUBLIC_APP_NAME=Panorama Dashboard
 NEXT_PUBLIC_APP_ENV=production
+ALLOW_ROLE_CAPABILITY_FALLBACK=false
 ```
 
-## Coolify Environment Variables
-Set these in the Coolify service configuration (Environment tab):
+Do not set `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_BACKEND_API_BASE_URL`, or a
+public WebSocket backend URL for this dashboard. Such values would invite
+browser-to-backend traffic and bypass the BFF boundary.
 
-- `NEXT_PUBLIC_API_BASE_URL`
-- `NEXT_PUBLIC_WS_BASE_URL`
-- `NEXT_PUBLIC_APP_NAME`
-- `NEXT_PUBLIC_APP_ENV`
+## Cookie policy
 
-Example production values (replace with real domain):
-- NEXT_PUBLIC_API_BASE_URL=https://api.panorama.your-domain.com
-- NEXT_PUBLIC_WS_BASE_URL=wss://api.panorama.your-domain.com
-- NEXT_PUBLIC_APP_NAME=Panorama Dashboard
-- NEXT_PUBLIC_APP_ENV=production
+| Cookie | HttpOnly | Secure in production | SameSite | Path |
+| --- | --- | --- | --- | --- |
+| `panorama_access` | yes | yes | Lax | `/api` |
+| `panorama_refresh` | yes | yes | Lax | `/api` |
+| `panorama_csrf` | no | yes | Lax | `/` |
 
-## Important Notes
-- All `NEXT_PUBLIC_*` values are **public** and will be bundled into the client-side JavaScript. Never put tokens, passwords, or secrets here.
-- The dashboard is a pure client-side authenticated app after login. No server-side secrets are required at build time.
-- `src/config/env.ts` performs strict validation on startup. Missing or invalid values will cause a clear error.
-- Local development typically uses `http://localhost:3000`.
-- Deployed dashboard **must** use its real HTTPS origin.
+The CSRF cookie is readable only so same-origin browser mutations can submit a
+double-submit header. It is not a credential. Access and refresh cookies must
+retain `Path=/api`; page middleware intentionally does not authenticate users.
 
-## Backend CORS / CSRF Reminder
-The backend must explicitly allow the dashboard's origin:
-- Add the deployed dashboard URL (e.g. `https://dashboard.your-domain.com`) to `CORS_ALLOWED_ORIGINS`.
-- Add it to `CSRF_TRUSTED_ORIGINS` (if CSRF is enabled).
+## Release sequence
 
-Without this, login, token refresh, and authenticated calls will fail with CORS or CSRF errors.
+1. Provide the approved backend `docs/api/openapi.json` artifact.
+2. Set `BACKEND_OPENAPI_SOURCE` to its HTTPS URL or local file path. If the
+   backend publishes the YAML companion, set `BACKEND_OPENAPI_YAML_SOURCE` too
+   so the informational YAML mirror cannot remain stale.
+3. Run `npm run contracts:sync`, `npm run contracts:generate`, then `npm run contracts:check`.
+4. Run the quality suite under Node `22.16.x` (`.nvmrc`).
+5. Run authenticated staging smoke tests with approved non-production credentials.
 
-## .env.local for Local Development
-```bash
-cp .env.example .env.local
-# Then edit .env.local with current values if needed.
-```
-
-Build will succeed as long as the required NEXT_PUBLIC variables are present at build/runtime (Coolify injects them).
-
-## Validation
-The `npm run type-check` and `npm run build` will not call the live backend. All data fetching happens client-side after authentication.
+`contracts:sync` rejects any document that does not match the pinned release
+checksum and counts in `contracts/backend/contract-target.json`.

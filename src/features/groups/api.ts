@@ -12,14 +12,18 @@ export const listGroups = (params?: QueryParams) => listItems<Group>(base, param
 export const createGroup = (values: GroupFormValues) => createItem<Group, FormData | Record<string, unknown>>(base, groupPayload(values));
 export const updateGroup = (id: number, values: GroupFormValues) => updateItem<Group, FormData | Record<string, unknown>>(base, id, groupPayload(values));
 export const deleteGroup = (id: number) => deleteItem(base, id);
-export const listMemberships = (groupId: number, params?: QueryParams) => listItems<GroupMembership>(`${base}${groupId}/memberships/`, params);
-export const listJoinRequests = (groupId: number) => listItems<GroupMembership>(`${base}${groupId}/join-requests/`);
+export const listMemberships = (groupId: number, params?: QueryParams) => listItems<GroupMembership>(endpoints.groups.memberships(groupId), params);
+export const listJoinRequests = (groupId: number) => listItems<GroupMembership>(endpoints.groups.joinRequests(groupId));
 
 export const membershipAction = (id: number, action: "approve" | "reject" | "block") =>
-  apiClient.post<ApiResponse<GroupMembership>>(`/api/v1/dashboard/group-memberships/${id}/${action}/`, {}).then((response) => unwrapApiResponse(response.data));
+  apiClient.post<ApiResponse<GroupMembership>>(({
+    approve: endpoints.groups.approveMembership,
+    reject: endpoints.groups.rejectMembership,
+    block: endpoints.groups.blockMembership,
+  })[action](id), {}).then((response) => unwrapApiResponse(response.data));
 
 export const updateMembershipRole = (id: number, role: string) =>
-  apiClient.patch<ApiResponse<GroupMembership>>(`/api/v1/dashboard/group-memberships/${id}/role/`, { role }).then((response) => unwrapApiResponse(response.data));
+  apiClient.patch<ApiResponse<GroupMembership>>(endpoints.groups.membershipRole(id), { role }).then((response) => unwrapApiResponse(response.data));
 
 function groupPayload(values: GroupFormValues) {
   const payload = {

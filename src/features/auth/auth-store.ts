@@ -1,44 +1,26 @@
-"use client";
+﻿"use client";
 
 import { create } from "zustand";
 
-import { clearSession, getAccessToken, getRefreshToken, getUser, setTokens, setUser } from "@/lib/auth/token-storage";
-import type { AuthTokens, User } from "@/types/auth";
+import type { DashboardSession, SessionUser } from "@/types/auth";
 
 interface AuthState {
-  user: User | null;
+  user: SessionUser | null;
   isAuthenticated: boolean;
   isHydrated: boolean;
   hydrate: () => void;
-  setSession: (tokens: AuthTokens, user: User) => void;
-  setUser: (user: User) => void;
+  setSession: (session: DashboardSession) => void;
+  setUser: (user: SessionUser) => void;
   clear: () => void;
 }
 
+/** Compatibility store: in-memory user display state only. No credentials persist here. */
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isHydrated: false,
-  hydrate: () => {
-    const user = getUser();
-    const hasTokens = Boolean(getAccessToken() && getRefreshToken());
-    set({
-      user,
-      isAuthenticated: hasTokens,
-      isHydrated: true,
-    });
-  },
-  setSession: (tokens, user) => {
-    setTokens(tokens);
-    setUser(user);
-    set({ user, isAuthenticated: true, isHydrated: true });
-  },
-  setUser: (user) => {
-    setUser(user);
-    set({ user });
-  },
-  clear: () => {
-    clearSession();
-    set({ user: null, isAuthenticated: false, isHydrated: true });
-  },
+  hydrate: () => set({ isHydrated: true }),
+  setSession: (session) => set({ user: session.user, isAuthenticated: true, isHydrated: true }),
+  setUser: (user) => set({ user }),
+  clear: () => set({ user: null, isAuthenticated: false, isHydrated: true }),
 }));
