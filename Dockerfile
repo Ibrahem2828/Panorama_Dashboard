@@ -13,7 +13,8 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME=0.0.0.0
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+# The pinned Node image ships an old Alpine; take the security fixes (OpenSSL etc.) at build time.
+RUN apk upgrade --no-cache && addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
