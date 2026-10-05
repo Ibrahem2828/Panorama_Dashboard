@@ -14,7 +14,9 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 # The pinned Node image ships an old Alpine; take the security fixes (OpenSSL etc.) at build time.
-RUN apk upgrade --no-cache && addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+RUN apk upgrade --no-cache     && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-*        /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg     && addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+# The runtime only executes `node server.js`; the package managers bundled in the base image are unused and
+# carry their own vulnerable dependencies (tar, glob, brace-expansion, ...), so they are not shipped.
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
