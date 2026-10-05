@@ -13,8 +13,21 @@ export class SecurityError extends Error {
 
 export function newCsrfToken() { return crypto.randomBytes(32).toString("base64url"); }
 
+/**
+ * In the standalone server `request.url` carries the container's bind address (HOSTNAME=0.0.0.0), not the public
+ * host, so the browser's Origin would never match. Prefer the configured public origin, then the proxy's forwarded
+ * headers (Traefik sets them and a browser cannot forge them cross-site), then the request URL.
+ */
+function expectedOrigin(request: NextRequest): string {
+  if (serverEnv.appOrigin) return serverEnv.appOrigin;
+  const first = (value: string | null) => value?.split(",")[0]?.trim() || null;
+  const host = first(request.headers.get("x-forwarded-host")) ?? first(request.headers.get("host"));
+  const proto = first(request.headers.get("x-forwarded-proto")) ?? new URL(request.url).protocol.replace(":", "");
+  return host ? `${proto}://${host}` : new URL(request.url).origin;
+}
+
 function assertSameOrigin(request: NextRequest) {
-  const ownOrigin = new URL(request.url).origin;
+  const ownOrigin = expectedOrigin(request);
   const origin = request.headers.get("origin");
   const referer = request.headers.get("referer");
   const fetchSite = request.headers.get("sec-fetch-site");

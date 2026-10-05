@@ -16,7 +16,7 @@ function ReferenceSelect({ field, value, onChange }: { field: ContractField; val
   const endpoint = REFERENCE_ENDPOINTS[field.name];
   const query = useQuery({
     queryKey: ["reference-options", endpoint],
-    queryFn: async () => normalizeCollection<Record<string, unknown>>(await apiFetch(`${endpoint}?page_size=200`)).results,
+    queryFn: async () => (await normalizeCollection<Record<string, unknown>>(await apiFetch(`${endpoint}?page_size=200`))).results,
     enabled: Boolean(endpoint),
     staleTime: 5 * 60_000,
   });

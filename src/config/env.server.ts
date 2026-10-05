@@ -2,7 +2,9 @@
 
 function normalizeBaseUrl(value: string): string {
   const normalized = value.trim().replace(/\/+$/, "");
-  if (!/^https:\/\//i.test(normalized)) {
+  // Plain HTTP is only for a local full-stack run and must be opted into explicitly.
+  const allowInsecure = process.env.ALLOW_INSECURE_BACKEND === "true" && /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(normalized);
+  if (!/^https:\/\//i.test(normalized) && !allowInsecure) {
     throw new Error("BACKEND_API_BASE_URL must use https");
   }
 
@@ -39,7 +41,9 @@ export const serverEnv = {
     refresh: "panorama_refresh",
     csrf: "panorama_csrf",
   },
-  secureCookies: isProduction,
+  secureCookies: process.env.SECURE_COOKIES ? process.env.SECURE_COOKIES === "true" : isProduction,
+  /** Public origin of the dashboard (strict Origin check behind a TLS-terminating proxy). Optional. */
+  appOrigin: process.env.APP_ORIGIN?.trim().replace(/\/+$/, "") || null,
   enableApiDebug: bool(process.env.ENABLE_API_DEBUG),
   isProduction,
   allowRoleCapabilityFallback,

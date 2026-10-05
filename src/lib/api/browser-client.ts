@@ -59,9 +59,25 @@ export async function unwrap<T>(response: BffResponse<T> | Promise<BffResponse<T
   return payload && typeof payload === "object" && "data" in payload ? (payload as { data: UnwrappedPayload<T> }).data : payload as UnwrappedPayload<T>;
 }
 export interface NormalizedCollection<T> { results: T[]; count: number; next: string | null; previous: string | null; }
-export function normalizeCollection<T>(payload: unknown): NormalizedCollection<T> {
+/**
+ * Normalises a list response into a page. Accepts the raw `Response` returned by `apiFetch` (parsed here), a
+ * promise of it, or an already parsed payload. The backend wraps pages as
+ * `{ success, data: { count, next, previous, results } }`; a bare page object, an array, and a `data` array work too.
+ */
+export async function normalizeCollection<T>(input: unknown): Promise<NormalizedCollection<T>> {
+  const settled = await input;
+  const payload: unknown = settled instanceof Response ? await settled.json() : settled;
+  const empty = { results: [] as T[], count: 0, next: null, previous: null };
   if (Array.isArray(payload)) return { results: payload as T[], count: payload.length, next: null, previous: null };
-  if (payload && typeof payload === "object") { const source = payload as Record<string, unknown>; const results = Array.isArray(source.results) ? source.results : Array.isArray(source.items) ? source.items : Array.isArray(source.data) ? source.data : []; return { results: results as T[], count: typeof source.count === "number" ? source.count : results.length, next: typeof source.next === "string" ? source.next : null, previous: typeof source.previous === "string" ? source.previous : null }; }
-  return { results: [], count: 0, next: null, previous: null };
+  if (!payload || typeof payload !== "object") return empty;
+  const outer = payload as Record<string, unknown>;
+  const source = outer.data && typeof outer.data === "object" && !Array.isArray(outer.data) ? (outer.data as Record<string, unknown>) : outer;
+  const results = Array.isArray(source.results) ? source.results : Array.isArray(source.items) ? source.items : Array.isArray(source.data) ? source.data : [];
+  return {
+    results: results as T[],
+    count: typeof source.count === "number" ? source.count : results.length,
+    next: typeof source.next === "string" ? source.next : null,
+    previous: typeof source.previous === "string" ? source.previous : null,
+  };
 }
 export async function downloadFromBackend(path: string, init: BffRequestInit = {}): Promise<BffResponse<unknown>> { return apiFetch(path, init); }

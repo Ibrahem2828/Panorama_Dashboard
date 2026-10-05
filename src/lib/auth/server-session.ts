@@ -12,10 +12,12 @@ import type { DashboardSession, SessionUser } from "@/types/auth";
 export interface SessionTokens { access: string; refresh: string; }
 export interface StoredTokens { access?: string; refresh?: string; }
 
+// The backend's login response also carries the user object (and may gain fields later); only the token pair is
+// read here and everything else is discarded, so extra fields must not make a valid login fail.
 const tokenPairSchema = z.object({
   access: z.string().min(1),
   refresh: z.string().min(1),
-}).strict();
+});
 
 export interface RefreshTokensResult {
   tokens: SessionTokens | null;

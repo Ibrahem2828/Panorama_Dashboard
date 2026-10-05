@@ -13,6 +13,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone", poweredByHeader: false, reactStrictMode: true, compress: true,
+  // Backend routes all end with "/"; the BFF restores it, so Next must not 308 those requests to the slashless form.
+  skipTrailingSlashRedirect: true,
   images: { formats: ["image/avif", "image/webp"], minimumCacheTTL: 31_536_000 },
   async headers() { return [{ source: "/:path*", headers: securityHeaders }]; },
 };

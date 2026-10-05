@@ -36,7 +36,7 @@ export function RbacPage() {
 
   const users = useQuery({
     queryKey: ["rbac-users"],
-    queryFn: async () => normalizeCollection<User>(await apiFetch("/api/v1/dashboard/users/?page_size=200&ordering=full_name")).results,
+    queryFn: async () => (await normalizeCollection<User>(await apiFetch("/api/v1/dashboard/users/?page_size=200&ordering=full_name"))).results,
   });
   const capabilities = useQuery({
     queryKey: ["capabilities"],
