@@ -17,3 +17,6 @@ export const DASHBOARD_ROLES = [
 ] as const;
 
 export type DashboardRole = (typeof DASHBOARD_ROLES)[number];
+
+/** End-user roles that must never obtain a dashboard session, whatever capabilities the backend lists. */
+export const END_USER_ROLES = ["student", "normal_user"] as const;

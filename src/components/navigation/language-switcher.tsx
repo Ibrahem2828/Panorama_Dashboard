@@ -10,7 +10,7 @@ import { useI18n } from "@/i18n/provider";
 import { switchLocalePath } from "@/i18n/routing";
 
 export function LanguageSwitcher() {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();

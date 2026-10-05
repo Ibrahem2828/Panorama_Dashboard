@@ -1,153 +1,22 @@
 {
   "generatedBy": "scripts/contract-diff.mjs",
   "old": {
-    "source": "B:\\panorama\\panorama-dashboard-professional\\contracts\\backend\\openapi.json",
-    "sha256": "180f1fdec13a63567c24f129b8548810025a82107833e4e612fe1261825f30d3",
-    "paths": 181,
-    "operations": 331,
-    "schemas": 221
-  },
-  "next": {
-    "source": "B:\\panorama\\panorama-dashboard\\contracts\\backend\\openapi.json",
+    "source": "C:\\Users\\Ibrahim\\AppData\\Local\\Temp\\old_openapi.json",
     "sha256": "ea9745f55299680f4b76f63acd495306b658306f5ed9a36a3bb2a976148dc653",
     "paths": 184,
     "operations": 272,
     "schemas": 222
   },
-  "added": [
-    "POST /api/v1/dashboard/users/{id}/activate/",
-    "POST /api/v1/dashboard/users/{id}/deactivate/",
-    "POST /api/v1/groups/{group_id}/chat-ticket/"
-  ],
-  "removed": [
-    "DELETE /api/v1/academic-years/{id}/",
-    "DELETE /api/v1/announcements/{id}/",
-    "DELETE /api/v1/dashboard/audit-logs/{id}/",
-    "DELETE /api/v1/dashboard/feedback/{id}/",
-    "DELETE /api/v1/dashboard/printing/orders/{id}/",
-    "DELETE /api/v1/dashboard/support/tickets/{id}/",
-    "DELETE /api/v1/dashboard/users/{id}/",
-    "DELETE /api/v1/dashboard/verifications/{id}/",
-    "DELETE /api/v1/feedback/mine/{id}/",
-    "DELETE /api/v1/feedback/suggestions/{id}/",
-    "DELETE /api/v1/files/{id}/",
-    "DELETE /api/v1/groups/available/{id}/",
-    "DELETE /api/v1/groups/my/{id}/",
-    "DELETE /api/v1/groups/{id}/",
-    "DELETE /api/v1/lectures/{id}/",
-    "DELETE /api/v1/notifications/{id}/",
-    "DELETE /api/v1/printing/orders/my/{id}/",
-    "DELETE /api/v1/printing/pickup-locations/{id}/",
-    "DELETE /api/v1/semesters/{id}/",
-    "DELETE /api/v1/support/tickets/{id}/",
-    "DELETE /api/v1/universities/{id}/",
-    "POST /api/v1/academic-years/",
-    "POST /api/v1/announcements/",
-    "POST /api/v1/dashboard/audit-logs/",
-    "POST /api/v1/dashboard/feedback/",
-    "POST /api/v1/dashboard/printing/orders/",
-    "POST /api/v1/dashboard/support/tickets/",
-    "POST /api/v1/dashboard/users/",
-    "POST /api/v1/dashboard/verifications/",
-    "POST /api/v1/feedback/mine/",
-    "POST /api/v1/feedback/suggestions/",
-    "POST /api/v1/files/",
-    "POST /api/v1/groups/",
-    "POST /api/v1/groups/available/",
-    "POST /api/v1/groups/my/",
-    "POST /api/v1/lectures/",
-    "POST /api/v1/notifications/",
-    "POST /api/v1/printing/orders/my/",
-    "POST /api/v1/printing/pickup-locations/",
-    "POST /api/v1/semesters/",
-    "POST /api/v1/universities/",
-    "PUT /api/v1/academic-years/{id}/",
-    "PUT /api/v1/announcements/{id}/",
-    "PUT /api/v1/dashboard/audit-logs/{id}/",
-    "PUT /api/v1/dashboard/feedback/{id}/",
-    "PUT /api/v1/dashboard/printing/orders/{id}/",
-    "PUT /api/v1/dashboard/support/tickets/{id}/",
-    "PUT /api/v1/dashboard/users/{id}/",
-    "PUT /api/v1/dashboard/verifications/{id}/",
-    "PUT /api/v1/feedback/mine/{id}/",
-    "PUT /api/v1/feedback/suggestions/{id}/",
-    "PUT /api/v1/files/{id}/",
-    "PUT /api/v1/groups/available/{id}/",
-    "PUT /api/v1/groups/my/{id}/",
-    "PUT /api/v1/groups/{id}/",
-    "PUT /api/v1/lectures/{id}/",
-    "PUT /api/v1/notifications/{id}/",
-    "PUT /api/v1/printing/orders/my/{id}/",
-    "PUT /api/v1/printing/pickup-locations/{id}/",
-    "PUT /api/v1/semesters/{id}/",
-    "PUT /api/v1/support/tickets/{id}/",
-    "PUT /api/v1/universities/{id}/"
-  ],
-  "changed": [
-    {
-      "operation": "GET /api/v1/protected-files/{token}/",
-      "fields": [
-        "parameters",
-        "responses"
-      ]
-    },
-    {
-      "operation": "PATCH /api/v1/dashboard/users/{id}/",
-      "fields": [
-        "requestBody",
-        "responses"
-      ]
-    },
-    {
-      "operation": "POST /api/v1/auth/confirm-password-reset/",
-      "fields": [
-        "security"
-      ]
-    },
-    {
-      "operation": "POST /api/v1/auth/login/",
-      "fields": [
-        "security"
-      ]
-    },
-    {
-      "operation": "POST /api/v1/auth/otp/send/",
-      "fields": [
-        "security"
-      ]
-    },
-    {
-      "operation": "POST /api/v1/auth/otp/verify/",
-      "fields": [
-        "security"
-      ]
-    },
-    {
-      "operation": "POST /api/v1/auth/register/normal/",
-      "fields": [
-        "security"
-      ]
-    },
-    {
-      "operation": "POST /api/v1/auth/register/student/",
-      "fields": [
-        "security"
-      ]
-    },
-    {
-      "operation": "POST /api/v1/auth/request-password-reset/",
-      "fields": [
-        "security"
-      ]
-    },
-    {
-      "operation": "POST /api/v1/auth/token/refresh/",
-      "fields": [
-        "requestBody",
-        "security"
-      ]
-    }
-  ],
+  "next": {
+    "source": "D:\\panorama\\projects\\dashboard\\contracts\\backend\\openapi.json",
+    "sha256": "ec000ddc588117a77f021e67c1594d0718340e75fe6a55c3ac68d2a849db5837",
+    "paths": 184,
+    "operations": 272,
+    "schemas": 222
+  },
+  "added": [],
+  "removed": [],
+  "changed": [],
   "deprecated": [],
   "dashboardCallAudit": {
     "calls": [
@@ -193,7 +62,7 @@
       },
       {
         "file": "src/features/notifications/notifications-page.tsx",
-        "line": 38,
+        "line": 64,
         "method": "GET",
         "pathTemplate": "/api/v1/dashboard/users/",
         "status": "documented",
@@ -203,7 +72,7 @@
       },
       {
         "file": "src/features/notifications/notifications-page.tsx",
-        "line": 50,
+        "line": 74,
         "method": "POST",
         "pathTemplate": "/api/v1/dashboard/notifications/campaign/",
         "status": "documented",
@@ -213,7 +82,7 @@
       },
       {
         "file": "src/features/printing/printing-page.tsx",
-        "line": 63,
+        "line": 86,
         "method": "GET",
         "pathTemplate": "/api/v1/dashboard/printing/orders/",
         "status": "documented",
@@ -223,7 +92,7 @@
       },
       {
         "file": "src/features/printing/printing-page.tsx",
-        "line": 68,
+        "line": 91,
         "method": "GET",
         "pathTemplate": "/api/v1/dashboard/users/",
         "status": "documented",
@@ -233,7 +102,7 @@
       },
       {
         "file": "src/features/printing/printing-page.tsx",
-        "line": 74,
+        "line": 97,
         "method": "PATCH",
         "pathTemplate": "/api/v1/dashboard/printing/orders/${selected.id}/status/",
         "status": "documented",
@@ -243,7 +112,7 @@
       },
       {
         "file": "src/features/printing/printing-page.tsx",
-        "line": 75,
+        "line": 98,
         "method": "PATCH",
         "pathTemplate": "/api/v1/dashboard/printing/orders/${selected.id}/assign/",
         "status": "documented",
@@ -253,7 +122,7 @@
       },
       {
         "file": "src/features/printing/printing-page.tsx",
-        "line": 76,
+        "line": 99,
         "method": "POST",
         "pathTemplate": "/api/v1/dashboard/printing/orders/${selected.id}/note/",
         "status": "documented",
@@ -263,7 +132,7 @@
       },
       {
         "file": "src/features/rbac/rbac-page.tsx",
-        "line": 38,
+        "line": 39,
         "method": "GET",
         "pathTemplate": "/api/v1/dashboard/users/",
         "status": "documented",
@@ -273,7 +142,7 @@
       },
       {
         "file": "src/features/rbac/rbac-page.tsx",
-        "line": 52,
+        "line": 53,
         "method": "PUT",
         "pathTemplate": "/api/v1/dashboard/users/${selected.id}/permission-overrides/",
         "status": "documented",
@@ -283,7 +152,7 @@
       },
       {
         "file": "src/features/rbac/rbac-page.tsx",
-        "line": 60,
+        "line": 61,
         "method": "DELETE",
         "pathTemplate": "/api/v1/dashboard/users/${selected.id}/permission-overrides/",
         "status": "documented",
@@ -293,7 +162,7 @@
       },
       {
         "file": "src/features/support/support-page.tsx",
-        "line": 52,
+        "line": 74,
         "method": "GET",
         "pathTemplate": "/api/v1/dashboard/support/tickets/",
         "status": "documented",
@@ -303,7 +172,7 @@
       },
       {
         "file": "src/features/support/support-page.tsx",
-        "line": 57,
+        "line": 79,
         "method": "GET",
         "pathTemplate": "/api/v1/dashboard/users/",
         "status": "documented",
@@ -313,7 +182,7 @@
       },
       {
         "file": "src/features/support/support-page.tsx",
-        "line": 68,
+        "line": 90,
         "method": "POST",
         "pathTemplate": "/api/v1/dashboard/support/tickets/${selected.id}/messages/",
         "status": "documented",
@@ -323,7 +192,7 @@
       },
       {
         "file": "src/features/support/support-page.tsx",
-        "line": 69,
+        "line": 91,
         "method": "PATCH",
         "pathTemplate": "/api/v1/dashboard/support/tickets/${selected.id}/status/",
         "status": "documented",
@@ -333,7 +202,7 @@
       },
       {
         "file": "src/features/support/support-page.tsx",
-        "line": 70,
+        "line": 92,
         "method": "PATCH",
         "pathTemplate": "/api/v1/dashboard/support/tickets/${selected.id}/priority/",
         "status": "documented",
@@ -343,7 +212,7 @@
       },
       {
         "file": "src/features/support/support-page.tsx",
-        "line": 71,
+        "line": 93,
         "method": "POST",
         "pathTemplate": "/api/v1/dashboard/support/tickets/${selected.id}/assign/",
         "status": "documented",

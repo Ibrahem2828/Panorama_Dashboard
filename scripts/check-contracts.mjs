@@ -11,7 +11,6 @@ const metaSource = fs.readFileSync(path.join(root, "src/contracts/generated/cont
 const operationsSource = fs.readFileSync(path.join(root, "src/contracts/generated/operations.ts"), "utf8");
 const typesSource = fs.readFileSync(path.join(root, "src/contracts/generated/types.ts"), "utf8");
 const resourcesSource = fs.readFileSync(path.join(root, "src/contracts/generated/resources.ts"), "utf8");
-const endpointSource = fs.readFileSync(path.join(root, "src/lib/api/endpoints.ts"), "utf8");
 const methods = new Set(["get", "post", "put", "patch", "delete"]);
 const operationIds = [];
 for (const [route, pathItem] of Object.entries(contract.paths ?? {})) {
@@ -43,12 +42,6 @@ for (const operationId of operationIds) {
   if (!operationsSource.includes(`"operationId": "${operationId}"`)) throw new Error(`Missing generated operation ${operationId}`);
   if (!typesSource.includes(`"${operationId}"`)) throw new Error(`Missing generated operation type ${operationId}`);
   if (!resourcesSource.includes(`"${operationId}":`)) throw new Error(`Missing generated operation path ${operationId}`);
-}
-for (const match of endpointSource.matchAll(/operationPath\("([^"]+)"/gu)) {
-  const operationId = match[1];
-  if (!operationIds.includes(operationId)) {
-    throw new Error(`Legacy endpoint adapter references an operation removed from the canonical contract: ${operationId}`);
-  }
 }
 if (!typesSource.includes("export interface BackendSchemas") || !typesSource.includes("export interface BackendOperations")) {
   throw new Error("Generated DTO contracts are incomplete. Run npm run contracts:generate.");

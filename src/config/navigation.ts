@@ -128,6 +128,7 @@ export function capabilityForDashboardPath(pathname: string): string | undefined
   const normalized = withoutLocale.length > 1 ? withoutLocale.replace(/\/+$/u, "") : withoutLocale;
   const matchingItem = [...allNavigationItems]
     .sort((left, right) => right.href.length - left.href.length)
-    .find((item) => normalized === item.href || normalized.startsWith(`${item.href}/`));
+    // The overview ("/dashboard") only matches itself; otherwise it would claim every unknown sub-route.
+    .find((item) => normalized === item.href || (item.href !== "/dashboard" && normalized.startsWith(`${item.href}/`)));
   return matchingItem?.capability;
 }

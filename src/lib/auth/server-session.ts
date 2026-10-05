@@ -4,8 +4,9 @@ import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 
+import { END_USER_ROLES } from "@/config/constants";
 import { serverEnv } from "@/config/env.server";
-import { backendFetch } from "@/lib/api/backend";
+import { backendFetch, unwrapEnvelope } from "@/lib/api/backend";
 import type { DashboardSession, SessionUser } from "@/types/auth";
 
 export interface SessionTokens { access: string; refresh: string; }
@@ -102,6 +103,9 @@ function isSessionUser(value: unknown): value is SessionUser {
 export function sessionFromUser(value: unknown): DashboardSession | null {
   if (!isSessionUser(value)) return null;
   const raw = value;
+  // Defence in depth: capabilities come from the backend (so new staff roles work without a release),
+  // but the known end-user roles can never open the dashboard.
+  if ((END_USER_ROLES as readonly string[]).includes(raw.role)) return null;
   const backendCapabilities = Array.isArray(raw.effective_capabilities)
     ? raw.effective_capabilities.filter((capability): capability is string => typeof capability === "string")
     : null;

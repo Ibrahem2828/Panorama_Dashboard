@@ -50,12 +50,14 @@ function backendPath(segments: string[], search: string) {
   if (!joined.startsWith("api/v1/")) {
     throw new SecurityError("Invalid backend path.", 400, "BACKEND_PATH_INVALID");
   }
-  return `/${joined}${search}`;
+  // Next strips the trailing slash from catch-all params, but every backend (Django) route and every
+  // OpenAPI path ends with one, so restore it before matching the contract and forwarding.
+  return `/${joined.replace(/\/+$/u, "")}/${search}`;
 }
 
 function validatedBackendPath(method: string, segments: string[], search: string) {
   const target = backendPath(segments, search);
-  const pathname = target.split("?", 1)[0];
+  const pathname = target.split("?", 1)[0] ?? target;
   if (!isDocumentedBackendOperation(method, pathname)) {
     throw new SecurityError("Backend operation is not documented.", 404, "BACKEND_OPERATION_NOT_ALLOWED");
   }
