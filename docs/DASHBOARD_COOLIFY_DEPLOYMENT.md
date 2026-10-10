@@ -14,16 +14,16 @@ Set these under the service Environment variables:
 
 ```
 NIXPACKS_NODE_VERSION=22.16.0
-NEXT_PUBLIC_API_BASE_URL=https://api.your-domain.com
-NEXT_PUBLIC_WS_BASE_URL=wss://api.your-domain.com
+BACKEND_API_BASE_URL=https://api.xn--mgbaab0cxheq.tech
+BACKEND_REQUEST_TIMEOUT_MS=12000
 NEXT_PUBLIC_APP_NAME=Panorama Dashboard
 NEXT_PUBLIC_APP_ENV=production
 ```
 
 ### Current HTTP values (for testing)
 ```
-NEXT_PUBLIC_API_BASE_URL=http://eby52x8qksscjvfeqxf0eob7.76.13.155.172.sslip.io
-NEXT_PUBLIC_WS_BASE_URL=ws://eby52x8qksscjvfeqxf0eob7.76.13.155.172.sslip.io
+BACKEND_API_BASE_URL=https://api.xn--mgbaab0cxheq.tech
+BACKEND_REQUEST_TIMEOUT_MS=12000
 NEXT_PUBLIC_APP_NAME=Panorama Dashboard
 NEXT_PUBLIC_APP_ENV=production
 ```
@@ -64,7 +64,7 @@ Before deploying the dashboard:
 
 ## Troubleshooting
 - CORS errors → backend not allowing the dashboard origin.
-- Blank page after login → check NEXT_PUBLIC_API_BASE_URL points to correct backend and is reachable from browser.
+- Session unavailable after login → check server-only BACKEND_API_BASE_URL is reachable from the dashboard container.
 - Build fails → ensure all NEXT_PUBLIC vars are set in Coolify before build.
 
 The dashboard fetches data client-side after login. No live backend calls happen at Docker build time (except for the public env injection).
@@ -85,8 +85,8 @@ Required Coolify environment values:
 
 ```bash
 NIXPACKS_NODE_VERSION=22.16.0
-NEXT_PUBLIC_API_BASE_URL=http://eby52x8qksscjvfeqxf0eob7.76.13.155.172.sslip.io
-NEXT_PUBLIC_WS_BASE_URL=ws://eby52x8qksscjvfeqxf0eob7.76.13.155.172.sslip.io
+BACKEND_API_BASE_URL=https://api.xn--mgbaab0cxheq.tech
+BACKEND_REQUEST_TIMEOUT_MS=12000
 NEXT_PUBLIC_APP_NAME=Panorama Dashboard
 NEXT_PUBLIC_APP_ENV=production
 ```

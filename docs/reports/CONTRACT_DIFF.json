@@ -1,0 +1,239 @@
+{
+  "generatedBy": "scripts/contract-diff.mjs",
+  "old": {
+    "source": "C:\\Users\\Ibrahim\\AppData\\Local\\Temp\\old_openapi.json",
+    "sha256": "ea9745f55299680f4b76f63acd495306b658306f5ed9a36a3bb2a976148dc653",
+    "paths": 184,
+    "operations": 272,
+    "schemas": 222
+  },
+  "next": {
+    "source": "D:\\panorama\\projects\\dashboard\\contracts\\backend\\openapi.json",
+    "sha256": "ec000ddc588117a77f021e67c1594d0718340e75fe6a55c3ac68d2a849db5837",
+    "paths": 184,
+    "operations": 272,
+    "schemas": 222
+  },
+  "added": [],
+  "removed": [],
+  "changed": [],
+  "deprecated": [],
+  "dashboardCallAudit": {
+    "calls": [
+      {
+        "file": "src/components/layout/backend-readiness-banner.tsx",
+        "line": 14,
+        "method": "GET",
+        "pathTemplate": "/api/v1/health/ready/",
+        "status": "documented",
+        "matchingOperations": [
+          "GET /api/v1/health/ready/"
+        ]
+      },
+      {
+        "file": "src/features/feedback/feedback-page.tsx",
+        "line": 61,
+        "method": "GET",
+        "pathTemplate": "/api/v1/dashboard/feedback/",
+        "status": "documented",
+        "matchingOperations": [
+          "GET /api/v1/dashboard/feedback/"
+        ]
+      },
+      {
+        "file": "src/features/feedback/feedback-page.tsx",
+        "line": 63,
+        "method": "GET",
+        "pathTemplate": "/api/v1/dashboard/users/",
+        "status": "documented",
+        "matchingOperations": [
+          "GET /api/v1/dashboard/users/"
+        ]
+      },
+      {
+        "file": "src/features/feedback/feedback-page.tsx",
+        "line": 67,
+        "method": "PATCH",
+        "pathTemplate": "/api/v1/dashboard/feedback/${selected.id}/workflow/",
+        "status": "documented",
+        "matchingOperations": [
+          "PATCH /api/v1/dashboard/feedback/{id}/workflow/"
+        ]
+      },
+      {
+        "file": "src/features/notifications/notifications-page.tsx",
+        "line": 64,
+        "method": "GET",
+        "pathTemplate": "/api/v1/dashboard/users/",
+        "status": "documented",
+        "matchingOperations": [
+          "GET /api/v1/dashboard/users/"
+        ]
+      },
+      {
+        "file": "src/features/notifications/notifications-page.tsx",
+        "line": 74,
+        "method": "POST",
+        "pathTemplate": "/api/v1/dashboard/notifications/campaign/",
+        "status": "documented",
+        "matchingOperations": [
+          "POST /api/v1/dashboard/notifications/campaign/"
+        ]
+      },
+      {
+        "file": "src/features/printing/printing-page.tsx",
+        "line": 86,
+        "method": "GET",
+        "pathTemplate": "/api/v1/dashboard/printing/orders/",
+        "status": "documented",
+        "matchingOperations": [
+          "GET /api/v1/dashboard/printing/orders/"
+        ]
+      },
+      {
+        "file": "src/features/printing/printing-page.tsx",
+        "line": 91,
+        "method": "GET",
+        "pathTemplate": "/api/v1/dashboard/users/",
+        "status": "documented",
+        "matchingOperations": [
+          "GET /api/v1/dashboard/users/"
+        ]
+      },
+      {
+        "file": "src/features/printing/printing-page.tsx",
+        "line": 97,
+        "method": "PATCH",
+        "pathTemplate": "/api/v1/dashboard/printing/orders/${selected.id}/status/",
+        "status": "documented",
+        "matchingOperations": [
+          "PATCH /api/v1/dashboard/printing/orders/{id}/status/"
+        ]
+      },
+      {
+        "file": "src/features/printing/printing-page.tsx",
+        "line": 98,
+        "method": "PATCH",
+        "pathTemplate": "/api/v1/dashboard/printing/orders/${selected.id}/assign/",
+        "status": "documented",
+        "matchingOperations": [
+          "PATCH /api/v1/dashboard/printing/orders/{id}/assign/"
+        ]
+      },
+      {
+        "file": "src/features/printing/printing-page.tsx",
+        "line": 99,
+        "method": "POST",
+        "pathTemplate": "/api/v1/dashboard/printing/orders/${selected.id}/note/",
+        "status": "documented",
+        "matchingOperations": [
+          "POST /api/v1/dashboard/printing/orders/{id}/note/"
+        ]
+      },
+      {
+        "file": "src/features/rbac/rbac-page.tsx",
+        "line": 39,
+        "method": "GET",
+        "pathTemplate": "/api/v1/dashboard/users/",
+        "status": "documented",
+        "matchingOperations": [
+          "GET /api/v1/dashboard/users/"
+        ]
+      },
+      {
+        "file": "src/features/rbac/rbac-page.tsx",
+        "line": 53,
+        "method": "PUT",
+        "pathTemplate": "/api/v1/dashboard/users/${selected.id}/permission-overrides/",
+        "status": "documented",
+        "matchingOperations": [
+          "PUT /api/v1/dashboard/users/{user_id}/permission-overrides/"
+        ]
+      },
+      {
+        "file": "src/features/rbac/rbac-page.tsx",
+        "line": 61,
+        "method": "DELETE",
+        "pathTemplate": "/api/v1/dashboard/users/${selected.id}/permission-overrides/",
+        "status": "documented",
+        "matchingOperations": [
+          "DELETE /api/v1/dashboard/users/{user_id}/permission-overrides/"
+        ]
+      },
+      {
+        "file": "src/features/support/support-page.tsx",
+        "line": 74,
+        "method": "GET",
+        "pathTemplate": "/api/v1/dashboard/support/tickets/",
+        "status": "documented",
+        "matchingOperations": [
+          "GET /api/v1/dashboard/support/tickets/"
+        ]
+      },
+      {
+        "file": "src/features/support/support-page.tsx",
+        "line": 79,
+        "method": "GET",
+        "pathTemplate": "/api/v1/dashboard/users/",
+        "status": "documented",
+        "matchingOperations": [
+          "GET /api/v1/dashboard/users/"
+        ]
+      },
+      {
+        "file": "src/features/support/support-page.tsx",
+        "line": 90,
+        "method": "POST",
+        "pathTemplate": "/api/v1/dashboard/support/tickets/${selected.id}/messages/",
+        "status": "documented",
+        "matchingOperations": [
+          "POST /api/v1/dashboard/support/tickets/{id}/messages/"
+        ]
+      },
+      {
+        "file": "src/features/support/support-page.tsx",
+        "line": 91,
+        "method": "PATCH",
+        "pathTemplate": "/api/v1/dashboard/support/tickets/${selected.id}/status/",
+        "status": "documented",
+        "matchingOperations": [
+          "PATCH /api/v1/dashboard/support/tickets/{id}/status/"
+        ]
+      },
+      {
+        "file": "src/features/support/support-page.tsx",
+        "line": 92,
+        "method": "PATCH",
+        "pathTemplate": "/api/v1/dashboard/support/tickets/${selected.id}/priority/",
+        "status": "documented",
+        "matchingOperations": [
+          "PATCH /api/v1/dashboard/support/tickets/{id}/priority/"
+        ]
+      },
+      {
+        "file": "src/features/support/support-page.tsx",
+        "line": 93,
+        "method": "POST",
+        "pathTemplate": "/api/v1/dashboard/support/tickets/${selected.id}/assign/",
+        "status": "documented",
+        "matchingOperations": [
+          "POST /api/v1/dashboard/support/tickets/{id}/assign/"
+        ]
+      },
+      {
+        "file": "src/features/verifications/verification-page.tsx",
+        "line": 46,
+        "method": "POST",
+        "pathTemplate": "/api/v1/dashboard/verifications/${selected.id}/${action}/",
+        "status": "ambiguous_template",
+        "matchingOperations": [
+          "POST /api/v1/dashboard/verifications/{id}/approve/",
+          "POST /api/v1/dashboard/verifications/{id}/card-ticket/",
+          "POST /api/v1/dashboard/verifications/{id}/needs-update/",
+          "POST /api/v1/dashboard/verifications/{id}/reject/"
+        ]
+      }
+    ],
+    "unsupportedCalls": []
+  }
+}

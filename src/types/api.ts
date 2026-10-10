@@ -1,28 +1,35 @@
-export interface ApiSuccessResponse<T> {
-  success: true;
-  message: string;
+﻿export interface ApiEnvelope<T> {
+  success?: boolean;
   data: T;
-}
-
-export interface ApiErrorResponse {
-  success: false;
-  message: string;
-  errors?: Record<string, string[] | string>;
+  message?: string;
+  code?: string;
+  id_request?: string;
   request_id?: string;
+  errors?: Record<string, unknown>;
 }
 
-export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
-
-export interface PaginatedResponse<T> {
+export interface PaginatedData<T> {
+  items: T[];
+  results: T[];
   count: number;
   next: string | null;
   previous: string | null;
-  results: T[];
 }
 
-export interface FrontendApiError {
-  message: string;
-  errors?: Record<string, string[] | string>;
+export interface AppApiErrorShape {
   status?: number;
+  code?: string;
+  message?: string;
+  id_request?: string;
+  details?: unknown;
+  errors?: Record<string, unknown>;
+  requestId?: string;
   request_id?: string;
+  retryAfter?: number;
 }
+
+export interface ApiResponse<T> extends ApiEnvelope<T> { success: boolean; }
+export type ApiSuccessResponse<T> = ApiResponse<T>;
+export type ApiErrorResponse = AppApiErrorShape;
+export type PaginatedResponse<T> = PaginatedData<T>;
+export type FrontendApiError = AppApiErrorShape;

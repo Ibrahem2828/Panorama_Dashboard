@@ -2,7 +2,7 @@
 
 ## Environment Setup
 - [ ] `.env.local` created from `.env.example`
-- [ ] `NEXT_PUBLIC_API_BASE_URL` set correctly
+- [ ] `BACKEND_API_BASE_URL=https://api.xn--mgbaab0cxheq.tech` set as a server-only runtime variable
 - [ ] `NEXT_PUBLIC_WS_BASE_URL` set correctly
 - [ ] `NEXT_PUBLIC_APP_ENV` set (local / production)
 - [ ] Backend CORS includes the dashboard origin

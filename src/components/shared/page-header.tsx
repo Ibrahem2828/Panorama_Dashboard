@@ -1,58 +1,32 @@
-import Link from "next/link";
+﻿"use client";
+
+import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-interface BreadcrumbItem {
-  label: string;
-  href?: string;
-}
+type Breadcrumb = { label: string; href?: string };
 
-interface PageHeaderProps {
+export function PageHeader({ title, description, eyebrow, actions, actionLabel, onAction, breadcrumbs, className }: {
   title: string;
   description?: string;
+  eyebrow?: string;
+  actions?: ReactNode;
   actionLabel?: string;
-  actionHref?: string;
-  onAction?: () => void;
-  breadcrumbs?: BreadcrumbItem[];
-}
-
-export function PageHeader({ title, description, actionLabel, actionHref, onAction, breadcrumbs }: PageHeaderProps) {
-  const action =
-    actionLabel && actionHref ? (
-      <Button asChild>
-        <Link href={actionHref}>{actionLabel}</Link>
-      </Button>
-    ) : actionLabel ? (
-      <Button onClick={onAction} disabled={!onAction}>
-        {actionLabel}
-      </Button>
-    ) : null;
-
+  onAction?: () => void | Promise<unknown>;
+  breadcrumbs?: Breadcrumb[];
+  className?: string;
+}) {
+  const action = actions ?? (actionLabel ? <Button type="button" variant="outline" onClick={() => void onAction?.()}>{actionLabel}</Button> : null);
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div className="space-y-2">
-        {breadcrumbs?.length ? (
-          <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-            {breadcrumbs.map((item, index) => (
-              <span key={item.label}>
-                {item.href ? (
-                  <Link className="hover:text-foreground" href={item.href}>
-                    {item.label}
-                  </Link>
-                ) : (
-                  <span>{item.label}</span>
-                )}
-                {index < breadcrumbs.length - 1 ? <span className="mx-2">/</span> : null}
-              </span>
-            ))}
-          </nav>
-        ) : null}
-        <div>
-          <h1 className="text-2xl font-semibold tracking-normal">{title}</h1>
-          {description ? <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p> : null}
-        </div>
+    <div className={cn("flex flex-col gap-4 md:flex-row md:items-start md:justify-between", className)}>
+      <div className="min-w-0">
+        {breadcrumbs?.length ? <div className="mb-2 text-xs text-muted-foreground">{breadcrumbs.map((item) => item.label).join(" / ")}</div> : null}
+        {eyebrow ? <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">{eyebrow}</div> : null}
+        <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{title}</h1>
+        {description ? <p className="mt-2 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">{description}</p> : null}
       </div>
-      {action}
+      {action ? <div className="flex shrink-0 flex-wrap items-center gap-2">{action}</div> : null}
     </div>
   );
 }
