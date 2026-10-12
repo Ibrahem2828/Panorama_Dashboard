@@ -74,7 +74,7 @@ export function RbacPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("rbac.title")} description={t("rbac.subtitle")} eyebrow="RBAC / CAPABILITIES" actions={<Button onClick={() => setOpen(true)} disabled={!selected}><Plus />{t("rbac.addOverride")}</Button>} />
-      <div className="grid gap-5 xl:grid-cols-[360px_1fr]">
+      <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
         <Card className="h-fit xl:sticky xl:top-24">
           <CardHeader><CardTitle className="flex items-center gap-2"><UserRoundCog className="text-primary" />{t("nav.users")}</CardTitle><CardDescription>{users.data?.length ?? 0} {t("rbac.accounts")}</CardDescription></CardHeader>
           <CardContent className="space-y-2">
@@ -86,7 +86,7 @@ export function RbacPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           {selected ? (
             <>
               <Card className="overflow-hidden">
