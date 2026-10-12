@@ -5,7 +5,7 @@ import { serverEnv } from "@/config/env.server";
 import { isDocumentedBackendOperation } from "@/lib/api/contract-path";
 import { clearSessionCookies, setSessionCookies } from "@/lib/auth/cookies";
 import { readTokens, refreshTokensResult, type RefreshTokensResult } from "@/lib/auth/server-session";
-import { trustedClientIp } from "@/lib/rate-limit";
+import { bffTrustHeaders } from "@/lib/security/bff-trust";
 import { assertCsrf, SecurityError } from "@/lib/security/csrf";
 import { jsonError } from "@/lib/security/http";
 import { requestId } from "@/lib/security/request-id";
@@ -255,8 +255,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     headers.set("X-Request-ID", id);
     headers.set("Accept-Language", request.headers.get("accept-language") ?? "ar,en;q=0.8");
     // The backend throttles per client address; without this every user shares the BFF's address.
-    const clientAddress = trustedClientIp(request.headers);
-    if (clientAddress) headers.set("X-Forwarded-For", clientAddress);
+    for (const [name, value] of Object.entries(bffTrustHeaders(request.headers))) headers.set(name, value);
     const contentType = request.headers.get("content-type");
     if (contentType) headers.set("Content-Type", contentType);
     const range = request.headers.get("range");
