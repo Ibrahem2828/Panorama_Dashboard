@@ -18,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
+import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
+import { payloadSignature } from "@/lib/api/idempotency";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useI18n } from "@/i18n/provider";
 
@@ -66,18 +68,18 @@ export function NotificationsPage() {
   });
   const visibleUsers = users.data?.results ?? [];
 
+  const sendKey = useIdempotencyKey();
+  const sendError = useMutationError(sendKey);
   const send = useMutation({
     mutationFn: () => {
       if (!selected.length) throw new Error(t("notifications.selectRecipients"));
       if (!title.trim() || !body.trim()) throw new Error(t("common.required"));
       if (deepLink && !deepLinkPattern.test(deepLink)) throw new Error(t("notifications.invalidDeepLink"));
-      return apiFetch("/api/v1/dashboard/notifications/campaign/", {
-        method: "POST",
-        body: { user_ids: selected, title: title.trim(), body: body.trim(), type, deep_link: deepLink.trim(), deduplication_key: deduplicationKey.trim() },
-      });
+      const payload = { user_ids: selected, title: title.trim(), body: body.trim(), type, deep_link: deepLink.trim(), deduplication_key: deduplicationKey.trim() };
+      return apiFetch("/api/v1/dashboard/notifications/campaign/", { method: "POST", body: payload, idempotencyKey: sendKey.get(payloadSignature(payload)) });
     },
-    onSuccess() { toast.success(t("notifications.sent")); setSelected([]); setTitle(""); setBody(""); setDeepLink(""); setDeduplicationKey(""); },
-    onError(error: Error) { toast.error(error.message); },
+    onSuccess() { sendKey.reset(); toast.success(t("notifications.sent")); setSelected([]); setTitle(""); setBody(""); setDeepLink(""); setDeduplicationKey(""); },
+    onError: sendError,
   });
 
   const toggle = (id: number) => setSelected((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length >= 1000 ? current : [...current, id]);

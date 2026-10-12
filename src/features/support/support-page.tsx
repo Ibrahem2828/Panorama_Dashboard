@@ -21,6 +21,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
+import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
+import { payloadSignature } from "@/lib/api/idempotency";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useI18n } from "@/i18n/provider";
 import type { ApiEnvelope } from "@/types/api";
@@ -84,21 +86,26 @@ export function SupportPage() {
     setSelected(data);
   };
 
+  const actionKey = useIdempotencyKey();
+  const actionError = useMutationError(actionKey);
   const action = useMutation({
     mutationFn: async (kind: "message" | "status" | "priority" | "assign") => {
       if (!selected) throw new Error("Missing ticket");
-      if (kind === "message") return apiFetch(`/api/v1/dashboard/support/tickets/${selected.id}/messages/`, { method: "POST", body: { message } });
-      if (kind === "status") return apiFetch(`/api/v1/dashboard/support/tickets/${selected.id}/status/`, { method: "PATCH", body: { status: nextStatus } });
-      if (kind === "priority") return apiFetch(`/api/v1/dashboard/support/tickets/${selected.id}/priority/`, { method: "PATCH", body: { priority } });
-      return apiFetch(`/api/v1/dashboard/support/tickets/${selected.id}/assign/`, { method: "POST", body: { assigned_to: assignedTo && assignedTo !== "unassigned" ? Number(assignedTo) : null } });
+      const send = (path: string, method: "POST" | "PATCH", body: Record<string, unknown>) =>
+        apiFetch(`/api/v1/dashboard/support/tickets/${selected.id}/${path}/`, { method, body, idempotencyKey: actionKey.get(payloadSignature(kind, selected.id, body)) });
+      if (kind === "message") return send("messages", "POST", { message });
+      if (kind === "status") return send("status", "PATCH", { status: nextStatus });
+      if (kind === "priority") return send("priority", "PATCH", { priority });
+      return send("assign", "POST", { assigned_to: assignedTo && assignedTo !== "unassigned" ? Number(assignedTo) : null });
     },
     onSuccess: async () => {
+      actionKey.reset();
       toast.success(t("common.success"));
       setMessage("");
       if (selected) await refreshSelected(selected.id);
       await queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
     },
-    onError(error: Error) { toast.error(error.message); },
+    onError: actionError,
   });
 
   return (

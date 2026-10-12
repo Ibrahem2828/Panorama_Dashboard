@@ -24,6 +24,8 @@ import { RESOURCE_FORM_POLICIES, formDefinition } from "@/features/resources/res
 import { createResource, deleteResource, listResource, updateResource, type EntityRecord } from "@/features/resources/resource-api";
 import { useI18n } from "@/i18n/provider";
 import { compactJson, humanize } from "@/lib/utils";
+import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
+import { payloadSignature } from "@/lib/api/idempotency";
 
 function intersectFields(policyFields: readonly string[], pageFields?: string[]) {
   return pageFields?.length ? policyFields.filter((field) => pageFields.includes(field)) : policyFields;
@@ -95,31 +97,37 @@ export function ResourceManager({
     enabled: canAccess,
   });
 
+  const saveKey = useIdempotencyKey();
+  const saveError = useMutationError(saveKey);
   const save = useMutation({
     mutationFn: (body: FormData | Record<string, unknown>) => {
-      if (formMode === "edit" && selected?.id != null) return updateResource(baseDefinition, selected.id, body);
-      return createResource(baseDefinition, body);
+      if (formMode === "edit" && selected?.id != null) return updateResource(baseDefinition, selected.id, body, saveKey.get(payloadSignature("update", selected.id, body)));
+      return createResource(baseDefinition, body, saveKey.get(payloadSignature("create", body)));
     },
     onSuccess() {
+      saveKey.reset();
       toast.success(t("common.success"));
       setFormMode(null);
       setSelected(null);
       void queryClient.invalidateQueries({ queryKey: ["resource", resourceKey] });
     },
-    onError(error: Error) { toast.error(error.message); },
+    onError: saveError,
   });
 
+  const removeKey = useIdempotencyKey();
+  const removeError = useMutationError(removeKey);
   const remove = useMutation({
     mutationFn: () => {
       if (deleteTarget?.id == null) throw new Error("Missing resource identifier.");
-      return deleteResource(baseDefinition, deleteTarget.id);
+      return deleteResource(baseDefinition, deleteTarget.id, removeKey.get(payloadSignature("delete", deleteTarget.id)));
     },
     onSuccess() {
+      removeKey.reset();
       toast.success(t("common.success"));
       setDeleteTarget(null);
       void queryClient.invalidateQueries({ queryKey: ["resource", resourceKey] });
     },
-    onError(error: Error) { toast.error(error.message); },
+    onError: removeError,
   });
 
   const resolvedColumns = useMemo<ResourceColumn[]>(() => {

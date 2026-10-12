@@ -20,6 +20,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DASHBOARD_ROLES, type DashboardRole } from "@/config/constants";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
+import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
+import { payloadSignature } from "@/lib/api/idempotency";
 import { useI18n } from "@/i18n/provider";
 import { humanize } from "@/lib/utils";
 import type { ApiEnvelope } from "@/types/api";
@@ -47,21 +49,25 @@ export function RbacPage() {
   });
   const selected = useMemo(() => users.data?.find((user) => user.id === selectedUserId) ?? users.data?.[0] ?? null, [selectedUserId, users.data]);
 
+  const saveKey = useIdempotencyKey();
+  const saveError = useMutationError(saveKey);
   const save = useMutation({
     mutationFn: () => {
       if (!selected) throw new Error("Select a user first.");
-      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "PUT", body: form });
+      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "PUT", body: form, idempotencyKey: saveKey.get(payloadSignature(selected.id, form)) });
     },
-    onSuccess() { toast.success(t("common.success")); setOpen(false); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
-    onError(error: Error) { toast.error(error.message); },
+    onSuccess() { saveKey.reset(); toast.success(t("common.success")); setOpen(false); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
+    onError: saveError,
   });
+  const removeKey = useIdempotencyKey();
+  const removeError = useMutationError(removeKey);
   const remove = useMutation({
     mutationFn: (permissionCode: string) => {
       if (!selected) throw new Error("Select a user first.");
-      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "DELETE", body: { permission_code: permissionCode } });
+      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "DELETE", body: { permission_code: permissionCode }, idempotencyKey: removeKey.get(payloadSignature(selected.id, permissionCode)) });
     },
-    onSuccess() { toast.success(t("common.success")); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
-    onError(error: Error) { toast.error(error.message); },
+    onSuccess() { removeKey.reset(); toast.success(t("common.success")); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
+    onError: removeError,
   });
 
   if (users.isError) return <ErrorPanel error={users.error} retry={() => users.refetch()} />;

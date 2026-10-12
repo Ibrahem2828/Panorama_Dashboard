@@ -21,6 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { RESOURCE_DEFINITIONS } from "@/contracts/generated/resource-definitions";
 import { listResource, type EntityRecord } from "@/features/resources/resource-api";
 import { useI18n } from "@/i18n/provider";
+import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
+import { payloadSignature } from "@/lib/api/idempotency";
 import { apiFetch, downloadFromBackend, unwrap } from "@/lib/api/browser-client";
 import type { ApiEnvelope } from "@/types/api";
 
@@ -40,14 +42,18 @@ export function VerificationPage() {
     queryKey: ["verifications", page, pageSize, status],
     queryFn: () => listResource(definition, { page, pageSize, ordering: "-created_at", filters: status === "all" ? {} : { status } }),
   });
+  const reviewKey = useIdempotencyKey();
+  const reviewError = useMutationError(reviewKey);
   const review = useMutation({
     mutationFn: async () => {
       if (!selected?.id || !action) throw new Error("Missing verification request.");
-      return apiFetch(`/api/v1/dashboard/verifications/${selected.id}/${action}/`, { method: "POST", body: { rejection_reason: rejectionReason, admin_note: adminNote } });
+      const body = { rejection_reason: rejectionReason, admin_note: adminNote };
+      return apiFetch(`/api/v1/dashboard/verifications/${selected.id}/${action}/`, { method: "POST", body, idempotencyKey: reviewKey.get(payloadSignature(action, selected.id, body)) });
     },
-    onSuccess() { toast.success(t("common.success")); setAction(null); setSelected(null); setRejectionReason(""); setAdminNote(""); void queryClient.invalidateQueries({ queryKey: ["verifications"] }); },
-    onError(error: Error) { toast.error(error.message); },
+    onSuccess() { reviewKey.reset(); toast.success(t("common.success")); setAction(null); setSelected(null); setRejectionReason(""); setAdminNote(""); void queryClient.invalidateQueries({ queryKey: ["verifications"] }); },
+    onError: reviewError,
   });
+  const cardError = useMutationError();
   const card = useMutation({
     mutationFn: async (row: EntityRecord) => {
       const ticket = await unwrap(apiFetch<ApiEnvelope<{ preview_url: string }>>(`/api/v1/dashboard/verifications/${row.id}/card-ticket/`, { method: "POST" }));
@@ -56,7 +62,7 @@ export function VerificationPage() {
       return URL.createObjectURL(await downloaded.blob());
     },
     onSuccess(url) { setPreview((current) => { if (current) URL.revokeObjectURL(current); return url; }); },
-    onError(error: Error) { toast.error(error.message); },
+    onError: cardError,
   });
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
