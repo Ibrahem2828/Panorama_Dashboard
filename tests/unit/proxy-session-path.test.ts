@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NextRequest } from "next/server";
 
-import { config, proxy } from "../../proxy";
+import { config, proxy } from "@/proxy";
 
 describe("dashboard page proxy", () => {
   for (const locale of ["ar", "en"]) {
