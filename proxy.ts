@@ -61,7 +61,7 @@ function contentSecurityPolicy(nonce: string) {
   ].join("; ");
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const nonce = createNonce();
   const requestHeaders = new Headers(request.headers);
@@ -97,5 +97,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|brand/).*)"],
+  // /api/ is excluded on purpose: the proxy layer buffers request bodies (10 MB cap) and would truncate uploads
+  // before the BFF route (own 50 MB limit) sees them. API responses are JSON/streams and need no page CSP.
+  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico|brand/).*)"],
 };
