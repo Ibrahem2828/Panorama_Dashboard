@@ -9,6 +9,8 @@ interface I18nContextValue {
   locale: Locale;
   direction: "rtl" | "ltr";
   t: (key: MessageKey, values?: Record<string, string | number>) => string;
+  /** Translation lookup for keys built at run time (e.g. contract field names); returns `fallback` when none exists. */
+  tOr: (key: string, fallback: string) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -27,6 +29,7 @@ export function I18nProvider({ locale, children }: { locale: Locale; children: R
       locale,
       direction: locale === "ar" ? "rtl" : "ltr",
       t: (key, values) => interpolate(messages[locale][key], values),
+      tOr: (key, fallback) => (Object.hasOwn(messages[locale], key) ? messages[locale][key as MessageKey] : fallback),
     }),
     [locale],
   );

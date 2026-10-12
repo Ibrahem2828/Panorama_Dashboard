@@ -33,7 +33,7 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
           <Button variant="ghost" size="icon" onClick={toggle} aria-label={t("sidebar.collapse")}><PanelLeftClose className="directional-icon" /></Button>
         ) : null}
       </div>
-      <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Primary navigation">
+      <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label={t("nav.primary")}>
         {navigationGroups.map((group) => {
           const items = group.items.filter((item) => hasCapability(capabilities, item.capability));
           if (!items.length) return null;
