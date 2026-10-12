@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/backend";
 import { setSessionCookies } from "@/lib/auth/cookies";
 import { parseBackendLogin, sessionFromUser } from "@/lib/auth/server-session";
+import { trustedClientIp } from "@/lib/rate-limit";
 import { assertBrowserOrigin, SecurityError } from "@/lib/security/csrf";
 import { jsonError } from "@/lib/security/http";
 import { requestId } from "@/lib/security/request-id";
@@ -61,12 +62,15 @@ export async function POST(request: NextRequest) {
     if (!body.success) {
       return jsonError(400, "LOGIN_INPUT_INVALID", "Identifier and password are required.", id);
     }
+    // The backend throttles login per client address; without this every user shares the BFF's address.
+    const clientAddress = trustedClientIp(request.headers);
     const backend = await backendFetch("/api/v1/auth/login/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-Request-ID": id,
         "Idempotency-Key": crypto.randomUUID(),
+        ...(clientAddress ? { "X-Forwarded-For": clientAddress } : {}),
       },
       body: JSON.stringify(body.data),
     });

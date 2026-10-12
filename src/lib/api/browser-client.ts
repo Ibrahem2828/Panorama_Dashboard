@@ -1,8 +1,13 @@
-﻿"use client";
+"use client";
 
-import { normalizeApiError } from "@/lib/api/errors";
+import { normalizeApiError, parseMaintenanceInfo, type AppApiError } from "@/lib/api/errors";
+import { newIdempotencyKey } from "@/lib/api/idempotency";
 
-export type BffRequestInit = Omit<RequestInit, "body"> & { body?: unknown };
+export type BffRequestInit = Omit<RequestInit, "body"> & {
+  body?: unknown;
+  /** Reuse across retries of the same logical write (see useIdempotencyKey). A fresh key is generated per call when omitted. */
+  idempotencyKey?: string;
+};
 export type BffResponse<T> = Response & { readonly __bffData?: T };
 type UnwrappedPayload<T> = T extends { data: infer Data } ? Data : T;
 
@@ -19,13 +24,39 @@ function serializeBody(body: unknown, headers: Headers): BodyInit | undefined {
   if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   return JSON.stringify(body);
 }
+
+let sessionExpiredHandler: (() => void) | null = null;
+/** Registered by the session boundary so a dead session anywhere signs the user out once. */
+export function onSessionExpired(handler: (() => void) | null) { sessionExpiredHandler = handler; }
+
+let maintenanceHandler: ((error: AppApiError) => void) | null = null;
+/** Registered by the lifecycle host: the backend is in maintenance mode (503 MAINTENANCE_MODE). */
+export function onMaintenance(handler: ((error: AppApiError) => void) | null) { maintenanceHandler = handler; }
+
+let updateRequiredHandler: ((error: AppApiError) => void) | null = null;
+/** Registered by the lifecycle host: the backend demands a newer client (426 APP_UPDATE_REQUIRED). */
+export function onUpdateRequired(handler: ((error: AppApiError) => void) | null) { updateRequiredHandler = handler; }
+
+function notifyLifecycle(error: AppApiError, path: string) {
+  if (error.status === 503 && error.code === "MAINTENANCE_MODE") maintenanceHandler?.(error);
+  else if (error.status === 426 && error.code === "APP_UPDATE_REQUIRED") updateRequiredHandler?.(error);
+  // Only backend calls expire a session: a wrong password or the session probe itself (/api/auth/*) is handled by its caller.
+  else if (error.status === 401 && error.code === "SESSION_INVALID" && path.startsWith("/api/backend/")) sessionExpiredHandler?.();
+}
+
 export async function bffFetch<T = unknown>(path: string, init: BffRequestInit = {}): Promise<BffResponse<T>> {
   if (!path.startsWith("/api/")) throw new Error("BFF requests must be same-origin API paths");
+  const { idempotencyKey, ...fetchInit } = init;
   const headers = new Headers(init.headers);
-  if (isMutation(init.method)) { const token = csrfToken(); if (token) headers.set("x-panorama-csrf", token); }
+  if (isMutation(init.method)) {
+    const token = csrfToken();
+    if (token) headers.set("x-panorama-csrf", token);
+    // One key per logical submit: callers that retry the same write pass the same key (see useIdempotencyKey).
+    if (path.startsWith("/api/backend/") && !headers.has("Idempotency-Key")) headers.set("Idempotency-Key", idempotencyKey ?? newIdempotencyKey());
+  }
   let response: Response;
   try {
-    response = await fetch(path, { ...init, headers, body: serializeBody(init.body, headers), credentials: "same-origin", cache: "no-store" });
+    response = await fetch(path, { ...fetchInit, headers, body: serializeBody(init.body, headers), credentials: "same-origin", cache: "no-store" });
   } catch {
     throw normalizeApiError({
       status: 503,
@@ -42,13 +73,18 @@ export async function bffFetch<T = unknown>(path: string, init: BffRequestInit =
       payload = {};
     }
     const retryAfter = Number(response.headers.get("retry-after"));
-    throw normalizeApiError({
+    const apiError = normalizeApiError({
       ...payload,
       status: response.status,
       requestId: response.headers.get("x-request-id") ?? undefined,
-      retryAfter: Number.isFinite(retryAfter) ? retryAfter : undefined,
+      retryAfter: Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
       message: typeof payload.message === "string" ? payload.message : "Request failed",
     });
+    if ((apiError.status === 503 && apiError.code === "MAINTENANCE_MODE") || (apiError.status === 426 && apiError.code === "APP_UPDATE_REQUIRED")) {
+      apiError.maintenance = parseMaintenanceInfo(payload, apiError.retryAfter);
+    }
+    notifyLifecycle(apiError, path);
+    throw apiError;
   }
   return response as BffResponse<T>;
 }

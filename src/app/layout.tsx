@@ -28,10 +28,12 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const requestHeaders = await headers();
   const locale = normalizeLocale(requestHeaders.get("x-panorama-locale") ?? undefined);
+  // The proxy mints a CSP nonce per request; next-themes' inline theme script must carry it or `strict-dynamic` blocks it.
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
   return (
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-scroll-behavior="smooth" suppressHydrationWarning>
       <body>
-        <AppProviders locale={locale}>{children}</AppProviders>
+        <AppProviders locale={locale} nonce={nonce}>{children}</AppProviders>
       </body>
     </html>
   );

@@ -1,5 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 
+import { retryDelay, shouldRetryQuery } from "@/lib/api/backoff";
+
 export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -7,13 +9,13 @@ export function createQueryClient() {
         staleTime: 30_000,
         gcTime: 5 * 60_000,
         refetchOnWindowFocus: false,
-        retry(failureCount, error) {
-          const status = typeof error === "object" && error && "status" in error ? Number(error.status) : 0;
-          if ([400, 401, 403, 404, 409, 413, 426].includes(status)) return false;
-          return failureCount < 2;
-        },
+        // Only idempotent reads are ever retried: never 4xx, rate limits, maintenance or forced-update; back off
+        // (honouring Retry-After) otherwise.
+        retry: shouldRetryQuery,
+        retryDelay: (attempt, error) => retryDelay(attempt, error),
       },
-      mutations: { retry: false },
+      // Writes are never auto-retried and are paused while offline (forms also disable their submit buttons).
+      mutations: { retry: false, networkMode: "online" },
     },
   });
 }

@@ -24,6 +24,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ResourceManager } from "@/features/resources/resource-manager";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
+import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
+import { payloadSignature } from "@/lib/api/idempotency";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useI18n } from "@/i18n/provider";
 
@@ -91,20 +93,32 @@ function PrintOrdersPanel() {
     queryFn: async () => normalizeCollection<StaffUser>(await apiFetch("/api/v1/dashboard/users/?page_size=200&is_active=true")),
   });
 
+  const mutateKey = useIdempotencyKey();
+  const mutateError = useMutationError(mutateKey);
   const mutate = useMutation({
     mutationFn: async () => {
       if (!selected) throw new Error("Missing order");
-      if (action === "status") return apiFetch(`/api/v1/dashboard/printing/orders/${selected.id}/status/`, { method: "PATCH", body: { status: nextStatus, public_note: publicNote, internal_note: internalNote, rejected_reason: nextStatus === "rejected" ? publicNote : "" } });
-      if (action === "assign") return apiFetch(`/api/v1/dashboard/printing/orders/${selected.id}/assign/`, { method: "PATCH", body: { assigned_to: Number(assignedTo) } });
-      if (action === "note") return apiFetch(`/api/v1/dashboard/printing/orders/${selected.id}/note/`, { method: "POST", body: { internal_notes: internalNote } });
+      if (action === "status") {
+        const body = { status: nextStatus, public_note: publicNote, internal_note: internalNote, rejected_reason: nextStatus === "rejected" ? publicNote : "" };
+        return apiFetch(`/api/v1/dashboard/printing/orders/${selected.id}/status/`, { method: "PATCH", body, idempotencyKey: mutateKey.get(payloadSignature(action, selected.id, body)) });
+      }
+      if (action === "assign") {
+        const body = { assigned_to: Number(assignedTo) };
+        return apiFetch(`/api/v1/dashboard/printing/orders/${selected.id}/assign/`, { method: "PATCH", body, idempotencyKey: mutateKey.get(payloadSignature(action, selected.id, body)) });
+      }
+      if (action === "note") {
+        const body = { internal_notes: internalNote };
+        return apiFetch(`/api/v1/dashboard/printing/orders/${selected.id}/note/`, { method: "POST", body, idempotencyKey: mutateKey.get(payloadSignature(action, selected.id, body)) });
+      }
       throw new Error("Missing action");
     },
     onSuccess() {
+      mutateKey.reset();
       toast.success(t("common.success"));
       setAction(null); setPublicNote(""); setInternalNote("");
       void queryClient.invalidateQueries({ queryKey: ["printing-orders"] });
     },
-    onError(error: Error) { toast.error(error.message); },
+    onError: mutateError,
   });
 
   return (

@@ -21,6 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ResourceManager } from "@/features/resources/resource-manager";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
+import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
+import { payloadSignature } from "@/lib/api/idempotency";
 import { useI18n } from "@/i18n/provider";
 import type { ApiEnvelope } from "@/types/api";
 
@@ -61,19 +63,22 @@ function WorkflowPanel() {
     return normalizeCollection<FeedbackItem>(await apiFetch(`/api/v1/dashboard/feedback/?${params}`));
   }});
   const staff = useQuery({ queryKey: ["feedback-staff"], queryFn: async () => normalizeCollection<StaffUser>(await apiFetch("/api/v1/dashboard/users/?page_size=200&is_active=true")) });
+  const saveKey = useIdempotencyKey();
+  const saveError = useMutationError(saveKey);
   const save = useMutation({
     mutationFn: async () => {
       if (!selected) throw new Error("Missing feedback item");
-      return apiFetch(`/api/v1/dashboard/feedback/${selected.id}/workflow/`, { method: "PATCH", body: {
+      const body = {
         status: nextStatus || selected.status,
         priority: priority || selected.priority,
         assigned_to: assignedTo && assignedTo !== "unassigned" ? Number(assignedTo) : null,
         internal_notes: internalNotes || selected.internal_notes,
         resolution_message: resolution || selected.resolution_message,
-      }});
+      };
+      return apiFetch(`/api/v1/dashboard/feedback/${selected.id}/workflow/`, { method: "PATCH", body, idempotencyKey: saveKey.get(payloadSignature(selected.id, body)) });
     },
-    onSuccess() { toast.success(t("common.success")); setSelected(null); void queryClient.invalidateQueries({ queryKey: ["feedback"] }); void queryClient.invalidateQueries({ queryKey: ["feedback-analytics"] }); },
-    onError(error: Error) { toast.error(error.message); },
+    onSuccess() { saveKey.reset(); toast.success(t("common.success")); setSelected(null); void queryClient.invalidateQueries({ queryKey: ["feedback"] }); void queryClient.invalidateQueries({ queryKey: ["feedback-analytics"] }); },
+    onError: saveError,
   });
 
   const open = (item: FeedbackItem) => { setSelected(item); setNextStatus(item.status); setPriority(item.priority); setAssignedTo(item.assigned_to ? String(item.assigned_to) : "unassigned"); setInternalNotes(item.internal_notes); setResolution(item.resolution_message); };

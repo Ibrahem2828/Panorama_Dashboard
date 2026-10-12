@@ -60,7 +60,7 @@ export function ResourceFormDialog({
           <DialogTitle>{entity ? t("common.edit") : t("common.create")} · {definition.key}</DialogTitle>
           <DialogDescription>{entity ? `#${String(entity.id ?? "")}` : definition.collectionPath}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={(event) => { event.preventDefault(); onSubmit(preparePayload(definition, values)); }}>
+        <form onSubmit={(event) => { event.preventDefault(); if (!pending) onSubmit(preparePayload(definition, values)); }}>
           <div className="grid gap-5 py-4 sm:grid-cols-2">
             {definition.fields.map((field) => (
               <div key={field.name} className={field.input === "textarea" || field.input === "json" || field.input === "file" ? "sm:col-span-2" : ""}>

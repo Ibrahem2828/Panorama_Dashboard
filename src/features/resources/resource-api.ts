@@ -28,19 +28,19 @@ function detailPath(definition: ResourceDefinition, id: string | number) {
   return definition.detailPath.replace(/\{(?:id|pk)\}/u, encodeURIComponent(String(id)));
 }
 
-export async function createResource(definition: ResourceDefinition, body: BodyInit | Record<string, unknown>) {
-  const payload = await apiFetch<ApiEnvelope<EntityRecord> | EntityRecord>(definition.collectionPath, { method: "POST", body });
+export async function createResource(definition: ResourceDefinition, body: BodyInit | Record<string, unknown>, idempotencyKey?: string) {
+  const payload = await apiFetch<ApiEnvelope<EntityRecord> | EntityRecord>(definition.collectionPath, { method: "POST", body, idempotencyKey });
   return unwrap(payload);
 }
 
-export async function updateResource(definition: ResourceDefinition, id: string | number, body: BodyInit | Record<string, unknown>) {
+export async function updateResource(definition: ResourceDefinition, id: string | number, body: BodyInit | Record<string, unknown>, idempotencyKey?: string) {
   const method = definition.detailMethods.includes("patch") ? "PATCH" : "PUT";
-  const payload = await apiFetch<ApiEnvelope<EntityRecord> | EntityRecord>(detailPath(definition, id), { method, body });
+  const payload = await apiFetch<ApiEnvelope<EntityRecord> | EntityRecord>(detailPath(definition, id), { method, body, idempotencyKey });
   return unwrap(payload);
 }
 
-export async function deleteResource(definition: ResourceDefinition, id: string | number) {
-  return apiFetch(detailPath(definition, id), { method: "DELETE" });
+export async function deleteResource(definition: ResourceDefinition, id: string | number, idempotencyKey?: string) {
+  return apiFetch(detailPath(definition, id), { method: "DELETE", idempotencyKey });
 }
 
 export async function retrieveResource(definition: ResourceDefinition, id: string | number) {

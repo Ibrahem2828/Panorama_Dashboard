@@ -20,6 +20,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DASHBOARD_ROLES, type DashboardRole } from "@/config/constants";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
+import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
+import { payloadSignature } from "@/lib/api/idempotency";
 import { useI18n } from "@/i18n/provider";
 import { humanize } from "@/lib/utils";
 import type { ApiEnvelope } from "@/types/api";
@@ -47,28 +49,32 @@ export function RbacPage() {
   });
   const selected = useMemo(() => users.data?.find((user) => user.id === selectedUserId) ?? users.data?.[0] ?? null, [selectedUserId, users.data]);
 
+  const saveKey = useIdempotencyKey();
+  const saveError = useMutationError(saveKey);
   const save = useMutation({
     mutationFn: () => {
       if (!selected) throw new Error("Select a user first.");
-      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "PUT", body: form });
+      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "PUT", body: form, idempotencyKey: saveKey.get(payloadSignature(selected.id, form)) });
     },
-    onSuccess() { toast.success(t("common.success")); setOpen(false); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
-    onError(error: Error) { toast.error(error.message); },
+    onSuccess() { saveKey.reset(); toast.success(t("common.success")); setOpen(false); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
+    onError: saveError,
   });
+  const removeKey = useIdempotencyKey();
+  const removeError = useMutationError(removeKey);
   const remove = useMutation({
     mutationFn: (permissionCode: string) => {
       if (!selected) throw new Error("Select a user first.");
-      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "DELETE", body: { permission_code: permissionCode } });
+      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "DELETE", body: { permission_code: permissionCode }, idempotencyKey: removeKey.get(payloadSignature(selected.id, permissionCode)) });
     },
-    onSuccess() { toast.success(t("common.success")); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
-    onError(error: Error) { toast.error(error.message); },
+    onSuccess() { removeKey.reset(); toast.success(t("common.success")); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
+    onError: removeError,
   });
 
   if (users.isError) return <ErrorPanel error={users.error} retry={() => users.refetch()} />;
   return (
     <div className="space-y-6">
       <PageHeader title={t("rbac.title")} description={t("rbac.subtitle")} eyebrow="RBAC / CAPABILITIES" actions={<Button onClick={() => setOpen(true)} disabled={!selected}><Plus />{t("rbac.addOverride")}</Button>} />
-      <div className="grid gap-5 xl:grid-cols-[360px_1fr]">
+      <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
         <Card className="h-fit xl:sticky xl:top-24">
           <CardHeader><CardTitle className="flex items-center gap-2"><UserRoundCog className="text-primary" />{t("nav.users")}</CardTitle><CardDescription>{users.data?.length ?? 0} {t("rbac.accounts")}</CardDescription></CardHeader>
           <CardContent className="space-y-2">
@@ -80,7 +86,7 @@ export function RbacPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           {selected ? (
             <>
               <Card className="overflow-hidden">
