@@ -5,6 +5,7 @@ import { serverEnv } from "@/config/env.server";
 import { isDocumentedBackendOperation } from "@/lib/api/contract-path";
 import { clearSessionCookies, setSessionCookies } from "@/lib/auth/cookies";
 import { readTokens, refreshTokensResult, type RefreshTokensResult } from "@/lib/auth/server-session";
+import { trustedClientIp } from "@/lib/rate-limit";
 import { assertCsrf, SecurityError } from "@/lib/security/csrf";
 import { jsonError } from "@/lib/security/http";
 import { requestId } from "@/lib/security/request-id";
@@ -113,6 +114,86 @@ function responseBodyWithinLimit(body: ReadableStream<Uint8Array> | null) {
   }));
 }
 
+const MAX_PASSTHROUGH_TEXT = 500;
+const MAX_PASSTHROUGH_BODY_BYTES = 16 * 1024;
+
+function safeText(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, MAX_PASSTHROUGH_TEXT) : undefined;
+}
+
+function safeIsoDate(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const time = Date.parse(value);
+  return Number.isFinite(time) ? new Date(time).toISOString() : null;
+}
+
+/** Retry-After is only forwarded when it is a plain delay in seconds (never arbitrary upstream header text). */
+function safeRetryAfter(value: string | null): string | null {
+  return value && /^\d{1,7}$/u.test(value.trim()) ? value.trim() : null;
+}
+
+async function readJsonObject(response: Response): Promise<Record<string, unknown> | null> {
+  if (!(response.headers.get("content-type") ?? "").toLowerCase().includes("json")) return null;
+  const declared = Number(response.headers.get("content-length") ?? 0);
+  if (Number.isFinite(declared) && declared > MAX_PASSTHROUGH_BODY_BYTES) return null;
+  try {
+    const text = await response.text();
+    if (text.length > MAX_PASSTHROUGH_BODY_BYTES) return null;
+    const parsed: unknown = JSON.parse(text);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The ONLY upstream 5xx/4xx lifecycle bodies that reach the browser: maintenance (503 MAINTENANCE_MODE) and forced
+ * update (426 APP_UPDATE_REQUIRED). Every field is individually allowlisted, type-checked and length-capped.
+ * Returns null for anything else so the caller keeps hiding the upstream body.
+ */
+async function lifecyclePassthrough(backend: Response, fallbackId: string): Promise<NextResponse | null> {
+  const isMaintenance = backend.status === 503;
+  const isUpdate = backend.status === 426;
+  if (!isMaintenance && !isUpdate) return null;
+  const body = await readJsonObject(backend.clone());
+  if (!body) return null;
+  const upstreamId = backend.headers.get("x-request-id") ?? fallbackId;
+  const details = body.details && typeof body.details === "object" && !Array.isArray(body.details) ? (body.details as Record<string, unknown>) : {};
+  const field = (key: string) => details[key] ?? body[key];
+
+  let payload: Record<string, unknown>;
+  if (isMaintenance && body.code === "MAINTENANCE_MODE") {
+    payload = {
+      success: false,
+      data: null,
+      code: "MAINTENANCE_MODE",
+      message: safeText(body.message) ?? "Service is temporarily unavailable for maintenance.",
+      details: {
+        title_ar: safeText(field("title_ar")) ?? null,
+        title_en: safeText(field("title_en")) ?? null,
+        message_ar: safeText(field("message_ar")) ?? null,
+        estimated_end_at: safeIsoDate(field("estimated_end_at")),
+      },
+      id_request: upstreamId,
+    };
+  } else if (isUpdate && body.code === "APP_UPDATE_REQUIRED") {
+    payload = {
+      success: false,
+      data: null,
+      code: "APP_UPDATE_REQUIRED",
+      message: safeText(body.message) ?? "A newer version of the application is required.",
+      details: { message_ar: safeText(field("message_ar")) ?? null, message_en: safeText(field("message_en")) ?? null },
+      id_request: upstreamId,
+    };
+  } else {
+    return null;
+  }
+  const response = NextResponse.json(payload, { status: backend.status, headers: { "x-request-id": upstreamId, "cache-control": "no-store" } });
+  const retryAfter = safeRetryAfter(backend.headers.get("retry-after"));
+  if (retryAfter) response.headers.set("retry-after", retryAfter);
+  return response;
+}
+
 /**
  * Upstream 5xx bodies are never safe to expose to a browser. In particular,
  * a Django/proxy HTML error page can include stack traces, hostnames, or other
@@ -173,6 +254,9 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     headers.set("Authorization", `Bearer ${access}`);
     headers.set("X-Request-ID", id);
     headers.set("Accept-Language", request.headers.get("accept-language") ?? "ar,en;q=0.8");
+    // The backend throttles per client address; without this every user shares the BFF's address.
+    const clientAddress = trustedClientIp(request.headers);
+    if (clientAddress) headers.set("X-Forwarded-For", clientAddress);
     const contentType = request.headers.get("content-type");
     if (contentType) headers.set("Content-Type", contentType);
     const range = request.headers.get("range");
@@ -203,6 +287,10 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     }
     if (backend.status === 401 && refreshAttempted) return expiredSession(id);
 
+    if (backend.status === 503 || backend.status === 426) {
+      const lifecycle = await lifecyclePassthrough(backend, id);
+      if (lifecycle) return lifecycle;
+    }
     if (backend.status >= 500) return normalizedUpstreamFailure(backend, id);
 
     const responseLength = Number(backend.headers.get("content-length") ?? 0);
@@ -223,7 +311,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     return response;
   } catch (error) {
     if (error instanceof SecurityError) return jsonError(error.status, error.code, error.message, id);
-    if (error instanceof DOMException && error.name === "TimeoutError") {
+    if (error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError")) {
       return jsonError(504, "BACKEND_TIMEOUT", "The backend did not respond in time.", id);
     }
     return jsonError(502, "BACKEND_GATEWAY_ERROR", "Unable to reach the backend service.", id);
