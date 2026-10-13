@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useCan } from "@/features/session";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
@@ -25,7 +26,8 @@ import { useI18n } from "@/i18n/provider";
 
 interface UserTarget { id: number; full_name: string; role: string; email?: string; is_active: boolean }
 const notificationTypes = ["system", "announcement", "lecture", "group", "printing", "support"];
-const deepLinkPattern = /^(?:\/|panorama:\/\/)[a-z0-9/_?=&.%-]*$/iu;
+// The backend only accepts relative application paths (NotificationCampaignSerializer.validate_deep_link).
+const deepLinkPattern = /^\/[a-z0-9/_?=&.%-]*$/iu;
 
 export function NotificationsPage() {
   const { t } = useI18n();
@@ -57,7 +59,10 @@ export function NotificationsPage() {
     if (debouncedSearch !== search) updateUrl({ search: debouncedSearch, page: 1 });
   }, [debouncedSearch, search, updateUrl]);
 
+  // Listing recipients is a users.manage endpoint while sending needs product.manage: degrade with a clear message.
+  const canPickRecipients = useCan(CAPABILITIES.users);
   const users = useQuery({
+    enabled: canPickRecipients,
     queryKey: ["notification-target-users", page, pageSize, search, role],
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), page_size: String(pageSize), is_active: "true", ordering: "full_name" });
@@ -87,18 +92,18 @@ export function NotificationsPage() {
   const toggleVisible = () => setSelected((current) => allVisibleSelected ? current.filter((id) => !visibleUsers.some((user) => user.id === id)) : Array.from(new Set([...current, ...visibleUsers.map((user) => user.id)])).slice(0, 1000));
 
   return (
-    <CapabilityGate capability={CAPABILITIES.announcements}>
+    <CapabilityGate capability={CAPABILITIES.product}>
       <div className="space-y-6">
         <PageHeader title={t("notifications.title")} description={t("notifications.subtitle")} eyebrow="Engagement" />
         <div className="grid gap-5 xl:grid-cols-[.9fr_1.1fr]">
           <Card className="min-h-[38rem]">
             <CardHeader><div className="flex items-center justify-between gap-3"><div><CardTitle>{t("notifications.recipients")}</CardTitle><CardDescription>{selected.length} / 1000</CardDescription></div><Badge variant="secondary"><Users className="me-1 size-3" />{users.data?.count ?? 0}</Badge></div></CardHeader>
-            <CardContent className="space-y-3">
+            {!canPickRecipients ? <CardContent><p role="alert" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm leading-6">{t("notifications.recipientsNeedUsersManage")}</p></CardContent> : <CardContent className="space-y-3">
               <div className="flex gap-2"><div className="relative flex-1"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="ps-10" value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} placeholder={t("common.searchPlaceholder")} /></div><Select value={role} onValueChange={(value) => updateUrl({ role: value === "all" ? null : value, page: 1 })}><SelectTrigger className="w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("common.all")}</SelectItem>{["admin", "content_manager", "it_support", "support_staff", "print_staff", "student", "normal_user"].map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select></div>
               <Button variant="outline" className="w-full" onClick={toggleVisible}>{allVisibleSelected ? t("notifications.clearVisible") : t("notifications.selectVisible")}</Button>
               <div className="max-h-[28rem] space-y-2 overflow-y-auto pe-1">{visibleUsers.map((user) => <button key={user.id} type="button" onClick={() => toggle(user.id)} className="flex w-full items-center gap-3 rounded-xl border p-3 text-start transition hover:bg-muted/40"><span className={`grid size-5 place-items-center rounded border ${selected.includes(user.id) ? "border-primary bg-primary text-primary-foreground" : "bg-background"}`}>{selected.includes(user.id) ? <Check className="size-3" /> : null}</span><span className="min-w-0 flex-1"><strong className="block truncate text-sm">{user.full_name}</strong><span className="text-xs text-muted-foreground">{user.role}</span></span></button>)}{!visibleUsers.length ? <p className="py-10 text-center text-muted-foreground">{search || role !== "all" ? t("common.noSearchResults") : t("common.noRecords")}</p> : null}</div>
               {users.data ? <Pagination page={page} pageSize={pageSize} count={users.data.count} onPage={(next) => updateUrl({ page: next })} onPageSize={(next) => updateUrl({ page_size: next, page: 1 })} /> : null}
-            </CardContent>
+            </CardContent>}
           </Card>
           <Card>
             <CardHeader><div className="flex items-center gap-3"><div className="rounded-xl bg-primary/10 p-3 text-primary"><BellRing className="size-5" /></div><div><CardTitle>{t("notifications.createCampaign")}</CardTitle><CardDescription>{t("notifications.contractNote")}</CardDescription></div></div></CardHeader>

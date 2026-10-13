@@ -32,7 +32,7 @@ export function Topbar() {
         <ConnectivityIndicator />
         <LanguageSwitcher />
         <ThemeSwitcher />
-        {hasCapability(capabilities, CAPABILITIES.announcements) ? (
+        {hasCapability(capabilities, CAPABILITIES.product) ? (
           <Button variant="ghost" size="icon" asChild aria-label={t("nav.notifications")}>
             <Link href={localizePath(params.locale, "/dashboard/notifications")}><Bell /></Link>
           </Button>

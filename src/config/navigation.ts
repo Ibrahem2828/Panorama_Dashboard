@@ -80,7 +80,7 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "printing", label: "nav.printing", href: "/dashboard/printing", icon: Printer, capability: CAPABILITIES.printing },
       { key: "support", label: "nav.support", href: "/dashboard/support", icon: Headphones, capability: CAPABILITIES.support },
       { key: "feedback", label: "nav.feedback", href: "/dashboard/feedback", icon: MessageSquareText, capability: CAPABILITIES.feedback },
-      { key: "notifications", label: "nav.notifications", href: "/dashboard/notifications", icon: BellRing, capability: CAPABILITIES.announcements },
+      { key: "notifications", label: "nav.notifications", href: "/dashboard/notifications", icon: BellRing, capability: CAPABILITIES.product },
     ],
   },
   {

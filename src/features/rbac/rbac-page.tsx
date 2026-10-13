@@ -18,19 +18,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DASHBOARD_ROLES, type DashboardRole } from "@/config/constants";
-import { CAPABILITIES } from "@/lib/auth/capabilities";
+import { CAPABILITIES, roleBaselineHas } from "@/lib/auth/capabilities";
+import { localInputToIso } from "@/lib/datetime";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { payloadSignature } from "@/lib/api/idempotency";
 import { useI18n } from "@/i18n/provider";
-import { humanize } from "@/lib/utils";
+import { formatDate, humanize } from "@/lib/utils";
 import type { ApiEnvelope } from "@/types/api";
 
 type User = Record<string, unknown> & { id: number; full_name: string; email: string; role: DashboardRole; effective_capabilities?: string[]; overrides?: Override[] };
 type Override = { id?: number; permission_code: string; effect: "allow" | "deny"; expires_at?: string | null; reason?: string };
 
 export function RbacPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -54,7 +55,9 @@ export function RbacPage() {
   const save = useMutation({
     mutationFn: () => {
       if (!selected) throw new Error("Select a user first.");
-      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "PUT", body: form, idempotencyKey: saveKey.get(payloadSignature(selected.id, form)) });
+      // datetime-local has no zone: send the viewer's wall-clock time as an explicit instant.
+      const body = { ...form, expires_at: localInputToIso(form.expires_at) };
+      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "PUT", body, idempotencyKey: saveKey.get(payloadSignature(selected.id, body)) });
     },
     onSuccess() { saveKey.reset(); toast.success(t("common.success")); setOpen(false); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
     onError: saveError,
@@ -101,7 +104,7 @@ export function RbacPage() {
                 <CardContent>
                   <div className="overflow-x-auto rounded-xl border">
                     <Table><TableHeader><TableRow><TableHead>Capability</TableHead><TableHead>Effect</TableHead><TableHead>{t("rbac.expiresAt")}</TableHead><TableHead>{t("rbac.reason")}</TableHead><TableHead /></TableRow></TableHeader>
-                      <TableBody>{(selected.overrides ?? []).map((item) => <TableRow key={item.permission_code}><TableCell className="font-mono text-xs">{item.permission_code}</TableCell><TableCell><StatusPill value={item.effect} /></TableCell><TableCell>{item.expires_at ?? "â€”"}</TableCell><TableCell>{item.reason || "â€”"}</TableCell><TableCell><Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove.mutate(item.permission_code)}><Trash2 /></Button></TableCell></TableRow>)}{!(selected.overrides ?? []).length ? <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">{t("common.noData")}</TableCell></TableRow> : null}</TableBody>
+                      <TableBody>{(selected.overrides ?? []).map((item) => <TableRow key={item.permission_code}><TableCell className="font-mono text-xs">{item.permission_code}</TableCell><TableCell><StatusPill value={item.effect} /></TableCell><TableCell>{item.expires_at ? formatDate(item.expires_at, locale) : "—"}</TableCell><TableCell>{item.reason || "—"}</TableCell><TableCell><ConfirmDialog trigger={<Button variant="ghost" size="icon" className="text-destructive" aria-label={t("rbac.removeOverride")} disabled={remove.isPending}><Trash2 /></Button>} title={t("rbac.removeOverride")} description={t("rbac.removeOverrideDescription", { capability: item.permission_code })} confirmLabel={t("common.delete")} cancelLabel={t("common.cancel")} onConfirm={() => remove.mutate(item.permission_code)} /></TableCell></TableRow>)}{!(selected.overrides ?? []).length ? <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">{t("common.noData")}</TableCell></TableRow> : null}</TableBody>
                     </Table>
                   </div>
                 </CardContent>
@@ -112,7 +115,7 @@ export function RbacPage() {
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><ShieldCheck className="text-primary" />{t("rbac.roleBaseline")}</CardTitle></CardHeader>
             <CardContent className="overflow-x-auto">
-              <Table><TableHeader><TableRow><TableHead>Capability</TableHead>{DASHBOARD_ROLES.map((role) => <TableHead key={role} className="min-w-28 text-center">{t(`roles.${role}` as "roles.admin")}</TableHead>)}</TableRow></TableHeader><TableBody>{Object.values(CAPABILITIES).map((capability) => <TableRow key={capability}><TableCell className="font-mono text-xs">{capability}</TableCell>{DASHBOARD_ROLES.map((role) => <TableCell key={role} className="text-center">{Boolean(capabilities.data?.includes(capability)) ? <span className="text-emerald-600">â—</span> : <span className="text-muted-foreground/30">â€”</span>}</TableCell>)}</TableRow>)}</TableBody></Table>
+              <Table><TableHeader><TableRow><TableHead>Capability</TableHead>{DASHBOARD_ROLES.map((role) => <TableHead key={role} className="min-w-28 text-center">{t(`roles.${role}` as "roles.admin")}</TableHead>)}</TableRow></TableHeader><TableBody>{Object.values(CAPABILITIES).map((capability) => <TableRow key={capability}><TableCell className="font-mono text-xs">{capability}</TableCell>{DASHBOARD_ROLES.map((role) => <TableCell key={role} className="text-center">{roleBaselineHas(role, capability) ? <span className="text-emerald-600" role="img" aria-label={t("common.yes")}>●</span> : <span className="text-muted-foreground/30" role="img" aria-label={t("common.no")}>—</span>}</TableCell>)}</TableRow>)}</TableBody></Table>
             </CardContent>
           </Card>
         </div>

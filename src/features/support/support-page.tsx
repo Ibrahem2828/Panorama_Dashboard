@@ -23,6 +23,7 @@ import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { payloadSignature } from "@/lib/api/idempotency";
+import { useAssignees } from "@/features/staff/use-assignees";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useI18n } from "@/i18n/provider";
 import type { ApiEnvelope } from "@/types/api";
@@ -33,7 +34,6 @@ interface SupportTicket {
   assigned_to?: number | null; assigned_to_name?: string; closed_at?: string | null; last_response_at?: string | null;
   messages?: SupportMessage[]; created_at: string; updated_at: string;
 }
-interface StaffUser { id: number; full_name: string; role: string; is_active: boolean }
 const statuses = ["open", "in_progress", "waiting_user", "resolved", "closed"];
 const priorities = ["low", "normal", "high", "urgent"];
 
@@ -76,10 +76,7 @@ export function SupportPage() {
       return normalizeCollection<SupportTicket>(await apiFetch(`/api/v1/dashboard/support/tickets/?${params}`));
     },
   });
-  const staff = useQuery({
-    queryKey: ["support-staff"],
-    queryFn: async () => normalizeCollection<StaffUser>(await apiFetch("/api/v1/dashboard/users/?page_size=200&is_active=true")),
-  });
+  const assignees = useAssignees("support");
 
   const refreshSelected = async (id: number) => {
     const data = await unwrap(apiFetch<SupportTicket | ApiEnvelope<SupportTicket>>(`/api/v1/dashboard/support/tickets/${id}/`));
@@ -118,7 +115,7 @@ export function SupportPage() {
         </div>
         {query.isPending ? <Skeleton className="h-96 rounded-2xl" /> : query.isError ? <ErrorPanel error={query.error} retry={() => query.refetch()} /> : (
           <div className="overflow-hidden rounded-2xl border bg-card"><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-muted/60 text-xs uppercase text-muted-foreground"><tr><th className="p-3 text-start">#</th><th className="p-3 text-start">{t("support.subject")}</th><th className="p-3 text-start">{t("users.fullName")}</th><th className="p-3 text-start">{t("common.status")}</th><th className="p-3 text-start">{t("support.priority")}</th><th className="p-3 text-start">{t("support.assign")}</th><th className="p-3 text-start">{t("common.actions")}</th></tr></thead><tbody>
-            {query.data.results.map((ticket) => <tr key={ticket.id} className="border-t hover:bg-muted/30"><td className="p-3 font-mono">{ticket.id}</td><td className="p-3"><p className="font-semibold">{ticket.subject}</p><p className="text-xs text-muted-foreground">{ticket.category}</p></td><td className="p-3">{ticket.user_name}</td><td className="p-3"><StatusPill value={ticket.status} /></td><td className="p-3"><StatusPill value={ticket.priority} /></td><td className="p-3">{ticket.assigned_to_name || "â€”"}</td><td className="p-3"><Button size="sm" variant="outline" onClick={async () => { setSelected(ticket); await refreshSelected(ticket.id); }}><MessageCircleMore />{t("common.details")}</Button></td></tr>)}
+            {query.data.results.map((ticket) => <tr key={ticket.id} className="border-t hover:bg-muted/30"><td className="p-3 font-mono">{ticket.id}</td><td className="p-3"><p className="font-semibold">{ticket.subject}</p><p className="text-xs text-muted-foreground">{ticket.category}</p></td><td className="p-3">{ticket.user_name}</td><td className="p-3"><StatusPill value={ticket.status} /></td><td className="p-3"><StatusPill value={ticket.priority} /></td><td className="p-3">{ticket.assigned_to_name || "—"}</td><td className="p-3"><Button size="sm" variant="outline" onClick={async () => { setSelected(ticket); await refreshSelected(ticket.id); }}><MessageCircleMore />{t("common.details")}</Button></td></tr>)}
           </tbody></table></div>{!query.data.results.length ? <div className="p-10 text-center text-muted-foreground">{t("common.noData")}</div> : null}</div>
         )}
         {query.data ? <Pagination page={page} pageSize={pageSize} count={query.data.count} onPage={(next) => updateUrl({ page: next })} onPageSize={(next) => updateUrl({ page_size: next, page: 1 })} /> : null}
@@ -139,7 +136,7 @@ export function SupportPage() {
                 <Card><CardHeader><CardTitle className="text-base">{t("support.ticketControls")}</CardTitle></CardHeader><CardContent className="space-y-4">
                   <div className="space-y-2"><Label>{t("common.status")}</Label><div className="flex gap-2"><Select value={nextStatus || selected.status} onValueChange={setNextStatus}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{statuses.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select><Button size="icon" onClick={() => action.mutate("status")} disabled={action.isPending}><RefreshCw /></Button></div></div>
                   <div className="space-y-2"><Label>{t("support.priority")}</Label><div className="flex gap-2"><Select value={priority || selected.priority} onValueChange={setPriority}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{priorities.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select><Button size="icon" onClick={() => action.mutate("priority")} disabled={action.isPending}><RefreshCw /></Button></div></div>
-                  <div className="space-y-2"><Label>{t("support.assign")}</Label><div className="flex gap-2"><Select value={assignedTo || (selected.assigned_to ? String(selected.assigned_to) : "unassigned")} onValueChange={setAssignedTo}><SelectTrigger><SelectValue placeholder={t("support.selectAgent")} /></SelectTrigger><SelectContent><SelectItem value="unassigned">{t("support.unassigned")}</SelectItem>{staff.data?.results.filter((user) => ["support_staff", "admin", "it_support"].includes(user.role)).map((user) => <SelectItem key={user.id} value={String(user.id)}>{user.full_name}</SelectItem>)}</SelectContent></Select><Button size="icon" onClick={() => action.mutate("assign")} disabled={action.isPending}><UserRoundCheck /></Button></div></div>
+                  <div className="space-y-2"><Label>{t("support.assign")}</Label><div className="flex gap-2"><Select value={assignedTo || (selected.assigned_to ? String(selected.assigned_to) : "unassigned")} onValueChange={setAssignedTo}><SelectTrigger><SelectValue placeholder={t("support.selectAgent")} /></SelectTrigger><SelectContent><SelectItem value="unassigned">{t("support.unassigned")}</SelectItem>{assignees.options.map((user) => <SelectItem key={user.id} value={String(user.id)}>{user.name}</SelectItem>)}</SelectContent></Select><Button size="icon" onClick={() => action.mutate("assign")} disabled={action.isPending}><UserRoundCheck /></Button></div>{assignees.limited ? <p className="text-xs leading-5 text-muted-foreground">{t("assignees.limited")}</p> : null}</div>
                 </CardContent></Card>
                 <Card><CardHeader><CardTitle className="text-base">{t("common.details")}</CardTitle></CardHeader><CardContent className="space-y-2 text-sm text-muted-foreground"><p>{t("support.category")}: {selected.category}</p><p>{t("common.createdAt")}: {new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(selected.created_at))}</p><p>{t("common.updatedAt")}: {new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(selected.updated_at))}</p></CardContent></Card>
               </div>
