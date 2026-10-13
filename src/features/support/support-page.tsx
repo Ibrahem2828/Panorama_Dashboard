@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageCircleMore, RefreshCw, Search, Send, UserRoundCheck } from "lucide-react";
+import { MessageCircleMore, Paperclip, RefreshCw, Search, Send, UserRoundCheck } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -24,6 +24,9 @@ import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client"
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { payloadSignature } from "@/lib/api/idempotency";
 import { useAssignees } from "@/features/staff/use-assignees";
+import { FilePreviewDialog, type PreviewTarget } from "@/features/files/file-preview-dialog";
+import { protectedSources } from "@/features/files/protected-preview";
+import { acceptAttribute, DOCUMENT_POLICY, effectiveMaxBytes, validateUpload, type UploadProblem } from "@/lib/uploads";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useI18n } from "@/i18n/provider";
 import type { ApiEnvelope } from "@/types/api";
@@ -53,6 +56,10 @@ export function SupportPage() {
   const [nextStatus, setNextStatus] = useState("");
   const [priority, setPriority] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachmentProblem, setAttachmentProblem] = useState<UploadProblem | null>(null);
+  const [attachmentInput, setAttachmentInput] = useState(0);
+  const [attachmentPreview, setAttachmentPreview] = useState<PreviewTarget | null>(null);
 
   const updateUrl = useCallback((changes: Record<string, string | number | null>) => {
     const next = new URLSearchParams(searchParams.toString());
@@ -90,7 +97,13 @@ export function SupportPage() {
       if (!selected) throw new Error("Missing ticket");
       const send = (path: string, method: "POST" | "PATCH", body: Record<string, unknown>) =>
         apiFetch(`/api/v1/dashboard/support/tickets/${selected.id}/${path}/`, { method, body, idempotencyKey: actionKey.get(payloadSignature(kind, selected.id, body)) });
-      if (kind === "message") return send("messages", "POST", { message });
+      if (kind === "message") {
+        if (!attachment) return send("messages", "POST", { message });
+        const form = new FormData();
+        form.append("message", message);
+        form.append("attachment", attachment);
+        return apiFetch(`/api/v1/dashboard/support/tickets/${selected.id}/messages/`, { method: "POST", body: form, idempotencyKey: actionKey.get(payloadSignature(kind, selected.id, message, attachment.name, attachment.size, attachment.lastModified)) });
+      }
       if (kind === "status") return send("status", "PATCH", { status: nextStatus });
       if (kind === "priority") return send("priority", "PATCH", { priority });
       return send("assign", "POST", { assigned_to: assignedTo && assignedTo !== "unassigned" ? Number(assignedTo) : null });
@@ -99,6 +112,9 @@ export function SupportPage() {
       actionKey.reset();
       toast.success(t("common.success"));
       setMessage("");
+      setAttachment(null);
+      setAttachmentProblem(null);
+      setAttachmentInput((current) => current + 1);
       if (selected) await refreshSelected(selected.id);
       await queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
     },
@@ -127,10 +143,28 @@ export function SupportPage() {
               <div className="space-y-3">
                 <h3 className="font-bold">{t("support.conversation")}</h3>
                 <div className="max-h-[45vh] space-y-3 overflow-y-auto rounded-2xl border bg-muted/20 p-3">
-                  {selected.messages?.map((item) => <div key={item.id} className="rounded-xl border bg-background p-3"><div className="flex items-center justify-between gap-3"><strong className="text-sm">{item.sender_name}</strong><span className="text-[11px] text-muted-foreground">{new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.created_at))}</span></div><p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{item.message}</p></div>)}
+                  {selected.messages?.map((item) => <div key={item.id} className="rounded-xl border bg-background p-3"><div className="flex items-center justify-between gap-3"><strong className="text-sm">{item.sender_name}</strong><span className="text-[11px] text-muted-foreground">{new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.created_at))}</span></div><p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{item.message}</p>{item.has_attachment ? <Button size="sm" variant="outline" className="mt-2" onClick={() => setAttachmentPreview({ title: t("support.attachmentTitle"), source: protectedSources.supportAttachment(item.id) })}><Paperclip />{t("support.viewAttachment")}</Button> : null}</div>)}
                   {!selected.messages?.length ? <p className="py-8 text-center text-muted-foreground">{t("common.noData")}</p> : null}
                 </div>
-                <div className="space-y-2"><Label>{t("support.sendMessage")}</Label><Textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={5000} /><Button onClick={() => action.mutate("message")} disabled={!message.trim() || action.isPending}><Send />{t("support.sendMessage")}</Button></div>
+                <div className="space-y-2"><Label>{t("support.sendMessage")}</Label><Textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={5000} />
+                  <Label htmlFor="support-attachment">{t("support.attachment")}</Label>
+                  <Input
+                    key={attachmentInput}
+                    id="support-attachment"
+                    type="file"
+                    accept={acceptAttribute(DOCUMENT_POLICY)}
+                    aria-invalid={attachmentProblem ? true : undefined}
+                    aria-describedby={attachmentProblem ? "support-attachment-error" : "support-attachment-hint"}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      const found = file ? validateUpload(file, DOCUMENT_POLICY) : null;
+                      setAttachmentProblem(found);
+                      if (found) event.target.value = "";
+                      setAttachment(found ? null : file);
+                    }}
+                  />
+                  {attachmentProblem ? <p id="support-attachment-error" role="alert" className="text-xs font-medium text-destructive">{attachmentProblem === "type" ? t("upload.type", { types: DOCUMENT_POLICY.extensions.map((extension) => extension.toUpperCase()).join(", ") }) : attachmentProblem === "size" ? t("upload.size", { max: Math.floor(effectiveMaxBytes(DOCUMENT_POLICY) / (1024 * 1024)) }) : t("upload.empty")}</p> : <p id="support-attachment-hint" className="text-xs text-muted-foreground">{t("support.attachmentHint")}</p>}
+                  <Button onClick={() => action.mutate("message")} disabled={!message.trim() || action.isPending}><Send />{t("support.sendMessage")}</Button></div>
               </div>
               <div className="space-y-4">
                 <Card><CardHeader><CardTitle className="text-base">{t("support.ticketControls")}</CardTitle></CardHeader><CardContent className="space-y-4">
@@ -144,6 +178,7 @@ export function SupportPage() {
             <DialogFooter><Button variant="outline" onClick={() => setSelected(null)}>{t("common.close")}</Button></DialogFooter>
           </DialogContent>
         </Dialog>
+        <FilePreviewDialog target={attachmentPreview} onOpenChange={(open) => { if (!open) setAttachmentPreview(null); }} />
       </div>
     </CapabilityGate>
   );

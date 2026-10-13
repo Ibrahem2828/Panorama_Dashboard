@@ -6,6 +6,8 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { CapabilityGate } from "@/components/feedback/capability-gate";
+import { Pagination } from "@/components/data-grid/pagination";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusPill } from "@/components/shared/status-pill";
@@ -48,8 +50,11 @@ function AnalyticsPanel() {
 function WorkflowPanel() {
   const { t } = useI18n();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
+  const [searchDraft, setSearchDraft] = useState("");
+  const search = useDebouncedValue(searchDraft);
   const [status, setStatus] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [selected, setSelected] = useState<FeedbackItem | null>(null);
   const [nextStatus, setNextStatus] = useState("");
   const [priority, setPriority] = useState("");
@@ -57,8 +62,8 @@ function WorkflowPanel() {
   const [internalNotes, setInternalNotes] = useState("");
   const [resolution, setResolution] = useState("");
 
-  const query = useQuery({ queryKey: ["feedback", search, status], queryFn: async () => {
-    const params = new URLSearchParams({ page: "1", page_size: "100", ordering: "-created_at" });
+  const query = useQuery({ queryKey: ["feedback", search, status, page, pageSize], queryFn: async () => {
+    const params = new URLSearchParams({ page: String(page), page_size: String(pageSize), ordering: "-created_at" });
     if (search) params.set("search", search); if (status !== "all") params.set("status", status);
     return normalizeCollection<FeedbackItem>(await apiFetch(`/api/v1/dashboard/feedback/?${params}`));
   }});
@@ -83,8 +88,9 @@ function WorkflowPanel() {
 
   const open = (item: FeedbackItem) => { setSelected(item); setNextStatus(item.status); setPriority(item.priority); setAssignedTo(item.assigned_to ? String(item.assigned_to) : "unassigned"); setInternalNotes(item.internal_notes); setResolution(item.resolution_message); };
   return <div className="space-y-4">
-    <div className="glass-panel flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row"><div className="relative flex-1"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="ps-10" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("common.searchPlaceholder")} /></div><Select value={status} onValueChange={setStatus}><SelectTrigger className="sm:w-52"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("common.all")}</SelectItem>{statuses.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select><Button variant="outline" onClick={() => query.refetch()}><RefreshCw className={query.isFetching ? "animate-spin" : ""} />{t("common.refresh")}</Button></div>
+    <div className="glass-panel flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row"><div className="relative flex-1"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="ps-10" value={searchDraft} onChange={(event) => { setSearchDraft(event.target.value); setPage(1); }} placeholder={t("common.searchPlaceholder")} aria-label={t("common.search")} /></div><Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}><SelectTrigger className="sm:w-52"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("common.all")}</SelectItem>{statuses.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select><Button variant="outline" onClick={() => query.refetch()}><RefreshCw className={query.isFetching ? "animate-spin" : ""} />{t("common.refresh")}</Button></div>
     {query.isPending ? <Skeleton className="h-96" /> : query.isError ? <ErrorPanel error={query.error} retry={() => query.refetch()} /> : <div className="overflow-hidden rounded-2xl border bg-card"><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-muted/60 text-xs uppercase text-muted-foreground"><tr><th className="p-3 text-start">#</th><th className="p-3 text-start">{t("feedback.type")}</th><th className="p-3 text-start">{t("feedback.content")}</th><th className="p-3 text-start">{t("feedback.rating")}</th><th className="p-3 text-start">{t("common.status")}</th><th className="p-3 text-start">{t("feedback.priority")}</th><th className="p-3 text-start">{t("common.actions")}</th></tr></thead><tbody>{query.data.results.map((item) => <tr key={item.id} className="border-t hover:bg-muted/30"><td className="p-3 font-mono">{item.id}</td><td className="p-3">{item.kind}</td><td className="max-w-md p-3"><p className="font-semibold">{item.title || item.suggestion || item.comment || "—"}</p><p className="line-clamp-1 text-xs text-muted-foreground">{item.user_name} · {item.platform} {item.app_version}</p></td><td className="p-3"><span className="inline-flex items-center gap-1"><Star className="size-4 text-amber-500" />{item.rating ?? item.metric_value ?? "—"}</span></td><td className="p-3"><StatusPill value={item.status} /></td><td className="p-3"><StatusPill value={item.priority} /></td><td className="p-3"><Button size="sm" variant="outline" onClick={() => open(item)}><MessageSquareText />{t("feedback.workflow")}</Button></td></tr>)}</tbody></table></div>{!query.data.results.length ? <div className="p-10 text-center text-muted-foreground">{t("common.noData")}</div> : null}</div>}
+    {query.data ? <Pagination page={page} pageSize={pageSize} count={query.data.count} onPage={setPage} onPageSize={(size) => { setPageSize(size); setPage(1); }} /> : null}
     <Dialog open={Boolean(selected)} onOpenChange={(value) => { if (!value) setSelected(null); }}><DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto"><DialogHeader><DialogTitle>{selected?.title || `${t("feedback.title")} #${selected?.id}`}</DialogTitle><DialogDescription>{selected?.user_name} · {selected?.kind}</DialogDescription></DialogHeader>{selected ? <div className="grid gap-5 lg:grid-cols-2"><div className="space-y-3"><Card><CardHeader><CardTitle className="text-base">{t("feedback.content")}</CardTitle></CardHeader><CardContent className="space-y-3 whitespace-pre-wrap text-sm text-muted-foreground">{selected.comment ? <p>{selected.comment}</p> : null}{selected.suggestion ? <p>{selected.suggestion}</p> : null}{!selected.comment && !selected.suggestion ? <p>—</p> : null}</CardContent></Card><Card><CardHeader><CardTitle className="text-base">Metadata</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-2 text-xs text-muted-foreground"><span>{selected.platform}</span><span>{selected.app_version}</span><span>{selected.locale}</span><span>{selected.votes_count} votes</span></CardContent></Card></div><div className="space-y-3"><div className="grid grid-cols-2 gap-3"><div className="space-y-2"><Label>{t("common.status")}</Label><Select value={nextStatus} onValueChange={setNextStatus}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{statuses.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select></div><div className="space-y-2"><Label>{t("feedback.priority")}</Label><Select value={priority} onValueChange={setPriority}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{priorities.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select></div></div><div className="space-y-2"><Label>{t("support.assign")}</Label><Select value={assignedTo} onValueChange={setAssignedTo}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unassigned">{t("support.unassigned")}</SelectItem>{assignees.options.map((user) => <SelectItem key={user.id} value={String(user.id)}>{user.name}</SelectItem>)}</SelectContent></Select>{assignees.limited ? <p className="text-xs leading-5 text-muted-foreground">{t("assignees.limited")}</p> : null}</div><div className="space-y-2"><Label>{t("feedback.internalNotes")}</Label><Textarea value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} /></div><div className="space-y-2"><Label>{t("feedback.resolution")}</Label><Textarea value={resolution} onChange={(event) => setResolution(event.target.value)} /></div></div></div> : null}<DialogFooter><Button variant="outline" onClick={() => setSelected(null)}>{t("common.cancel")}</Button><Button onClick={() => save.mutate()} disabled={save.isPending}>{t("common.save")}</Button></DialogFooter></DialogContent></Dialog>
   </div>;
 }
