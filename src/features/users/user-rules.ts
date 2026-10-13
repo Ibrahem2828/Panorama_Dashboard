@@ -48,6 +48,11 @@ export function canDeactivateUser(actor: Actor, target: UserRef): boolean {
   return target.is_active !== false && actor.id !== target.id && actorOutranks(actor.role, target.role);
 }
 
+/** Clearing a failed-login lockout: same rank rule as deactivating, never on yourself (the list exposes no lockout flag). */
+export function canUnlockLogin(actor: Actor, target: UserRef): boolean {
+  return actor.id !== target.id && actorOutranks(actor.role, target.role);
+}
+
 export function canActivateUser(actor: Actor, target: UserRef): boolean {
   return target.is_active === false && actorOutranks(actor.role, target.role);
 }

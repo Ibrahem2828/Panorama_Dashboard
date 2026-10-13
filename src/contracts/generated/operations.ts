@@ -1495,6 +1495,15 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/dashboard/users/{id}/unlock-login/",
+    "operationId": "v1_dashboard_users_unlock_login_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "GET",
     "path": "/api/v1/dashboard/users/{user_id}/permission-overrides/",
     "operationId": "v1_dashboard_users_permission_overrides_retrieve",
@@ -2177,6 +2186,15 @@ export const API_OPERATIONS = [
       "Policies"
     ],
     "authenticated": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/policies/status/",
+    "operationId": "v1_policies_status_retrieve",
+    "tags": [
+      "Policies"
+    ],
+    "authenticated": true
   },
   {
     "method": "POST",

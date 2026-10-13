@@ -1,6 +1,6 @@
 "use client";
 
-import { UserCheck, UserX } from "lucide-react";
+import { LockKeyholeOpen, UserCheck, UserX } from "lucide-react";
 import { useMemo } from "react";
 
 import type { FieldOverride } from "@/features/resources/form-schema";
@@ -8,7 +8,7 @@ import { RESOURCE_COLUMNS } from "@/features/resources/columns";
 import { ResourceManager, type ManagerRowAction } from "@/features/resources/resource-manager";
 import type { EntityRecord } from "@/features/resources/resource-api";
 import { useSession } from "@/features/session";
-import { assignableRoles, canActivateUser, canChangeRole, canDeactivateUser, canEditUser, type UserRef } from "@/features/users/user-rules";
+import { assignableRoles, canActivateUser, canChangeRole, canDeactivateUser, canEditUser, canUnlockLogin, type UserRef } from "@/features/users/user-rules";
 import { useI18n } from "@/i18n/provider";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 
@@ -38,6 +38,14 @@ export function UsersPage() {
       visible: (row) => canActivateUser(actor, asUser(row)),
       confirm: { title: t("users.activateTitle"), description: (row) => t("users.activateDescription", { name: String(row.full_name ?? row.email ?? row.id) }), confirmLabel: t("users.activate") },
       request: (row) => ({ path: `/api/v1/dashboard/users/${row.id}/activate/`, method: "POST" }),
+    },
+    {
+      key: "unlock-login",
+      label: t("users.unlockLogin"),
+      icon: <LockKeyholeOpen />,
+      visible: (row) => canUnlockLogin(actor, asUser(row)),
+      confirm: { title: t("users.unlockLoginTitle"), description: (row) => t("users.unlockLoginDescription", { name: String(row.full_name ?? row.email ?? row.id) }), confirmLabel: t("users.unlockLogin") },
+      request: (row) => ({ path: `/api/v1/dashboard/users/${row.id}/unlock-login/`, method: "POST", body: {} }),
     },
   ], [actor, t]);
 
