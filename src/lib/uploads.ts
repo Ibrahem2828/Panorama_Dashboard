@@ -44,6 +44,12 @@ export const LECTURE_POLICY: UploadPolicy = {
   maxBytes: 50 * MB,
 };
 
+/**
+ * The file library (`/dashboard/files/`) validates with the backend DOCUMENT policy (`validate_document_upload`), so the
+ * library accepts exactly the document types and size above; there is no wider "library" policy on the server.
+ */
+export const LIBRARY_POLICY: UploadPolicy = DOCUMENT_POLICY;
+
 /** Which backend policy governs a contract file field. Unknown fields get the strictest document-or-image default. */
 export function uploadPolicyForField(fieldName: string): UploadPolicy {
   if (fieldName === "original_file") return LECTURE_POLICY;

@@ -27,6 +27,15 @@ export function formatNumber(value: unknown, locale = "ar") {
   return Number.isFinite(number) ? new Intl.NumberFormat(locale === "ar" ? "ar-SY" : "en-US").format(number) : "—";
 }
 
+/** Human readable size: 842 B, 12.0 KB, 3.4 MB. */
+export function formatFileSize(bytes: unknown): string {
+  const size = Number(bytes);
+  if (!Number.isFinite(size) || size < 0) return "—";
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function compactJson(value: unknown) {
   if (value === null || value === undefined) return "—";
   if (typeof value === "string") return value;

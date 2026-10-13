@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { RESOURCE_DEFINITIONS } from "@/contracts/generated/resource-definitions";
@@ -45,6 +46,24 @@ export interface ManagerRowAction {
   request: (row: EntityRecord, reason?: string) => { path: string; method: "POST" | "PATCH" | "PUT" | "DELETE"; body?: unknown };
 }
 
+/** A row action that opens custom UI (members panel, preview, ...) instead of a confirmation. Shown to everyone who can open the page. */
+export interface ManagerCustomAction {
+  key: string;
+  label: string;
+  icon?: React.ReactNode;
+  visible?: (row: EntityRecord) => boolean;
+  onSelect: (row: EntityRecord) => void;
+}
+
+/** A select filter kept in the URL and sent to the list endpoint as a query parameter. */
+export interface ManagerFilter {
+  param: string;
+  label: string;
+  options: readonly { value: string; label: string }[];
+}
+
+const ALL_FILTER = "__all__";
+
 type FormAction = "create" | "edit";
 
 export function ResourceManager({
@@ -64,6 +83,8 @@ export function ResourceManager({
   canEditRow,
   canDeleteRow,
   rowActions,
+  customRowActions,
+  filters,
   confirmSubmit,
   guardSubmit,
   createLabel,
@@ -85,6 +106,8 @@ export function ResourceManager({
   canEditRow?: (row: EntityRecord) => boolean;
   canDeleteRow?: (row: EntityRecord) => boolean;
   rowActions?: ManagerRowAction[];
+  customRowActions?: ManagerCustomAction[];
+  filters?: ManagerFilter[];
   confirmSubmit?: (mode: FormAction, payload: Record<string, unknown>, entity: EntityRecord | null) => string | null;
   guardSubmit?: (mode: FormAction, payload: Record<string, unknown>, entity: EntityRecord | null, rows: EntityRecord[]) => { field?: string; message: string } | null;
   createLabel?: string;
@@ -112,6 +135,10 @@ export function ResourceManager({
   const pageSize = Math.min(100, Math.max(10, Number(searchParams.get("page_size") ?? 25)));
   const search = searchParams.get("search") ?? "";
   const ordering = searchParams.get("ordering") ?? "-created_at";
+  const activeFilters = useMemo(
+    () => Object.fromEntries((filters ?? []).map((filter) => [filter.param, searchParams.get(filter.param) ?? ""]).filter(([, value]) => value)) as Record<string, string>,
+    [filters, searchParams],
+  );
 
   const canWrite = !readOnly && canAccess && hasWriteCapability;
   const createSpecs = useMemo(
@@ -135,8 +162,8 @@ export function ResourceManager({
   };
 
   const query = useQuery({
-    queryKey: ["resource", resourceKey, page, pageSize, search, ordering],
-    queryFn: () => listResource(baseDefinition, { page, pageSize, search, ordering }),
+    queryKey: ["resource", resourceKey, page, pageSize, search, ordering, activeFilters],
+    queryFn: () => listResource(baseDefinition, { page, pageSize, search, ordering, filters: activeFilters }),
     enabled: canAccess,
   });
 
@@ -202,15 +229,23 @@ export function ResourceManager({
   const canEdit = Boolean(canWrite && editSpecs.length && policyAllows(policy, "edit") && (allowEdit ?? (baseDefinition.detailMethods.includes("patch") || baseDefinition.detailMethods.includes("put"))));
   const canDelete = Boolean(canWrite && policyAllows(policy, "delete") && (allowDelete ?? baseDefinition.detailMethods.includes("delete")));
 
-  const menuActions = (row: EntityRecord): RowMenuAction[] => canWrite
-    ? (rowActions ?? []).filter((action) => !action.visible || action.visible(row)).map((action) => ({
+  const menuActions = (row: EntityRecord): RowMenuAction[] => [
+    ...(customRowActions ?? []).filter((action) => !action.visible || action.visible(row)).map((action) => ({
       key: action.key,
       label: action.label,
       icon: action.icon,
-      destructive: action.destructive,
-      onSelect: () => { setReason(""); setReasonError(null); runAction.reset(); setActionTarget({ action, row }); },
-    }))
-    : [];
+      onSelect: () => action.onSelect(row),
+    })),
+    ...(canWrite
+      ? (rowActions ?? []).filter((action) => !action.visible || action.visible(row)).map((action) => ({
+        key: action.key,
+        label: action.label,
+        icon: action.icon,
+        destructive: action.destructive,
+        onSelect: () => { setReason(""); setReasonError(null); runAction.reset(); setActionTarget({ action, row }); },
+      }))
+      : []),
+  ];
 
   const submitAction = () => {
     if (!actionTarget) return;
@@ -249,6 +284,15 @@ export function ResourceManager({
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} placeholder={t("common.searchPlaceholder")} aria-label={t("common.search")} className="h-11 ps-10" />
         </form>
+        {(filters ?? []).map((filter) => (
+          <Select key={filter.param} value={searchParams.get(filter.param) || ALL_FILTER} onValueChange={(next) => updateUrl({ [filter.param]: next === ALL_FILTER ? null : next, page: 1 })}>
+            <SelectTrigger className="h-11 sm:w-52" aria-label={filter.label}><SelectValue placeholder={filter.label} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_FILTER}>{filter.label}: {t("common.all")}</SelectItem>
+              {filter.options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        ))}
         <Button variant="outline" onClick={() => updateUrl({ search: searchDraft, page: 1 })}><Search />{t("common.search")}</Button>
       </div>
 

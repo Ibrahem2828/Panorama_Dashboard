@@ -53,6 +53,19 @@ const writablePolicy = ({ capability, create, update = create, fieldOverrides, c
   deletable,
 });
 
+/** Backend FileResourceSerializer.validate: group-only files need a group, major-only files a major and an academic year. */
+export const visibilityNeedsScope: CrossRule = {
+  check(values) {
+    const present = (name: string) => values[name] !== undefined && values[name] !== null && values[name] !== "";
+    if (values.visibility === "group_only" && !present("group")) return { field: "group", error: "validation.groupRequired" };
+    if (values.visibility === "major_only") {
+      if (!present("major")) return { field: "major", error: "validation.majorRequired" };
+      if (!present("academic_year")) return { field: "academic_year", error: "validation.academicYearRequired" };
+    }
+    return null;
+  },
+};
+
 const ROLE_VALUES = ["it_support", "admin", "print_staff", "support_staff", "content_manager", "student", "normal_user"] as const;
 /** Smallest-int columns in the backend models (PositiveSmallIntegerField); the contract only says int64. */
 const SMALL_ORDER: FieldOverride = { min: 0, max: 32767 };
@@ -71,8 +84,31 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
   subjects: writablePolicy({ capability: "academic.manage", create: ["major", "academic_year", "semester", "name", "code", "description", "is_active"], deletable: true }),
   verifications: readOnlyPolicy("verification.review"),
   lectures: readOnlyPolicy("lectures.manage"),
-  files: readOnlyPolicy("files.manage"),
-  groups: readOnlyPolicy("groups.manage"),
+  // Library files: the backend soft-deletes (hides) them; `file` is only required on create (on edit it replaces the stored file).
+  files: writablePolicy({
+    capability: "files.manage",
+    create: ["title", "description", "file", "visibility", "university", "faculty", "major", "academic_year", "semester", "subject", "group", "is_printable", "is_active"],
+    fieldOverrides: {
+      description: { maxLength: 5000 },
+      file: { hint: "files.fileHint" },
+      visibility: { defaultValue: "public", required: true, hint: "files.visibilityHint" },
+      group: { nullable: true, required: false, hint: "files.groupHint" },
+      is_printable: { defaultValue: false, hint: "files.printableHint" },
+    },
+    crossRules: [visibilityNeedsScope],
+    deletable: true,
+  }),
+  // Groups are archived (is_active=false), not deleted. The WhatsApp channel is managed by its own capability-gated endpoint.
+  groups: writablePolicy({
+    capability: "groups.manage",
+    create: ["name", "description", "image", "university", "faculty", "major", "academic_year", "semester", "subject", "requires_approval", "send_messages_permission", "is_active"],
+    fieldOverrides: {
+      description: { maxLength: 5000 },
+      requires_approval: { defaultValue: true, hint: "groups.requiresApprovalHint" },
+      send_messages_permission: { defaultValue: "all_members", required: true },
+      faculty: { hint: "groups.scopeHint" },
+    },
+  }),
   announcements: writablePolicy({
     capability: "announcements.manage",
     create: ["title", "description", "image", "link", "target_user_type", "target_university", "target_faculty", "target_major", "target_academic_year", "target_semester", "starts_at", "ends_at", "is_active"],
