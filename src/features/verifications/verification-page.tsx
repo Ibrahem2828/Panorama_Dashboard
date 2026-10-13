@@ -35,6 +35,7 @@ export function VerificationPage() {
   const [selected, setSelected] = useState<EntityRecord | null>(null);
   const [action, setAction] = useState<"approve" | "reject" | "needs-update" | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [reasonError, setReasonError] = useState<string | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
   const definition = RESOURCE_DEFINITIONS.verifications;
@@ -47,10 +48,10 @@ export function VerificationPage() {
   const review = useMutation({
     mutationFn: async () => {
       if (!selected?.id || !action) throw new Error("Missing verification request.");
-      const body = { rejection_reason: rejectionReason, admin_note: adminNote };
+      const body = { rejection_reason: rejectionReason.trim(), admin_note: adminNote.trim() };
       return apiFetch(`/api/v1/dashboard/verifications/${selected.id}/${action}/`, { method: "POST", body, idempotencyKey: reviewKey.get(payloadSignature(action, selected.id, body)) });
     },
-    onSuccess() { reviewKey.reset(); toast.success(t("common.success")); setAction(null); setSelected(null); setRejectionReason(""); setAdminNote(""); void queryClient.invalidateQueries({ queryKey: ["verifications"] }); },
+    onSuccess() { reviewKey.reset(); toast.success(t("common.success")); setAction(null); setSelected(null); setRejectionReason(""); setAdminNote(""); setReasonError(null); void queryClient.invalidateQueries({ queryKey: ["verifications"] }); },
     onError: reviewError,
   });
   const cardError = useMutationError();
@@ -88,15 +89,15 @@ export function VerificationPage() {
 
       <Dialog open={Boolean(selected && !action)} onOpenChange={(open) => { if (!open) setSelected(null); }}>
         <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto"><DialogHeader><DialogTitle>{selected?.user_name as string}</DialogTitle><DialogDescription>{selected?.student_number as string}</DialogDescription></DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">{selected ? Object.entries(selected).filter(([key]) => !key.includes("detail")).map(([key,value]) => <div key={key} className="rounded-xl border p-3"><div className="text-xs font-bold text-muted-foreground">{key}</div><div className="mt-1 break-words text-sm">{typeof value === "object" ? JSON.stringify(value) : String(value ?? "â€”")}</div></div>) : null}</div>
+          <div className="grid gap-3 sm:grid-cols-2">{selected ? Object.entries(selected).filter(([key]) => !key.includes("detail")).map(([key,value]) => <div key={key} className="rounded-xl border p-3"><div className="text-xs font-bold text-muted-foreground">{key}</div><div className="mt-1 break-words text-sm">{typeof value === "object" ? JSON.stringify(value) : String(value ?? "—")}</div></div>) : null}</div>
           <DialogFooter className="flex-wrap gap-2"><Button variant="outline" onClick={() => selected && card.mutate(selected)} isLoading={card.isPending}><Eye />{t("verifications.cardPreview")}</Button><Button variant="outline" onClick={() => setAction("needs-update")}><RotateCcw />{t("verifications.needsUpdate")}</Button><Button variant="destructive" onClick={() => setAction("reject")}><XCircle />{t("verifications.reject")}</Button><Button onClick={() => setAction("approve")}><CheckCircle2 />{t("verifications.approve")}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(action)} onOpenChange={(open) => { if (!open) setAction(null); }}>
+      <Dialog open={Boolean(action)} onOpenChange={(open) => { if (!open) { setAction(null); setReasonError(null); } }}>
         <DialogContent><DialogHeader><DialogTitle>{action === "approve" ? t("verifications.approve") : action === "reject" ? t("verifications.reject") : t("verifications.needsUpdate")}</DialogTitle><DialogDescription>{selected?.user_name as string}</DialogDescription></DialogHeader>
-          <div className="space-y-4 py-3"><div className="space-y-2"><Label>{t("verifications.decisionReason")}</Label><Textarea value={rejectionReason} onChange={(e)=>setRejectionReason(e.target.value)} maxLength={2000}/></div><div className="space-y-2"><Label>{t("verifications.adminNote")}</Label><Textarea value={adminNote} onChange={(e)=>setAdminNote(e.target.value)} maxLength={4000}/></div></div>
-          <DialogFooter><Button variant="outline" onClick={()=>setAction(null)}>{t("common.cancel")}</Button><Button variant={action === "reject" ? "destructive" : "default"} onClick={()=>review.mutate()} isLoading={review.isPending}>{t("common.save")}</Button></DialogFooter>
+          <div className="space-y-4 py-3"><div className="space-y-2"><Label htmlFor="verification-reason">{t("verifications.decisionReason")}{action !== "approve" ? <span className="ms-1 text-destructive" aria-hidden="true">*</span> : null}</Label><Textarea id="verification-reason" value={rejectionReason} onChange={(e)=>{ setRejectionReason(e.target.value); setReasonError(null); }} maxLength={2000} aria-required={action !== "approve" || undefined} aria-invalid={reasonError ? true : undefined} aria-describedby={reasonError ? "verification-reason-error" : undefined}/>{reasonError ? <p id="verification-reason-error" role="alert" className="text-xs font-medium text-destructive">{reasonError}</p> : null}</div><div className="space-y-2"><Label>{t("verifications.adminNote")}</Label><Textarea value={adminNote} onChange={(e)=>setAdminNote(e.target.value)} maxLength={4000}/></div></div>
+          <DialogFooter><Button variant="outline" onClick={()=>setAction(null)}>{t("common.cancel")}</Button><Button variant={action === "reject" ? "destructive" : "default"} onClick={()=>{ if (action !== "approve" && !rejectionReason.trim()) { setReasonError(t("verifications.reasonRequired")); document.getElementById("verification-reason")?.focus(); return; } review.mutate(); }} isLoading={review.isPending}>{t("common.save")}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
