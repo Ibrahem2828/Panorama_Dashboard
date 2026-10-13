@@ -21,11 +21,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { RESOURCE_COLUMNS } from "@/features/resources/columns";
 import { ResourceManager } from "@/features/resources/resource-manager";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { payloadSignature } from "@/lib/api/idempotency";
+import { useAssignees } from "@/features/staff/use-assignees";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useI18n } from "@/i18n/provider";
 
@@ -45,7 +47,6 @@ interface PrintOrder {
   status_history?: unknown[];
 }
 
-interface StaffUser { id: number; full_name: string; role: string; is_active: boolean }
 const statuses = ["submitted", "under_review", "accepted", "printing", "ready", "delivered", "cancelled", "rejected"];
 
 function PrintOrdersPanel() {
@@ -88,10 +89,7 @@ function PrintOrdersPanel() {
       return normalizeCollection<PrintOrder>(await apiFetch(`/api/v1/dashboard/printing/orders/?${params}`));
     },
   });
-  const staff = useQuery({
-    queryKey: ["printing-staff"],
-    queryFn: async () => normalizeCollection<StaffUser>(await apiFetch("/api/v1/dashboard/users/?page_size=200&is_active=true")),
-  });
+  const assignees = useAssignees("printing");
 
   const mutateKey = useIdempotencyKey();
   const mutateError = useMutationError(mutateKey);
@@ -152,7 +150,7 @@ function PrintOrdersPanel() {
             <div className="flex flex-wrap gap-2"><Button onClick={() => setAction("status")}><RefreshCw />{t("printing.changeStatus")}</Button><Button variant="outline" onClick={() => setAction("assign")}><UserRoundCheck />{t("support.assign")}</Button><Button variant="outline" onClick={() => setAction("note")}><MessageSquarePlus />{t("printing.addNote")}</Button></div>
             {action ? <Card className="border-primary/30"><CardHeader><CardTitle className="text-base">{action === "status" ? t("printing.changeStatus") : action === "assign" ? t("support.assign") : t("printing.addNote")}</CardTitle></CardHeader><CardContent className="space-y-4">
               {action === "status" ? <><div className="space-y-2"><Label>{t("common.status")}</Label><Select value={nextStatus} onValueChange={setNextStatus}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{statuses.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select></div><div className="space-y-2"><Label>{t("printing.publicNote")}</Label><Textarea value={publicNote} onChange={(event) => setPublicNote(event.target.value)} /></div><div className="space-y-2"><Label>{t("printing.internalNotes")}</Label><Textarea value={internalNote} onChange={(event) => setInternalNote(event.target.value)} /></div></> : null}
-              {action === "assign" ? <div className="space-y-2"><Label>{t("support.assign")}</Label><Select value={assignedTo} onValueChange={setAssignedTo}><SelectTrigger><SelectValue placeholder={t("support.selectAgent")} /></SelectTrigger><SelectContent>{staff.data?.results.filter((user) => ["print_staff", "admin", "it_support"].includes(user.role)).map((user) => <SelectItem key={user.id} value={String(user.id)}>{user.full_name}</SelectItem>)}</SelectContent></Select></div> : null}
+              {action === "assign" ? <div className="space-y-2"><Label>{t("support.assign")}</Label><Select value={assignedTo} onValueChange={setAssignedTo}><SelectTrigger><SelectValue placeholder={t("support.selectAgent")} /></SelectTrigger><SelectContent>{assignees.options.map((user) => <SelectItem key={user.id} value={String(user.id)}>{user.name}</SelectItem>)}</SelectContent></Select>{assignees.limited ? <p className="text-xs leading-5 text-muted-foreground">{t("assignees.limited")}</p> : null}</div> : null}
               {action === "note" ? <div className="space-y-2"><Label>{t("printing.internalNotes")}</Label><Textarea value={internalNote} onChange={(event) => setInternalNote(event.target.value)} /></div> : null}
               <div className="flex justify-end gap-2"><Button variant="ghost" onClick={() => setAction(null)}>{t("common.cancel")}</Button>{action === "status" ? <ConfirmDialog trigger={<Button disabled={mutate.isPending}>{t("common.save")}</Button>} title={t("printing.confirmStatusTitle")} description={t("printing.confirmStatusDescription", { status: nextStatus })} confirmLabel={t("common.save")} cancelLabel={t("common.cancel")} onConfirm={() => mutate.mutate()} /> : <Button onClick={() => mutate.mutate()} disabled={mutate.isPending || (action === "assign" && !assignedTo)}>{t("common.save")}</Button>}</div>
             </CardContent></Card> : null}
@@ -173,9 +171,9 @@ export function PrintingPage() {
         <Tabs defaultValue="orders" className="space-y-4">
           <TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="orders">{t("printing.orders")}</TabsTrigger><TabsTrigger value="pricing">{t("printing.pricing")}</TabsTrigger><TabsTrigger value="binding">{t("printing.binding")}</TabsTrigger><TabsTrigger value="locations">{t("printing.locations")}</TabsTrigger></TabsList>
           <TabsContent value="orders"><PrintOrdersPanel /></TabsContent>
-          <TabsContent value="pricing"><ResourceManager resourceKey="printing-pricing-rules" title={t("printing.pricing")} capability={CAPABILITIES.printing} /></TabsContent>
-          <TabsContent value="binding"><ResourceManager resourceKey="printing-binding-prices" title={t("printing.binding")} capability={CAPABILITIES.printing} /></TabsContent>
-          <TabsContent value="locations"><ResourceManager resourceKey="printing-pickup-locations" title={t("printing.locations")} capability={CAPABILITIES.printing} /></TabsContent>
+          <TabsContent value="pricing"><ResourceManager resourceKey="printing-pricing-rules" columns={RESOURCE_COLUMNS["printing-pricing-rules"]} title={t("printing.pricing")} capability={CAPABILITIES.printing} /></TabsContent>
+          <TabsContent value="binding"><ResourceManager resourceKey="printing-binding-prices" columns={RESOURCE_COLUMNS["printing-binding-prices"]} title={t("printing.binding")} capability={CAPABILITIES.printing} /></TabsContent>
+          <TabsContent value="locations"><ResourceManager resourceKey="printing-pickup-locations" columns={RESOURCE_COLUMNS["printing-pickup-locations"]} title={t("printing.locations")} capability={CAPABILITIES.printing} /></TabsContent>
         </Tabs>
       </div>
     </CapabilityGate>

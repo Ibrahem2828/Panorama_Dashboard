@@ -25,11 +25,21 @@ function displayValue(key: string, value: unknown, locale: string) {
   return <span className="block max-w-72 truncate" title={String(value)}>{String(value)}</span>;
 }
 
-export function ResourceTable({ rows, columns, canEdit, canDelete, onView, onEdit, onDelete, emptyMessage }: {
+export interface RowMenuAction {
+  key: string;
+  label: string;
+  icon?: ReactNode;
+  destructive?: boolean;
+  onSelect: () => void;
+}
+
+export function ResourceTable({ rows, columns, canEdit, canDelete, rowActions, onView, onEdit, onDelete, emptyMessage }: {
   rows: Record<string, unknown>[];
   columns: ResourceColumn[];
-  canEdit?: boolean;
-  canDelete?: boolean;
+  canEdit?: boolean | ((row: Record<string, unknown>) => boolean);
+  canDelete?: boolean | ((row: Record<string, unknown>) => boolean);
+  /** Extra per-row actions (status toggles, publish, ...), already filtered for the current user. */
+  rowActions?: (row: Record<string, unknown>) => RowMenuAction[];
   onView: (row: Record<string, unknown>) => void;
   onEdit: (row: Record<string, unknown>) => void;
   onDelete: (row: Record<string, unknown>) => void;
@@ -51,8 +61,9 @@ export function ResourceTable({ rows, columns, canEdit, canDelete, onView, onEdi
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={t("common.actions")}><MoreHorizontal /></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onView(row)}><Eye />{t("common.view")}</DropdownMenuItem>
-                      {canEdit ? <DropdownMenuItem onClick={() => onEdit(row)}><Pencil />{t("common.edit")}</DropdownMenuItem> : null}
-                      {canDelete ? <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(row)}><Trash2 />{t("common.delete")}</DropdownMenuItem> : null}
+                      {(typeof canEdit === "function" ? canEdit(row) : canEdit) ? <DropdownMenuItem onClick={() => onEdit(row)}><Pencil />{t("common.edit")}</DropdownMenuItem> : null}
+                      {rowActions?.(row).map((action) => <DropdownMenuItem key={action.key} className={action.destructive ? "text-destructive focus:text-destructive" : undefined} onClick={action.onSelect}>{action.icon}{action.label}</DropdownMenuItem>)}
+                      {(typeof canDelete === "function" ? canDelete(row) : canDelete) ? <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(row)}><Trash2 />{t("common.delete")}</DropdownMenuItem> : null}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
