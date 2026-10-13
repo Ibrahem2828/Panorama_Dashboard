@@ -81,7 +81,7 @@ export function HealthPage() {
                     <>
                       <div className="flex items-center gap-2 font-semibold">
                         {result?.ok ? <CircleCheck className="size-4 text-emerald-500" /> : <CircleX className="size-4 text-destructive" />}
-                        HTTP {result?.status || "â€”"}
+                        HTTP {result?.status || "—"}
                       </div>
                       <pre className="max-h-28 overflow-auto rounded-lg bg-muted/50 p-2 text-[10px] text-muted-foreground">{JSON.stringify(result?.payload ?? {}, null, 2)}</pre>
                       {result?.requestId ? <p className="text-xs text-muted-foreground">{t("common.requestId")}: <span className="font-mono">{result.requestId}</span></p> : null}

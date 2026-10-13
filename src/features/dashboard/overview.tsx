@@ -52,7 +52,7 @@ export function DashboardOverview() {
     },
     refetchInterval: 60_000,
   });
-  const metrics = numericMetrics(stats.data).slice(0, 8);
+  const metrics = numericMetrics(stats.data);
   const visibleActions = allNavigationItems.filter((item) => item.href !== "/dashboard" && hasCapability(capabilities, item.capability)).slice(0, 8);
 
   return (
