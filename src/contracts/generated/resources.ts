@@ -3387,6 +3387,8 @@ export const OPERATION_PATHS = {
   "v1_dashboard_audit_logs_list": "/api/v1/dashboard/audit-logs/",
   "v1_dashboard_audit_logs_retrieve": "/api/v1/dashboard/audit-logs/{id}/",
   "v1_dashboard_capabilities_retrieve": "/api/v1/dashboard/capabilities/",
+  "v1_dashboard_chat_reports_list": "/api/v1/dashboard/chat/reports/",
+  "v1_dashboard_chat_reports_resolve_create": "/api/v1/dashboard/chat/reports/{id}/resolve/",
   "v1_dashboard_faculties_list": "/api/v1/dashboard/faculties/",
   "v1_dashboard_faculties_create": "/api/v1/dashboard/faculties/",
   "v1_dashboard_faculties_retrieve": "/api/v1/dashboard/faculties/{id}/",
@@ -3435,6 +3437,7 @@ export const OPERATION_PATHS = {
   "v1_dashboard_lectures_partial_update": "/api/v1/dashboard/lectures/{id}/",
   "v1_dashboard_lectures_destroy": "/api/v1/dashboard/lectures/{id}/",
   "v1_dashboard_lectures_original_retrieve": "/api/v1/dashboard/lectures/{id}/original/",
+  "v1_dashboard_lectures_retry_create": "/api/v1/dashboard/lectures/{id}/retry/",
   "v1_dashboard_maintenance_modes_list": "/api/v1/dashboard/maintenance-modes/",
   "v1_dashboard_maintenance_modes_create": "/api/v1/dashboard/maintenance-modes/",
   "v1_dashboard_maintenance_modes_retrieve": "/api/v1/dashboard/maintenance-modes/{id}/",
@@ -3608,6 +3611,7 @@ export const OPERATION_PATHS = {
   "v1_protected_chat_attachments_retrieve": "/api/v1/protected-chat-attachments/{token}/",
   "v1_protected_files_retrieve": "/api/v1/protected-files/{token}/",
   "v1_protected_print_items_retrieve": "/api/v1/protected-print-items/{token}/",
+  "v1_search_retrieve": "/api/v1/search/",
   "v1_semesters_list": "/api/v1/semesters/",
   "v1_semesters_retrieve": "/api/v1/semesters/{id}/",
   "v1_students_me_profile_retrieve": "/api/v1/students/me/profile/",
@@ -3625,6 +3629,7 @@ export const OPERATION_PATHS = {
   "v1_universities_faculties_list": "/api/v1/universities/{university_pk}/faculties/",
   "v1_verification_card_access_retrieve": "/api/v1/verification-card-access/{token}/",
   "v1_verification_me_retrieve": "/api/v1/verification/me/",
+  "v1_verification_me_card_retrieve": "/api/v1/verification/me/card/",
   "v1_verification_resubmit_create": "/api/v1/verification/resubmit/",
   "v1_verification_submit_create": "/api/v1/verification/submit/"
 } as const;

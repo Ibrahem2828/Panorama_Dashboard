@@ -308,6 +308,24 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/chat/reports/",
+    "operationId": "v1_dashboard_chat_reports_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/chat/reports/{id}/resolve/",
+    "operationId": "v1_dashboard_chat_reports_resolve_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/faculties/",
     "operationId": "v1_dashboard_faculties_list",
     "tags": [
@@ -733,6 +751,15 @@ export const API_OPERATIONS = [
     "method": "GET",
     "path": "/api/v1/dashboard/lectures/{id}/original/",
     "operationId": "v1_dashboard_lectures_original_retrieve",
+    "tags": [
+      "Dashboard lectures"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/lectures/{id}/retry/",
+    "operationId": "v1_dashboard_lectures_retry_create",
     "tags": [
       "Dashboard lectures"
     ],
@@ -2297,6 +2324,15 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/search/",
+    "operationId": "v1_search_retrieve",
+    "tags": [
+      "Search"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/semesters/",
     "operationId": "v1_semesters_list",
     "tags": [
@@ -2443,6 +2479,15 @@ export const API_OPERATIONS = [
     "method": "GET",
     "path": "/api/v1/verification/me/",
     "operationId": "v1_verification_me_retrieve",
+    "tags": [
+      "Verification"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/verification/me/card/",
+    "operationId": "v1_verification_me_card_retrieve",
     "tags": [
       "Verification"
     ],
