@@ -52,6 +52,7 @@ describe("validateUpload", () => {
   it("enforces the size limit inclusively", () => {
     expect(validateUpload(file("a.png", 8 * MB, "image/png"), IMAGE_POLICY)).toBeNull();
     expect(validateUpload(file("a.png", 8 * MB + 1, "image/png"), IMAGE_POLICY)).toBe("size");
-    expect(validateUpload(file("a.pdf", 49 * MB), LECTURE_POLICY)).toBe("size");
+    expect(validateUpload(file("a.pdf", 50 * MB), LECTURE_POLICY)).toBeNull();
+    expect(validateUpload(file("a.pdf", 50 * MB + 1), LECTURE_POLICY)).toBe("size");
   });
 });
