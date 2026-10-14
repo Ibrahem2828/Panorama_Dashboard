@@ -9,8 +9,8 @@
 
 const MB = 1024 * 1024;
 
-/** The BFF refuses request bodies above 50 MB (MAX_BODY_BYTES); a little below that leaves room for multipart framing. */
-export const MAX_REQUEST_UPLOAD_BYTES = 48 * MB;
+/** The BFF accepts request bodies up to 51 MiB (MAX_BODY_BYTES): the largest backend limit (50 MiB lectures) plus multipart framing. */
+export const MAX_REQUEST_UPLOAD_BYTES = 50 * MB;
 
 export interface UploadPolicy {
   extensions: readonly string[];

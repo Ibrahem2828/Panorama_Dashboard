@@ -65,28 +65,79 @@ export async function bffFetch<T = unknown>(path: string, init: BffRequestInit =
     });
   }
   if (!response.ok) {
-    let payload: Record<string, unknown>;
+    let payload: unknown;
     try {
-      const body = await response.json();
-      payload = body && typeof body === "object" ? body as Record<string, unknown> : {};
+      payload = await response.json();
     } catch {
       payload = {};
     }
-    const retryAfter = Number(response.headers.get("retry-after"));
-    const apiError = normalizeApiError({
-      ...payload,
-      status: response.status,
-      requestId: response.headers.get("x-request-id") ?? undefined,
-      retryAfter: Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
-      message: typeof payload.message === "string" ? payload.message : "Request failed",
-    });
-    if ((apiError.status === 503 && apiError.code === "MAINTENANCE_MODE") || (apiError.status === 426 && apiError.code === "APP_UPDATE_REQUIRED")) {
-      apiError.maintenance = parseMaintenanceInfo(payload, apiError.retryAfter);
-    }
-    notifyLifecycle(apiError, path);
-    throw apiError;
+    throw apiErrorFromResponse(payload, response.status, (name) => response.headers.get(name), path);
   }
   return response as BffResponse<T>;
+}
+
+/** The one mapping from a failed BFF response (status, parsed body, headers) to an AppApiError; also notifies the lifecycle hosts. */
+function apiErrorFromResponse(body: unknown, status: number, header: (name: string) => string | null, path: string): AppApiError {
+  const payload: Record<string, unknown> = body && typeof body === "object" ? body as Record<string, unknown> : {};
+  const retryAfter = Number(header("retry-after"));
+  const apiError = normalizeApiError({
+    ...payload,
+    status,
+    requestId: header("x-request-id") ?? undefined,
+    retryAfter: Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
+    message: typeof payload.message === "string" ? payload.message : "Request failed",
+  });
+  if ((apiError.status === 503 && apiError.code === "MAINTENANCE_MODE") || (apiError.status === 426 && apiError.code === "APP_UPDATE_REQUIRED")) {
+    apiError.maintenance = parseMaintenanceInfo(payload, apiError.retryAfter);
+  }
+  notifyLifecycle(apiError, path);
+  return apiError;
+}
+
+export interface UploadOptions {
+  method?: "POST" | "PATCH" | "PUT";
+  idempotencyKey?: string;
+  /** Aborting rejects with a DOMException named AbortError. */
+  signal?: AbortSignal;
+  /** Bytes sent so far; `total` is the request size (multipart framing included). */
+  onProgress?: (loaded: number, total: number) => void;
+}
+
+/**
+ * Multipart upload through the BFF with real progress (fetch cannot report upload progress). Same-origin only, same
+ * CSRF header, idempotency key, error mapping and lifecycle notifications as `apiFetch`. Resolves the parsed JSON body.
+ */
+export function apiUpload<T = unknown>(path: string, body: FormData, options: UploadOptions = {}): Promise<T> {
+  const target = `/api/backend${normalizeBackendPath(path)}`;
+  return new Promise<T>((resolve, reject) => {
+    const abortError = () => new DOMException("The upload was cancelled.", "AbortError");
+    if (options.signal?.aborted) { reject(abortError()); return; }
+    const xhr = new XMLHttpRequest();
+    xhr.open(options.method ?? "POST", target);
+    xhr.withCredentials = false;
+    xhr.responseType = "text";
+    xhr.setRequestHeader("Accept", "application/json");
+    const token = csrfToken();
+    if (token) xhr.setRequestHeader("x-panorama-csrf", token);
+    xhr.setRequestHeader("Idempotency-Key", options.idempotencyKey ?? newIdempotencyKey());
+    const onAbort = () => xhr.abort();
+    options.signal?.addEventListener("abort", onAbort, { once: true });
+    const done = () => options.signal?.removeEventListener("abort", onAbort);
+    xhr.upload.onprogress = (event) => { if (event.lengthComputable) options.onProgress?.(event.loaded, event.total); };
+    xhr.onabort = () => { done(); reject(abortError()); };
+    xhr.onerror = () => {
+      done();
+      reject(normalizeApiError({ status: 503, code: "BACKEND_NETWORK_UNAVAILABLE", message: "The service is temporarily unavailable. Please try again." }));
+    };
+    xhr.onload = () => {
+      done();
+      let parsed: unknown = {};
+      try { parsed = xhr.responseText ? JSON.parse(xhr.responseText) : {}; } catch { parsed = {}; }
+      if (xhr.status >= 200 && xhr.status < 300) { resolve(parsed as T); return; }
+      reject(apiErrorFromResponse(parsed, xhr.status, (name) => xhr.getResponseHeader(name), target));
+    };
+    xhr.send(body);
+  });
 }
 export async function apiFetch<T = unknown>(path: string, init: BffRequestInit = {}): Promise<BffResponse<T>> { return bffFetch<T>(`/api/backend${normalizeBackendPath(path)}`, init); }
 export async function unwrap<T>(response: BffResponse<T> | Promise<BffResponse<T>>): Promise<UnwrappedPayload<T>> {

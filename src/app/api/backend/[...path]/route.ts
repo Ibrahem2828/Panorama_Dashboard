@@ -12,7 +12,8 @@ import { requestId } from "@/lib/security/request-id";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const RESPONSE_HEADERS = ["content-type", "content-disposition", "cache-control", "retry-after", "etag", "last-modified", "accept-ranges", "content-range", "x-request-id"];
-const MAX_BODY_BYTES = 50 * 1024 * 1024;
+// 50 MiB lecture limit plus 1 MiB of multipart framing and text fields.
+const MAX_BODY_BYTES = 51 * 1024 * 1024;
 const MAX_HEADERS_BYTES = 16 * 1024;
 const MAX_RESPONSE_BYTES = 100 * 1024 * 1024;
 

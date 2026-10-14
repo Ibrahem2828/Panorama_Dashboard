@@ -18,7 +18,8 @@ describe("upload policy selection", () => {
     expect(effectiveMaxBytes(DOCUMENT_POLICY)).toBe(25 * MB);
     expect(effectiveMaxBytes(IMAGE_POLICY)).toBe(8 * MB);
     expect(effectiveMaxBytes(LECTURE_POLICY)).toBe(MAX_REQUEST_UPLOAD_BYTES);
-    expect(MAX_REQUEST_UPLOAD_BYTES).toBeLessThan(50 * MB);
+    // One BFF request (51 MiB) carries the largest backend limit (50 MiB lectures) plus multipart framing.
+    expect(MAX_REQUEST_UPLOAD_BYTES).toBe(50 * MB);
   });
 
   it("builds an accept attribute with extensions and mime types", () => {
@@ -51,6 +52,7 @@ describe("validateUpload", () => {
   it("enforces the size limit inclusively", () => {
     expect(validateUpload(file("a.png", 8 * MB, "image/png"), IMAGE_POLICY)).toBeNull();
     expect(validateUpload(file("a.png", 8 * MB + 1, "image/png"), IMAGE_POLICY)).toBe("size");
-    expect(validateUpload(file("a.pdf", 49 * MB), LECTURE_POLICY)).toBe("size");
+    expect(validateUpload(file("a.pdf", 50 * MB), LECTURE_POLICY)).toBeNull();
+    expect(validateUpload(file("a.pdf", 50 * MB + 1), LECTURE_POLICY)).toBe("size");
   });
 });
