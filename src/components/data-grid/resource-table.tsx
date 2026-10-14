@@ -45,13 +45,13 @@ export function ResourceTable({ rows, columns, canEdit, canDelete, rowActions, o
   onDelete: (row: Record<string, unknown>) => void;
   emptyMessage?: string;
 }) {
-  const { t, locale } = useI18n();
+  const { t, tOr, locale } = useI18n();
   const density = usePreferences((state) => state.density);
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="overflow-x-auto">
         <Table>
-          <TableHeader><TableRow className="bg-muted/55">{columns.map((column) => <TableHead key={column.key} className="whitespace-nowrap font-bold">{column.label ?? humanize(column.key)}</TableHead>)}<TableHead className="w-16"><span className="sr-only">{t("common.actions")}</span></TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow className="bg-muted/55">{columns.map((column) => <TableHead key={column.key} className="whitespace-nowrap font-bold">{column.label ?? tOr(`field.${column.key}`, humanize(column.key))}</TableHead>)}<TableHead className="w-16"><span className="sr-only">{t("common.actions")}</span></TableHead></TableRow></TableHeader>
           <TableBody>
             {rows.map((row, index) => (
               <TableRow key={String(row.id ?? index)} className="group">

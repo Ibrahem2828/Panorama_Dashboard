@@ -11,4 +11,5 @@ export const REFERENCE_ENDPOINTS: Record<string, string> = {
   target_semester: "/api/v1/dashboard/semesters/",
   subject: "/api/v1/dashboard/subjects/",
   assigned_to: "/api/v1/dashboard/users/",
+  group: "/api/v1/dashboard/groups/",
 };

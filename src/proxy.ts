@@ -53,6 +53,8 @@ function contentSecurityPolicy(nonce: string) {
     "connect-src 'self'",
     "media-src 'self' blob:",
     "worker-src 'self' blob:",
+    // Protected library previews render a same-origin blob: PDF in an iframe (see features/files/protected-preview.ts).
+    "frame-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

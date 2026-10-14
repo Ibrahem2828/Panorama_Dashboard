@@ -16,7 +16,7 @@ const spec = (overrides: Partial<FieldSpec> & Pick<FieldSpec, "name" | "kind">):
 describe("resource form policies (contract coverage)", () => {
   it("exposes exactly the resources the dashboard can write", () => {
     expect([...WRITABLE].sort()).toEqual([
-      "academic-years", "announcements", "faculties", "feature-flags", "maintenance-modes", "majors", "mobile-release-policies",
+      "academic-years", "announcements", "faculties", "feature-flags", "files", "groups", "maintenance-modes", "majors", "mobile-release-policies",
       "printing-binding-prices", "printing-pickup-locations", "printing-pricing-rules", "privacy-policy-versions", "semesters",
       "subjects", "terms-versions", "universities", "users",
     ]);
@@ -59,7 +59,7 @@ describe("resource form policies (contract coverage)", () => {
 
   it("only offers delete where a soft delete does not break re-creation", () => {
     const deletable = WRITABLE.filter((key) => policyAllows(RESOURCE_FORM_POLICIES[key], "delete")).sort();
-    expect(deletable).toEqual(["academic-years", "announcements", "faculties", "majors", "printing-pickup-locations", "printing-pricing-rules", "semesters", "subjects", "universities"]);
+    expect(deletable).toEqual(["academic-years", "announcements", "faculties", "files", "majors", "printing-pickup-locations", "printing-pricing-rules", "semesters", "subjects", "universities"]);
   });
 });
 
