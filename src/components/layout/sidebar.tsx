@@ -55,11 +55,11 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "group relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground",
-                        active && "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/.12)]",
+                        active && "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_hsl(var(--gold)/.35)]",
                         collapsed && "justify-center px-0",
                       )}
                     >
-                      {active ? <span className="absolute inset-y-2 start-0 w-1 rounded-e-full bg-primary" /> : null}
+                      {active ? <span className="absolute inset-y-2 start-0 w-1 rounded-e-full bg-gold" /> : null}
                       <Icon className={cn("size-[18px] shrink-0 transition-transform group-hover:scale-105", active && "text-primary")} />
                       {!collapsed ? <span className="truncate">{t(item.label)}</span> : null}
                       {!collapsed && active ? (direction === "rtl" ? <ChevronLeft className="ms-auto size-4" /> : <ChevronRight className="ms-auto size-4" />) : null}

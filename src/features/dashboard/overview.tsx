@@ -22,6 +22,34 @@ import { hasCapability } from "@/lib/auth/capabilities";
 import { formatNumber, humanize } from "@/lib/utils";
 import type { ApiEnvelope } from "@/types/api";
 
+const METRIC_LABELS: Record<string, { ar: string; en: string }> = {
+  "users.total": { ar: "إجمالي المستخدمين", en: "Total users" },
+  "users.students": { ar: "الطلاب", en: "Students" },
+  "users.normal_users": { ar: "المستخدمون العاديون", en: "Regular users" },
+  "users.verified_students": { ar: "الطلاب الموثّقون", en: "Verified students" },
+  "users.pending_verifications": { ar: "طلبات توثيق معلّقة", en: "Pending verifications" },
+  "printing.total_orders": { ar: "إجمالي طلبات الطباعة", en: "Total print orders" },
+  "printing.today_orders": { ar: "طلبات طباعة اليوم", en: "Print orders today" },
+  "printing.pending_orders": { ar: "طلبات طباعة معلّقة", en: "Pending print orders" },
+  "printing.ready_orders": { ar: "طلبات جاهزة للاستلام", en: "Orders ready for pickup" },
+  "printing.delivered_orders": { ar: "طلبات مُسلَّمة", en: "Delivered orders" },
+  "groups.total": { ar: "إجمالي المجموعات", en: "Total groups" },
+  "groups.active": { ar: "المجموعات النشطة", en: "Active groups" },
+  "groups.pending_join_requests": { ar: "طلبات انضمام معلّقة", en: "Pending join requests" },
+  "files.total": { ar: "إجمالي الملفات", en: "Total files" },
+  "files.active": { ar: "الملفات النشطة", en: "Active files" },
+  "support.open_tickets": { ar: "تذاكر دعم مفتوحة", en: "Open support tickets" },
+  "support.urgent_tickets": { ar: "تذاكر دعم عاجلة", en: "Urgent support tickets" },
+  "feedback.total": { ar: "إجمالي الملاحظات", en: "Total feedback" },
+  "feedback.open_items": { ar: "ملاحظات مفتوحة", en: "Open feedback items" },
+  "feedback.ratings": { ar: "التقييمات", en: "Ratings" },
+};
+
+function metricLabel(key: string, locale: string): string {
+  const entry = METRIC_LABELS[key];
+  return entry ? (locale === "ar" ? entry.ar : entry.en) : humanize(key);
+}
+
 function numericMetrics(value: unknown, prefix = ""): { key: string; value: number }[] {
   if (!value || typeof value !== "object") return [];
   return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
@@ -88,7 +116,7 @@ export function DashboardOverview() {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {(metrics.length ? metrics : [{ key: "contract.operations", value: CONTRACT_META.operationCount }]).map((metric, index) => (
               <Card key={metric.key} className="group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg">
-                <CardContent className="flex items-center gap-4 p-5"><div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Boxes className="size-5" /></div><div className="min-w-0"><div className="text-2xl font-black">{formatNumber(metric.value, locale)}</div><div className="mt-1 truncate text-xs text-muted-foreground" title={metric.key}>{humanize(metric.key)}</div></div><span className="ms-auto text-[10px] text-muted-foreground">0{index + 1}</span></CardContent>
+                <CardContent className="flex items-center gap-4 p-5"><div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Boxes className="size-5" /></div><div className="min-w-0"><div className="text-2xl font-black">{formatNumber(metric.value, locale)}</div><div className="mt-1 truncate text-xs text-muted-foreground" title={metric.key}>{metricLabel(metric.key, locale)}</div></div><span className="ms-auto text-[10px] text-muted-foreground">0{index + 1}</span></CardContent>
               </Card>
             ))}
           </div>
