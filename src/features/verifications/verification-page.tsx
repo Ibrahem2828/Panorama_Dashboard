@@ -38,6 +38,7 @@ export function VerificationPage() {
   const [reasonError, setReasonError] = useState<string | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  const [inlineCard, setInlineCard] = useState<string | null>(null);
   const definition = RESOURCE_DEFINITIONS.verifications;
   const query = useQuery({
     queryKey: ["verifications", page, pageSize, status],
@@ -62,10 +63,11 @@ export function VerificationPage() {
       const downloaded = await downloadFromBackend(path);
       return URL.createObjectURL(await downloaded.blob());
     },
-    onSuccess(url) { setPreview((current) => { if (current) URL.revokeObjectURL(current); return url; }); },
+    onSuccess(url) { setInlineCard((current) => { if (current) URL.revokeObjectURL(current); return url; }); },
     onError: cardError,
   });
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  useEffect(() => () => { if (inlineCard) URL.revokeObjectURL(inlineCard); }, [inlineCard]);
+
 
   return (
     <div className="space-y-6">
@@ -79,7 +81,7 @@ export function VerificationPage() {
               { key: "id", label: "#" }, { key: "user_name" }, { key: "user_email" }, { key: "student_number" },
               { key: "detected_faculty_name" }, { key: "status", render: (value) => <StatusPill value={value} /> }, { key: "created_at" },
             ]}
-            onView={(row) => { setSelected(row); setAction(null); }}
+            onView={(row) => { setSelected(row); setAction(null); setInlineCard((current) => { if (current) URL.revokeObjectURL(current); return null; }); card.mutate(row); }}
             onEdit={() => undefined}
             onDelete={() => undefined}
           />
@@ -89,8 +91,8 @@ export function VerificationPage() {
 
       <Dialog open={Boolean(selected && !action)} onOpenChange={(open) => { if (!open) setSelected(null); }}>
         <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto"><DialogHeader><DialogTitle>{selected?.user_name as string}</DialogTitle><DialogDescription>{selected?.student_number as string}</DialogDescription></DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">{selected ? Object.entries(selected).filter(([key]) => !key.includes("detail")).map(([key,value]) => <div key={key} className="rounded-xl border p-3"><div className="text-xs font-bold text-muted-foreground">{key}</div><div className="mt-1 break-words text-sm">{typeof value === "object" ? JSON.stringify(value) : String(value ?? "—")}</div></div>) : null}</div>
-          <DialogFooter className="flex-wrap gap-2"><Button variant="outline" onClick={() => selected && card.mutate(selected)} isLoading={card.isPending}><Eye />{t("verifications.cardPreview")}</Button><Button variant="outline" onClick={() => setAction("needs-update")}><RotateCcw />{t("verifications.needsUpdate")}</Button><Button variant="destructive" onClick={() => setAction("reject")}><XCircle />{t("verifications.reject")}</Button><Button onClick={() => setAction("approve")}><CheckCircle2 />{t("verifications.approve")}</Button></DialogFooter>
+          {selected ? <VerificationSummary row={selected} cardUrl={inlineCard} cardLoading={card.isPending && !inlineCard} onOpenFull={() => inlineCard && setPreview(inlineCard)} /> : null}
+          <DialogFooter className="flex-wrap gap-2"><Button variant="outline" onClick={() => inlineCard && setPreview(inlineCard)} disabled={!inlineCard}><Eye />{t("verifications.cardPreview")}</Button><Button variant="outline" onClick={() => setAction("needs-update")}><RotateCcw />{t("verifications.needsUpdate")}</Button><Button variant="destructive" onClick={() => setAction("reject")}><XCircle />{t("verifications.reject")}</Button><Button onClick={() => setAction("approve")}><CheckCircle2 />{t("verifications.approve")}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -109,3 +111,48 @@ export function VerificationPage() {
 }
 
 
+
+function VerificationSummary({ row, cardUrl, cardLoading, onOpenFull }: { row: EntityRecord; cardUrl: string | null; cardLoading: boolean; onOpenFull: () => void }) {
+  const { t } = useI18n();
+  const named = (value: unknown) => (value && typeof value === "object" ? ((value as { name?: string }).name ?? null) : null);
+  const text = (value: unknown) => (value === null || value === undefined || value === "" ? "—" : String(value));
+  const fields: [string, string][] = [
+    [t("verifications.field.name"), text(row.user_name)],
+    [t("verifications.field.email"), text(row.user_email)],
+    [t("verifications.field.studentNumber"), text(row.student_number)],
+    [t("verifications.field.university"), text(named(row.university_detail))],
+    [t("verifications.field.faculty"), text(named(row.faculty_detail))],
+    [t("verifications.field.detectedFaculty"), text(row.detected_faculty_name)],
+    [t("verifications.field.major"), text(named(row.major_detail))],
+    [t("verifications.field.academicYear"), text(named(row.academic_year_detail))],
+    [t("verifications.field.semester"), text(named(row.semester_detail))],
+    [t("verifications.field.status"), text(row.status)],
+    [t("verifications.field.submitted"), text(row.created_at)],
+  ];
+  return (
+    <div className="grid gap-4 md:grid-cols-[1.25fr_1fr]">
+      <dl className="grid grid-cols-2 content-start gap-2">
+        {fields.map(([label, value]) => (
+          <div key={label} className="rounded-xl border p-3">
+            <dt className="text-xs font-bold text-muted-foreground">{label}</dt>
+            <dd className="mt-1 break-words text-sm font-medium">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="space-y-2">
+        <p className="text-xs font-bold text-muted-foreground">{t("verifications.field.card")}</p>
+        <div className="flex min-h-56 items-center justify-center overflow-hidden rounded-xl border bg-muted/40 p-2">
+          {cardUrl ? (
+            <button type="button" onClick={onOpenFull} className="w-full cursor-zoom-in" aria-label={t("verifications.cardPreview")}>
+              <Image src={cardUrl} alt={t("verifications.cardPreviewAlt")} width={1200} height={800} unoptimized className="max-h-80 w-full rounded-lg object-contain" />
+            </button>
+          ) : cardLoading ? (
+            <Skeleton className="h-52 w-full" />
+          ) : (
+            <p className="text-sm text-muted-foreground">{t("verifications.cardUnavailable")}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
