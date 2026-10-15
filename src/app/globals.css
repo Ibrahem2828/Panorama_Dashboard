@@ -12,6 +12,10 @@
   --brand-purple: 264 89% 35%;
   --brand-burgundy: 337 88% 35%;
   --brand-silver: 220 5% 74%;
+  /* Gold accent: fills/borders use --gold, text uses the darker --gold-text so it keeps AA contrast on light surfaces. */
+  --gold: 43 78% 50%;
+  --gold-text: 38 88% 29%;
+  --gold-soft: 44 90% 94%;
   --background: 220 33% 98%;
   --foreground: 224 45% 11%;
   --card: 0 0% 100%;
@@ -60,10 +64,16 @@
   --border: 225 24% 21%;
   --input: 225 24% 21%;
   --ring: 264 100% 76%;
+  --gold: 43 88% 60%;
+  --gold-text: 43 92% 70%;
+  --gold-soft: 40 45% 16%;
   color-scheme: dark;
 }
 
 @theme inline {
+  --color-gold: hsl(var(--gold));
+  --color-gold-text: hsl(var(--gold-text));
+  --color-gold-soft: hsl(var(--gold-soft));
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -92,7 +102,7 @@
   --radius-md: calc(var(--radius) - 0.15rem);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 0.35rem);
-  --font-sans: Tahoma, Arial, "Segoe UI", sans-serif;
+  --font-sans: "Noto Kufi Arabic Variable", "Inter Variable", Tahoma, Arial, "Segoe UI", sans-serif;
   --font-mono: "Cascadia Code", Consolas, monospace;
 }
 
@@ -106,11 +116,18 @@ body {
     radial-gradient(circle at 95% 5%, hsl(var(--brand-purple) / 0.07), transparent 32rem),
     hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: Tahoma, Arial, "Segoe UI", sans-serif;
+  font-family: "Noto Kufi Arabic Variable", "Inter Variable", Tahoma, Arial, "Segoe UI", sans-serif;
+  font-weight: 500;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 button, input, textarea, select { font: inherit; }
+/* Noto Kufi Arabic SemiBold is the voice of the interface: headings, labels, navigation and buttons. */
+html[lang="en"] body { font-family: "Inter Variable", "Noto Kufi Arabic Variable", Tahoma, Arial, sans-serif; font-weight: 450; }
+h1, h2, h3, h4, th, label, button, [role="tab"], [role="menuitem"], nav a { font-weight: 600; }
+h1, h2 { font-weight: 650; }
+html[lang="ar"] *, html[dir="rtl"] * { letter-spacing: 0 !important; }
+html[lang="ar"] body, html[dir="rtl"] body { line-height: 1.85; }
 button, [role="button"] { touch-action: manipulation; }
 ::selection { background: hsl(var(--brand-purple) / 0.22); }
 :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
@@ -159,3 +176,19 @@ html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / .25); border: 3px solid transparent; border-radius: 999px; background-clip: padding-box; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ---- Gold accents ------------------------------------------------------------------------------------------------ */
+.gold-rule { position: relative; padding-bottom: 0.9rem; }
+.gold-rule::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 3.25rem;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, hsl(var(--gold)), hsl(var(--gold) / 0.35));
+}
+.brand-gold-line { background: linear-gradient(90deg, transparent, hsl(var(--gold)), transparent); height: 1px; }
+.card-gold { transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s; }
+.card-gold:hover { border-color: hsl(var(--gold) / 0.55); box-shadow: 0 10px 30px -12px hsl(var(--gold) / 0.35); }

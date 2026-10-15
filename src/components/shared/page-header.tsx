@@ -22,8 +22,8 @@ export function PageHeader({ title, description, eyebrow, actions, actionLabel, 
     <div className={cn("flex flex-col gap-4 md:flex-row md:items-start md:justify-between", className)}>
       <div className="min-w-0">
         {breadcrumbs?.length ? <div className="mb-2 text-xs text-muted-foreground">{breadcrumbs.map((item) => item.label).join(" / ")}</div> : null}
-        {eyebrow ? <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">{eyebrow}</div> : null}
-        <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{title}</h1>
+        {eyebrow ? <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-gold-text">{eyebrow}</div> : null}
+        <h1 className="gold-rule text-2xl font-black sm:text-3xl">{title}</h1>
         {description ? <p className="mt-2 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">{description}</p> : null}
       </div>
       {action ? <div className="flex shrink-0 flex-wrap items-center gap-2">{action}</div> : null}

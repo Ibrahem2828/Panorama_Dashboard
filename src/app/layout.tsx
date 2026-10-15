@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 
 import { AppProviders } from "@/app/providers";
 import { normalizeLocale } from "@/i18n/server";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/noto-kufi-arabic";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {

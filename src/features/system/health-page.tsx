@@ -67,11 +67,11 @@ export function HealthPage() {
             const Icon = probe.icon;
             return (
               <Card key={probe.key} className="overflow-hidden">
-                <div className={result?.ok ? "h-1 bg-emerald-500" : query.isPending ? "h-1 bg-muted" : "h-1 bg-destructive"} />
+                <div className={result?.ok ? "h-1 bg-emerald-500" : query.isPending ? "h-1 bg-muted" : result?.status === 403 ? "h-1 bg-gold" : "h-1 bg-destructive"} />
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="rounded-xl bg-primary/10 p-2.5 text-primary"><Icon className="size-5" /></div>
-                    {query.isPending ? <Skeleton className="h-6 w-20" /> : <StatusPill value={result?.ok ? "healthy" : "unhealthy"} label={result?.ok ? t("health.healthy") : t("health.unhealthy")} />}
+                    {query.isPending ? <Skeleton className="h-6 w-20" /> : <StatusPill value={result?.ok ? "healthy" : result?.status === 403 ? "pending" : "unhealthy"} label={result?.ok ? t("health.healthy") : result?.status === 403 ? t("health.restricted") : t("health.unhealthy")} />}
                   </div>
                   <CardTitle className="text-base">{t(probe.label)}</CardTitle>
                   <CardDescription className="font-mono text-[11px]">{probe.path}</CardDescription>
@@ -83,7 +83,7 @@ export function HealthPage() {
                         {result?.ok ? <CircleCheck className="size-4 text-emerald-500" /> : <CircleX className="size-4 text-destructive" />}
                         HTTP {result?.status || "—"}
                       </div>
-                      <pre className="max-h-28 overflow-auto rounded-lg bg-muted/50 p-2 text-[10px] text-muted-foreground">{JSON.stringify(result?.payload ?? {}, null, 2)}</pre>
+                      {result?.status === 403 ? <p className="rounded-lg bg-gold-soft p-2.5 text-xs leading-6 text-gold-text">{t("health.restrictedHint")}</p> : <pre className="max-h-28 overflow-auto rounded-lg bg-muted/50 p-2 text-[10px] text-muted-foreground">{JSON.stringify(result?.payload ?? {}, null, 2)}</pre>}
                       {result?.requestId ? <p className="text-xs text-muted-foreground">{t("common.requestId")}: <span className="font-mono">{result.requestId}</span></p> : null}
                     </>
                   )}
@@ -92,10 +92,10 @@ export function HealthPage() {
             );
           })}
         </div>
-        <Card className="border-amber-500/30 bg-amber-500/5">
+        <Card className="border-gold/40 bg-gold-soft/60">
           <CardHeader className="flex-row items-center gap-3">
-            <div className="rounded-xl bg-amber-500/15 p-2.5 text-amber-700 dark:text-amber-300"><Activity className="size-5" /></div>
-            <div><CardTitle className="text-base">Readiness is authoritative</CardTitle><CardDescription>Never mask a 503 response. Fix the failing dependency in Coolify before promoting a release.</CardDescription></div>
+            <div className="rounded-xl bg-gold/20 p-2.5 text-gold-text"><Activity className="size-5" /></div>
+            <div><CardTitle className="text-base">{t("health.readinessTitle")}</CardTitle><CardDescription>{t("health.readinessBody")}</CardDescription></div>
           </CardHeader>
         </Card>
       </div>
