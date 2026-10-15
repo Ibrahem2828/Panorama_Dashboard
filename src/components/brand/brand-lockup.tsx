@@ -6,10 +6,10 @@ export function BrandLockup({ compact = false, className }: { compact?: boolean;
   return (
     <div className={cn("flex items-center gap-3", className)}>
       <Image
-        src="/brand/panorama-mark.webp"
+        src="/brand/symbol-128.png"
         alt="Panorama"
-        width={compact ? 48 : 72}
-        height={compact ? 36 : 52}
+        width={compact ? 48 : 64}
+        height={compact ? 24 : 32}
         className="h-auto object-contain"
         priority
       />

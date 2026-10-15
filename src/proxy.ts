@@ -101,5 +101,5 @@ export function proxy(request: NextRequest) {
 export const config = {
   // /api/ is excluded on purpose: the proxy layer buffers request bodies (10 MB cap) and would truncate uploads
   // before the BFF route (own 50 MB limit) sees them. API responses are JSON/streams and need no page CSP.
-  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico|brand/).*)"],
+  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico|brand/|icons/).*)"],
 };

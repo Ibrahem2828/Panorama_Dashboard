@@ -25,7 +25,7 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_25%,rgba(255,255,255,.18),transparent_30rem)]" />
           </div>
           <div className="relative z-10 max-w-xl text-white">
-            <Image src="/brand/panorama-logo.webp" alt="Panorama" width={430} height={350} priority className="h-auto w-[360px] rounded-3xl bg-white/95 p-5 shadow-2xl shadow-black/15" />
+            <Image src="/brand/logo-512.png" alt="Panorama" width={512} height={362} priority className="h-auto w-[360px] rounded-3xl bg-white/95 p-5 shadow-2xl shadow-black/15" />
           </div>
           <div className="relative z-10 max-w-xl text-white">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-white/70">PANORAMA OPERATIONS</p>
@@ -40,7 +40,7 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
         </section>
         <section className="flex items-center justify-center px-4 py-24 sm:px-8 lg:px-12">
           <div className="glass-panel w-full max-w-md rounded-[1.75rem] border p-6 sm:p-9">
-            <div className="mb-8 lg:hidden"><Image src="/brand/panorama-logo.webp" alt="Panorama" width={330} height={250} priority className="mx-auto h-auto w-64" /></div>
+            <div className="mb-8 lg:hidden"><Image src="/brand/logo-512.png" alt="Panorama" width={512} height={362} priority className="mx-auto h-auto w-64" /></div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">{t("app.name")}</p>
             <h2 className="mt-3 text-3xl font-black tracking-tight">{t("auth.welcome")}</h2>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">{t("auth.subtitle")}</p>
