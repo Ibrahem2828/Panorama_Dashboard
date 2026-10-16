@@ -185,6 +185,8 @@ export const ar = {
   "verifications.field.submitted": "تاريخ الإرسال",
   "verifications.field.card": "صورة البطاقة الجامعية",
   "verifications.cardUnavailable": "تعذّر تحميل صورة البطاقة.",
+  "form.pickParentFirst": "اختر الكلية أولاً",
+  "subjects.majorOptionalHint": "اختياري: اتركه فارغًا للمواد العامة في الكلية، واختر التخصص فقط للمواد الخاصة به.",
 
   "lectures.title": "إدارة المحاضرات",
   "lectures.subtitle": "رفع المحتوى ومتابعة المعالجة والنشر والمعاينة الآمنة",
@@ -896,6 +898,8 @@ export const en: Record<keyof typeof ar, string> = {
   "verifications.field.submitted": "Submitted",
   "verifications.field.card": "Student card image",
   "verifications.cardUnavailable": "The card image could not be loaded.",
+  "form.pickParentFirst": "Pick the faculty first",
+  "subjects.majorOptionalHint": "Optional: leave empty for general faculty subjects; pick a specialization only for subjects that belong to one.",
 
   "lectures.title": "Lecture management",
   "lectures.subtitle": "Upload content and track processing, publishing and secure previews",

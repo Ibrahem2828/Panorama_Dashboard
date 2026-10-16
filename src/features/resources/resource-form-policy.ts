@@ -81,7 +81,13 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
   majors: writablePolicy({ capability: "academic.manage", create: ["faculty", "name", "code", "is_active"], deletable: true }),
   "academic-years": writablePolicy({ capability: "academic.manage", create: ["name", "order", "is_active"], fieldOverrides: { order: { ...SMALL_ORDER, hint: "form.hint.uniqueOrder" } }, deletable: true }),
   semesters: writablePolicy({ capability: "academic.manage", create: ["name", "order", "is_active"], fieldOverrides: { order: { ...SMALL_ORDER, hint: "form.hint.uniqueOrder" } }, deletable: true }),
-  subjects: writablePolicy({ capability: "academic.manage", create: ["major", "academic_year", "semester", "name", "code", "description", "is_active"], deletable: true }),
+  // A subject belongs to a FACULTY; the specialization (major) is an optional tag (specializations start in year 3 and only some subjects need one).
+  subjects: writablePolicy({
+    capability: "academic.manage",
+    create: ["faculty", "major", "academic_year", "semester", "name", "code", "description", "is_active"],
+    fieldOverrides: { faculty: { required: true }, major: { nullable: true, required: false, hint: "subjects.majorOptionalHint", relationFilter: { param: "faculty", from: "faculty" } } },
+    deletable: true,
+  }),
   verifications: readOnlyPolicy("verification.review"),
   lectures: readOnlyPolicy("lectures.manage"),
   // Library files: the backend soft-deletes (hides) them; `file` is only required on create (on edit it replaces the stored file).

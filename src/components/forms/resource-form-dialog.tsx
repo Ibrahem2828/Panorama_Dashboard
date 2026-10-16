@@ -122,7 +122,7 @@ export function ResourceForm({ specs, mode, entity = null, crossRules, pending, 
       <div className="grid gap-5 py-4 sm:grid-cols-2">
         {specs.map((spec) => (
           <div key={spec.name} className={spec.kind === "textarea" || spec.kind === "file" ? "sm:col-span-2" : ""}>
-            <ContractFieldInput spec={spec} value={values[spec.name]} error={fieldError(spec.name)} disabled={pending || disabledFields?.includes(spec.name)} onChange={(value) => update(spec.name, value)} />
+            <ContractFieldInput spec={spec} value={values[spec.name]} error={fieldError(spec.name)} disabled={pending || disabledFields?.includes(spec.name)} filterValue={spec.relationFilter ? String(values[spec.relationFilter.from] ?? "") : undefined} onChange={(value) => { update(spec.name, value); for (const other of specs) if (other.relationFilter?.from === spec.name && values[other.name]) update(other.name, ""); }} />
           </div>
         ))}
       </div>

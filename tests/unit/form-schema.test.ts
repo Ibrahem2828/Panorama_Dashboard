@@ -71,15 +71,18 @@ describe("formSpecsFor", () => {
     expect(specs.find((item) => item.name === "is_active")).toMatchObject({ kind: "boolean", defaultValue: true });
   });
 
-  it("builds the subject form with three required relation selects loaded from the right endpoints", () => {
+  it("builds the subject form: faculty, year and semester are required relations, the specialization is optional and follows the faculty", () => {
     const specs = formSpecsFor("subjects", "create");
     const relations = Object.fromEntries(specs.filter((item) => item.kind === "relation").map((item) => [item.name, item.relationEndpoint]));
     expect(relations).toEqual({
+      faculty: "/api/v1/dashboard/faculties/",
       major: "/api/v1/dashboard/majors/",
       academic_year: "/api/v1/dashboard/academic-years/",
       semester: "/api/v1/dashboard/semesters/",
     });
-    expect(specs.filter((item) => item.kind === "relation").every((item) => item.required)).toBe(true);
+    const byName = Object.fromEntries(specs.map((item) => [item.name, item]));
+    expect(["faculty", "academic_year", "semester"].every((name) => byName[name]?.required)).toBe(true);
+    expect(byName.major).toMatchObject({ required: false, nullable: true, relationFilter: { param: "faculty", from: "faculty" } });
   });
 
   it("types printing prices as decimals and dates as datetimes", () => {
@@ -109,7 +112,7 @@ describe("validateForm per resource", () => {
     majors: { faculty: "4", name: "Software", code: "SW", is_active: true },
     "academic-years": { name: "First year", order: "1", is_active: true },
     semesters: { name: "Autumn", order: "1", is_active: true },
-    subjects: { major: "5", academic_year: "1", semester: "2", name: "Algorithms", code: "CS201", description: "", is_active: true },
+    subjects: { faculty: "3", major: "5", academic_year: "1", semester: "2", name: "Algorithms", code: "CS201", description: "", is_active: true },
     "printing-pricing-rules": { name: "A4 mono", color_mode: "black_white", paper_size: "A4", sides: "one_sided", price_per_sheet: "150.50", setup_fee: "0", currency: "SYP", effective_from: "", effective_to: "", is_active: true },
     "printing-binding-prices": { binding: "spiral", price_per_copy: "1200", currency: "SYP", is_active: true },
     "printing-pickup-locations": { name: "Main library", address: "Ground floor", instructions: "", sort_order: "2", is_active: true },
@@ -170,8 +173,8 @@ describe("validateForm per resource", () => {
   });
 
   it("enforces required relations and select options", () => {
-    const subject = validateForm(formSpecsFor("subjects", "create"), { ...valid.subjects, major: "", semester: "x" }, "create");
-    expect(subject).toMatchObject({ ok: false, errors: { major: "validation.required", semester: "validation.relation" } });
+    const subject = validateForm(formSpecsFor("subjects", "create"), { ...valid.subjects, faculty: "", semester: "x" }, "create");
+    expect(subject).toMatchObject({ ok: false, errors: { faculty: "validation.required", semester: "validation.relation" } });
     const binding = validateForm(formSpecsFor("printing-binding-prices", "create"), { ...valid["printing-binding-prices"], binding: "glue" }, "create");
     expect(binding).toMatchObject({ ok: false, errors: { binding: "validation.option" } });
   });
