@@ -1630,6 +1630,15 @@ export const API_OPERATIONS = [
     "authenticated": false
   },
   {
+    "method": "GET",
+    "path": "/api/v1/faculties/{faculty_pk}/subjects/",
+    "operationId": "v1_faculties_subjects_list",
+    "tags": [
+      "Universities"
+    ],
+    "authenticated": false
+  },
+  {
     "method": "POST",
     "path": "/api/v1/feedback/",
     "operationId": "v1_feedback_create",
@@ -1849,6 +1858,15 @@ export const API_OPERATIONS = [
     "method": "POST",
     "path": "/api/v1/groups/{id}/leave/",
     "operationId": "v1_groups_leave_create",
+    "tags": [
+      "Groups"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/groups/{id}/whatsapp-launch/",
+    "operationId": "v1_groups_whatsapp_launch_create",
     "tags": [
       "Groups"
     ],
@@ -2191,6 +2209,33 @@ export const API_OPERATIONS = [
     "method": "GET",
     "path": "/api/v1/notifications/unread-count/",
     "operationId": "v1_notifications_unread_count_retrieve",
+    "tags": [
+      "Notifications"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/notifications/web-push/public-key/",
+    "operationId": "v1_notifications_web_push_public_key_retrieve",
+    "tags": [
+      "Notifications"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/notifications/web-push/subscriptions/",
+    "operationId": "v1_notifications_web_push_subscriptions_create",
+    "tags": [
+      "Notifications"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/notifications/web-push/subscriptions/",
+    "operationId": "v1_notifications_web_push_subscriptions_destroy",
     "tags": [
       "Notifications"
     ],

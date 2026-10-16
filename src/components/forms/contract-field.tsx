@@ -85,14 +85,17 @@ function FileInput({ spec, id, invalid, describedBy, onChange }: { spec: FieldSp
   );
 }
 
-function RelationSelect({ spec, id, value, invalid, describedBy, disabled, onChange }: { spec: FieldSpec; id: string; value: string; invalid: boolean; describedBy?: string; disabled?: boolean; onChange: (value: string) => void }) {
+function RelationSelect({ spec, id, value, invalid, describedBy, disabled, filterValue, onChange }: { spec: FieldSpec; id: string; value: string; invalid: boolean; describedBy?: string; disabled?: boolean; filterValue?: string; onChange: (value: string) => void }) {
   const { t } = useI18n();
   const label = useFieldLabel()(spec);
-  const endpoint = spec.relationEndpoint;
+  const baseEndpoint = spec.relationEndpoint;
+  // A dependent relation (e.g. majors) waits for its parent (the faculty) and then lists only that parent's records.
+  const waitingForParent = Boolean(spec.relationFilter) && !filterValue;
+  const endpoint = baseEndpoint && spec.relationFilter && filterValue ? `${baseEndpoint}?${spec.relationFilter.param}=${encodeURIComponent(filterValue)}` : baseEndpoint;
   const query = useQuery({
     queryKey: ["reference-options", endpoint],
     queryFn: () => fetchAllPages(endpoint ?? ""),
-    enabled: Boolean(endpoint),
+    enabled: Boolean(endpoint) && !waitingForParent,
     staleTime: 60_000,
   });
   if (!endpoint) return null;
@@ -100,9 +103,9 @@ function RelationSelect({ spec, id, value, invalid, describedBy, disabled, onCha
   // A stored value that is not on the loaded list (inactive or beyond the cap) must still render as selected.
   const known = !value || options.some((item) => String(item.id) === value);
   return (
-    <Select value={value === "" ? BLANK : value} onValueChange={(next) => onChange(next === BLANK ? "" : next)} disabled={disabled}>
-      <SelectTrigger id={id} aria-invalid={invalid ? true : undefined} aria-describedby={describedBy} aria-busy={query.isPending}>
-        <SelectValue placeholder={query.isPending ? t("common.loading") : label} />
+    <Select value={value === "" ? BLANK : value} onValueChange={(next) => onChange(next === BLANK ? "" : next)} disabled={disabled || waitingForParent}>
+      <SelectTrigger id={id} aria-invalid={invalid ? true : undefined} aria-describedby={describedBy} aria-busy={query.isPending && !waitingForParent}>
+        <SelectValue placeholder={waitingForParent ? t("form.pickParentFirst") : query.isPending ? t("common.loading") : label} />
       </SelectTrigger>
       <SelectContent>
         {!spec.required ? <SelectItem value={BLANK}>—</SelectItem> : null}
@@ -118,12 +121,14 @@ interface FieldInputProps {
   value: unknown;
   /** Already localized error message for this field, if any. */
   error?: string;
+  /** Current value of the field this relation depends on (see FieldSpec.relationFilter). */
+  filterValue?: string;
   disabled?: boolean;
   onChange: (value: unknown) => void;
 }
 
 /** One form control with its label, help text and inline error (aria-invalid / aria-describedby wired up). */
-export function ContractFieldInput({ spec, value, error, disabled, onChange }: FieldInputProps) {
+export function ContractFieldInput({ spec, value, error, disabled, filterValue, onChange }: FieldInputProps) {
   const { t, tOr } = useI18n();
   const label = useFieldLabel()(spec);
   const optionLabel = useOptionLabel();
@@ -157,7 +162,7 @@ export function ContractFieldInput({ spec, value, error, disabled, onChange }: F
       );
       break;
     case "relation":
-      control = <RelationSelect spec={spec} id={id} value={text} invalid={invalid} describedBy={describedBy} disabled={isDisabled} onChange={onChange} />;
+      control = <RelationSelect spec={spec} id={id} value={text} invalid={invalid} describedBy={describedBy} disabled={isDisabled} filterValue={filterValue} onChange={onChange} />;
       break;
     case "textarea":
       control = <Textarea id={id} value={text} onChange={(event) => onChange(event.target.value)} rows={4} maxLength={spec.maxLength} disabled={isDisabled} aria-invalid={invalid ? true : undefined} aria-describedby={describedBy} aria-required={spec.required || undefined} />;

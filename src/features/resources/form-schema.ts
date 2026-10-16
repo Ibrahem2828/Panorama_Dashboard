@@ -28,6 +28,8 @@ export interface FieldSpec {
   /** Select only: the empty value is a real choice (for example "all platforms"). */
   allowBlank?: boolean;
   relationEndpoint?: string;
+  /** The options of this relation are narrowed by another field of the same form (e.g. majors of the selected faculty). */
+  relationFilter?: { param: string; from: string };
   defaultValue?: unknown;
   readOnly?: boolean;
   /** i18n key of a help text rendered under the input. */

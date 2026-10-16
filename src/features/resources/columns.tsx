@@ -33,7 +33,7 @@ export const RESOURCE_COLUMNS: Record<string, ResourceColumn[]> = {
   "academic-years": [{ key: "id", label: "#" }, { key: "name" }, { key: "order" }, { key: "is_active", render: active }],
   semesters: [{ key: "id", label: "#" }, { key: "name" }, { key: "order" }, { key: "is_active", render: active }],
   subjects: [
-    { key: "id", label: "#" }, { key: "name" }, { key: "code" }, { key: "major_name" },
+    { key: "id", label: "#" }, { key: "name" }, { key: "code" }, { key: "faculty_name" }, { key: "major_name" },
     { key: "academic_year_name" }, { key: "semester_name" }, { key: "is_active", render: active },
   ],
   "printing-pricing-rules": [
