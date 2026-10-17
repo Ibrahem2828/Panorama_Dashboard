@@ -1,7 +1,9 @@
 import {
   Activity,
   BellRing,
+  ArrowLeftRight,
   BookOpenCheck,
+  Boxes,
   Building2,
   ClipboardCheck,
   FileCheck2,
@@ -17,6 +19,8 @@ import {
   Network,
   NotebookTabs,
   Printer,
+  Receipt,
+  ReceiptText,
   ScrollText,
   Settings,
   ShieldCheck,
@@ -25,6 +29,7 @@ import {
   University,
   UserRoundCog,
   Users,
+  Wallet,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -85,6 +90,17 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "support", label: "nav.support", href: "/dashboard/support", icon: Headphones, capability: CAPABILITIES.support },
       { key: "feedback", label: "nav.feedback", href: "/dashboard/feedback", icon: MessageSquareText, capability: CAPABILITIES.feedback },
       { key: "notifications", label: "nav.notifications", href: "/dashboard/notifications", icon: BellRing, capability: CAPABILITIES.product },
+    ],
+  },
+  {
+    key: "finance",
+    label: "nav.finance",
+    items: [
+      { key: "financeOverview", label: "nav.financeOverview", href: "/dashboard/finance", icon: Wallet, capability: CAPABILITIES.finance },
+      { key: "financeJobs", label: "nav.financeJobs", href: "/dashboard/finance/jobs", icon: ReceiptText, capability: CAPABILITIES.printing },
+      { key: "financeStock", label: "nav.financeStock", href: "/dashboard/finance/stock", icon: Boxes, capability: CAPABILITIES.printing },
+      { key: "financeExpenses", label: "nav.financeExpenses", href: "/dashboard/finance/expenses", icon: Receipt, capability: CAPABILITIES.finance },
+      { key: "financeRates", label: "nav.financeRates", href: "/dashboard/finance/rates", icon: ArrowLeftRight, capability: CAPABILITIES.finance },
     ],
   },
   {

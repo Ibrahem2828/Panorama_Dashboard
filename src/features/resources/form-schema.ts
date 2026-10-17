@@ -11,7 +11,7 @@ import { isoToLocalInput, localInputToIso } from "@/lib/datetime";
  *
  * Validation messages are i18n keys (`validation.*`, optionally `key:arg`); `formatFieldError` renders them.
  */
-export type FieldKind = "text" | "textarea" | "integer" | "decimal" | "boolean" | "select" | "relation" | "datetime" | "url" | "file";
+export type FieldKind = "text" | "textarea" | "integer" | "decimal" | "boolean" | "select" | "relation" | "datetime" | "date" | "url" | "file";
 
 export interface FieldSpec {
   name: string;
@@ -25,6 +25,8 @@ export interface FieldSpec {
   max?: number;
   pattern?: string;
   options?: readonly string[];
+  /** Decimal only: how many digits after the point are accepted (default 2). */
+  decimalPlaces?: number;
   /** Select only: the empty value is a real choice (for example "all platforms"). */
   allowBlank?: boolean;
   relationEndpoint?: string;
@@ -60,7 +62,8 @@ function deriveKind(field: ContractField): FieldKind {
   if (REFERENCE_ENDPOINTS[field.name] && field.type === "integer") return "relation";
   if (field.format === "decimal") return "decimal";
   if (field.format === "uri") return "url";
-  if (field.input === "datetime-local" || field.input === "date") return "datetime";
+  if (field.input === "date") return "date";
+  if (field.input === "datetime-local") return "datetime";
   if (field.type === "integer") return "integer";
   if (field.input === "textarea" || field.input === "json") return "textarea";
   return "text";
@@ -94,6 +97,18 @@ export function resolveFieldSpecs(definition: Pick<ResourceDefinition, "fields">
     const field = byName.get(name);
     return field ? [specFromContract(field, overrides[name])] : [];
   });
+}
+
+/** `YYYY-MM-DD` that is a real calendar day (the format a date-only API field expects). */
+export function isCalendarDate(text: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/u.test(text)) return false;
+  const date = new Date(`${text}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === text;
+}
+
+function localToday(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
 function isEmpty(raw: unknown) {
@@ -153,13 +168,17 @@ export function parseField(spec: FieldSpec, raw: unknown, mode: FormMode): Parse
       if (text.startsWith("-")) return fail("validation.nonNegative");
       if (!DECIMAL_PATTERN.test(text)) return fail("validation.decimal");
       const [whole = "", fraction = ""] = text.split(".");
-      if (fraction.length > DECIMAL_MAX_PLACES) return fail(`validation.decimalPlaces:${DECIMAL_MAX_PLACES}`);
+      const places = spec.decimalPlaces ?? DECIMAL_MAX_PLACES;
+      if (fraction.length > places) return fail(`validation.decimalPlaces:${places}`);
       if (whole.replace(/^0+(?=\d)/u, "").length > DECIMAL_MAX_INTEGER_DIGITS) return fail(`validation.decimalDigits:${DECIMAL_MAX_INTEGER_DIGITS}`);
       return pass(text);
     }
     case "select": {
       if (!spec.options?.includes(text)) return fail("validation.option");
       return pass(text);
+    }
+    case "date": {
+      return isCalendarDate(text) ? pass(text) : fail("validation.date");
     }
     case "datetime": {
       const iso = localInputToIso(text);
@@ -224,6 +243,7 @@ export function initialFormValues(specs: readonly FieldSpec[], entity?: Record<s
     switch (spec.kind) {
       case "boolean": return [spec.name, Boolean(source)];
       case "datetime": return [spec.name, isoToLocalInput(source)];
+      case "date": return [spec.name, source === "today" ? localToday() : typeof source === "string" ? source.slice(0, 10) : ""];
       case "file": return [spec.name, null];
       case "relation": case "integer": case "decimal": case "select":
         return [spec.name, source === null || source === undefined ? "" : String(source)];

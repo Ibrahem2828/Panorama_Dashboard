@@ -17,6 +17,7 @@ export const CAPABILITIES = {
   audit: "audit.view",
   feedback: "feedback.manage",
   product: "product.manage",
+  finance: "finance.manage",
 } as const satisfies Record<string, Capability>;
 
 const allCapabilities = Object.values(CAPABILITIES);
@@ -42,6 +43,7 @@ export const ROLE_CAPABILITY_FALLBACK: Record<DashboardRole, Capability[]> = {
     CAPABILITIES.audit,
     CAPABILITIES.feedback,
     CAPABILITIES.product,
+    CAPABILITIES.finance,
   ],
   print_staff: [CAPABILITIES.dashboard, CAPABILITIES.printing],
   support_staff: [CAPABILITIES.dashboard, CAPABILITIES.support, CAPABILITIES.feedback],

@@ -7,7 +7,10 @@ import { compactJson, formatDate, formatNumber } from "@/lib/utils";
 /** Field names whose string values are Latin tokens (e-mails, phones, codes, versions, URLs, paths) and must read left-to-right. */
 const LTR_KEY = /(^|_)(email|phone|phone_number|url|link|path|code|version|build|build_number|key|number|student_number|sha256|uuid|installation_id|ip|ip_address|file_type|permission_code|capability|content_url|store_url|whatsapp_url)(_|$)/u;
 /** Field names whose string values are enum codes and are shown through the localized enum catalog. */
-const ENUM_KEY = /^(platform|update_mode|color_mode|paper_size|sides|binding|visibility|target_user_type|role|effect|send_messages_permission|priority|kind|category|status|type|metric_type|action)$/u;
+const ENUM_KEY = /^(platform|update_mode|color_mode|paper_size|sides|binding|visibility|target_user_type|role|effect|send_messages_permission|priority|kind|category|status|type|metric_type|action|currency|method|movement_type)$/u;
+
+/** Currency codes (SYP, USD) are upper-case, unlike the other enum values. */
+const CURRENCY_KEY = /(^|_)currency$/u;
 
 export function isLtrKey(key: string) {
   return LTR_KEY.test(key);
@@ -33,7 +36,7 @@ export function CellValue({ name, value, locale, truncate = false }: { name: str
     return <Ltr as="span" className={truncate ? "block max-w-72 truncate font-mono text-xs text-muted-foreground" : "block break-words font-mono text-xs"}>{compactJson(value)}</Ltr>;
   }
   const text = String(value);
-  if (ENUM_KEY.test(name) && /^[a-z0-9_.-]+$/u.test(text)) return <>{enumLabel(text)}</>;
+  if (ENUM_KEY.test(name) && (/^[a-z0-9_.-]+$/u.test(text) || (CURRENCY_KEY.test(name) && /^[A-Z]{3}$/u.test(text)))) return <>{enumLabel(text)}</>;
   if (isLtrKey(name) || looksLtr(text)) {
     return <Ltr as="span" className={truncate ? "block max-w-72 truncate" : "break-words"} title={text}>{text}</Ltr>;
   }

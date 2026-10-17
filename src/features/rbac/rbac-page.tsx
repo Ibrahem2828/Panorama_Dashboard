@@ -22,6 +22,7 @@ import { DASHBOARD_ROLES, type DashboardRole } from "@/config/constants";
 import { CAPABILITIES, roleBaselineHas } from "@/lib/auth/capabilities";
 import { localInputToIso } from "@/lib/datetime";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
+import { permissionOverridePath } from "@/features/rbac/override-path";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { payloadSignature } from "@/lib/api/idempotency";
 import { useI18n } from "@/i18n/provider";
@@ -69,9 +70,7 @@ export function RbacPage() {
   const remove = useMutation({
     mutationFn: (permissionCode: string) => {
       if (!selected) throw new Error(t("rbac.noUserSelected"));
-      // The backend view reads `permission_code` from the JSON body of DELETE (apps/accounts/dashboard_views.py); the OpenAPI
-      // document declares neither a body nor a query parameter for this operation (backend schema gap), so this is the only working call.
-      return apiFetch(`/api/v1/dashboard/users/${selected.id}/permission-overrides/`, { method: "DELETE", body: { permission_code: permissionCode }, idempotencyKey: removeKey.get(payloadSignature(selected.id, permissionCode)) });
+      return apiFetch(permissionOverridePath(selected.id, permissionCode), { method: "DELETE", idempotencyKey: removeKey.get(payloadSignature(selected.id, permissionCode)) });
     },
     onSuccess() { removeKey.reset(); toast.success(t("common.success")); void queryClient.invalidateQueries({ queryKey: ["rbac-users"] }); },
     onError: removeError,

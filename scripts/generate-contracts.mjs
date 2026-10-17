@@ -39,7 +39,10 @@ const curatedResources = {
   "audit-logs": "/api/v1/dashboard/audit-logs/",
   "chat-reports": "/api/v1/dashboard/chat/reports/",
   "account-deletions": "/api/v1/dashboard/account-deletions/",
-  devices: "/api/v1/dashboard/devices/"
+  devices: "/api/v1/dashboard/devices/",
+  "finance-exchange-rates": "/api/v1/dashboard/finance/exchange-rates/",
+  "finance-expenses": "/api/v1/dashboard/finance/expenses/",
+  "finance-inventory-items": "/api/v1/dashboard/finance/inventory-items/"
 };
 
 function resolveSchema(schema, depth = 0) {
