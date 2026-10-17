@@ -351,3 +351,9 @@ export function parseJobTotals(raw: unknown): JobTotals[] {
     return text(row.total) === null ? [] : [{ currency, total: String(row.total), orders: count(row.orders) }];
   });
 }
+
+/** Expense totals for the filters in force: one category (or all) and one currency (or both), per currency. */
+export function expenseTotals(summary: FinanceSummary, category: string, currency: string): { currency: FinanceCurrency; total: string }[] {
+  const source = category ? summary.expensesByCategory.find((row) => row.category === category)?.amounts ?? {} : summary.expenses;
+  return FINANCE_CURRENCIES.filter((code) => !currency || currency === code).flatMap((code) => (source[code] !== undefined ? [{ currency: code, total: source[code] as string }] : []));
+}
