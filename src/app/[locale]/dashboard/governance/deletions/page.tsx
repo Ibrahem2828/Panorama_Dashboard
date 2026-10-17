@@ -1,4 +1,3 @@
-import { ContractGapPage } from "@/features/product/contract-gap-page";
-export default function Page() {
-  return <ContractGapPage titleKey="governance.deletions.title" subtitleKey="governance.deletions.subtitle" existingOperations={[{ method: "POST", path: "/api/v1/account/deletion/request/", note: "gap.deletions.request" }, { method: "POST", path: "/api/v1/account/deletion/cancel/", note: "gap.deletions.selfCancel" }, { method: "GET", path: "/api/v1/account/deletion/status/", note: "gap.deletions.status" }]} missingOperations={[{ method: "GET", path: "/api/v1/dashboard/account-deletions/", note: "gap.deletions.list" }, { method: "GET", path: "/api/v1/dashboard/account-deletions/{id}/", note: "gap.deletions.detail" }, { method: "POST", path: "/api/v1/dashboard/account-deletions/{id}/cancel/", note: "gap.deletions.cancel" }, { method: "POST", path: "/api/v1/dashboard/account-deletions/{id}/execute/", note: "gap.deletions.execute" }]} />;
-}
+"use client";
+import { DeletionsPage } from "@/features/governance/deletions-page";
+export default function Page(){return <DeletionsPage/>;}

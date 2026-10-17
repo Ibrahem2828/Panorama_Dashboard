@@ -91,6 +91,7 @@ export function ResourceManager({
   createLabel,
   extraContent,
   eyebrow,
+  onViewRow,
 }: {
   resourceKey: keyof typeof RESOURCE_DEFINITIONS;
   title: string;
@@ -117,6 +118,8 @@ export function ResourceManager({
   extraContent?: React.ReactNode;
   /** Small heading above the title; defaults to the localized `resource.eyebrow.<resource>` label. */
   eyebrow?: string;
+  /** Replaces the generic details dialog when a row is opened (for example a drawer with a timeline). */
+  onViewRow?: (row: EntityRecord) => void;
 }) {
   const baseDefinition = RESOURCE_DEFINITIONS[resourceKey] as ResourceDefinition;
   const key = String(resourceKey);
@@ -314,7 +317,7 @@ export function ResourceManager({
             canEdit={canEdit ? (row) => canEditRow?.(row) ?? true : false}
             canDelete={canDelete ? (row) => canDeleteRow?.(row) ?? true : false}
             rowActions={menuActions}
-            onView={(row) => setSelected(row)}
+            onView={(row) => (onViewRow ? onViewRow(row) : setSelected(row))}
             onEdit={(row) => { setSelected(row); save.reset(); setFormMode("edit"); }}
             onDelete={setDeleteTarget}
             emptyMessage={search ? t("common.noSearchResults") : t("common.noRecords")}

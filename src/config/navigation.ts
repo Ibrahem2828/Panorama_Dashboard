@@ -94,7 +94,7 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "releases", label: "nav.releases", href: "/dashboard/product/releases", icon: Smartphone, capability: CAPABILITIES.product },
       { key: "maintenance", label: "nav.maintenance", href: "/dashboard/product/maintenance", icon: Wrench, capability: CAPABILITIES.product },
       { key: "features", label: "nav.features", href: "/dashboard/product/features", icon: Flag, capability: CAPABILITIES.product },
-      { key: "devices", label: "nav.devices", href: "/dashboard/product/devices", icon: MonitorSmartphone, capability: CAPABILITIES.product, badge: "nav.badge.soon" },
+      { key: "devices", label: "nav.devices", href: "/dashboard/product/devices", icon: MonitorSmartphone, capability: CAPABILITIES.product },
     ],
   },
   {
@@ -102,7 +102,7 @@ export const navigationGroups: NavigationGroup[] = [
     label: "nav.governance",
     items: [
       { key: "policies", label: "nav.policies", href: "/dashboard/governance/policies", icon: ScrollText, capability: CAPABILITIES.product },
-      { key: "deletions", label: "nav.deletions", href: "/dashboard/governance/deletions", icon: UserRoundCog, capability: CAPABILITIES.product, badge: "nav.badge.soon" },
+      { key: "deletions", label: "nav.deletions", href: "/dashboard/governance/deletions", icon: UserRoundCog, capability: CAPABILITIES.users },
       { key: "audit", label: "nav.audit", href: "/dashboard/audit", icon: FileCheck2, capability: CAPABILITIES.audit },
     ],
   },

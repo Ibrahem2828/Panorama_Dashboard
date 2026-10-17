@@ -1,4 +1,3 @@
-import { ContractGapPage } from "@/features/product/contract-gap-page";
-export default function Page() {
-  return <ContractGapPage titleKey="product.devices.title" subtitleKey="product.devices.subtitle" existingOperations={[{ method: "POST", path: "/api/v1/mobile/devices/register/", note: "gap.devices.register" }, { method: "PATCH", path: "/api/v1/mobile/devices/{installation_id}/", note: "gap.devices.update" }, { method: "POST", path: "/api/v1/mobile/devices/{installation_id}/revoke/", note: "gap.devices.selfRevoke" }]} missingOperations={[{ method: "GET", path: "/api/v1/dashboard/devices/", note: "gap.devices.list" }, { method: "GET", path: "/api/v1/dashboard/devices/{id}/", note: "gap.devices.detail" }, { method: "POST", path: "/api/v1/dashboard/devices/{id}/revoke/", note: "gap.devices.revoke" }, { method: "GET", path: "/api/v1/dashboard/devices/stats/", note: "gap.devices.stats" }]} />;
-}
+"use client";
+import { DevicesPage } from "@/features/product/devices-page";
+export default function Page(){return <DevicesPage/>;}

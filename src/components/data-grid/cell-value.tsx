@@ -25,6 +25,11 @@ export function CellValue({ name, value, locale, truncate = false }: { name: str
   if (name.includes("_at") || name.endsWith("date") || name.endsWith("datetime")) return <>{formatDate(value, locale)}</>;
   if (typeof value === "number") return <>{formatNumber(value, locale)}</>;
   if (typeof value === "object") {
+    const brief = value as Record<string, unknown>;
+    // A related user ({full_name, email}) reads as the person, not as JSON.
+    if (typeof brief.full_name === "string") {
+      return <span className="block"><span>{brief.full_name}</span>{typeof brief.email === "string" ? <Ltr as="span" className="block text-xs text-muted-foreground">{brief.email}</Ltr> : null}</span>;
+    }
     return <Ltr as="span" className={truncate ? "block max-w-72 truncate font-mono text-xs text-muted-foreground" : "block break-words font-mono text-xs"}>{compactJson(value)}</Ltr>;
   }
   const text = String(value);
