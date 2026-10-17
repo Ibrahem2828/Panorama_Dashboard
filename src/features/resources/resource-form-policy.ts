@@ -194,6 +194,10 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
     fieldOverrides: { is_active: { defaultValue: false, label: "form.field.publishNow" }, content_url: { required: true, hint: "form.hint.policyUrl" }, published_at: { hint: "form.hint.publishedAt" } },
   }),
   "audit-logs": readOnlyPolicy("audit.view"),
+  // Moderation and governance screens: read-only generic table, with explicit row actions defined by their pages.
+  "chat-reports": readOnlyPolicy("groups.manage"),
+  "account-deletions": readOnlyPolicy("users.manage"),
+  devices: readOnlyPolicy("product.manage"),
 };
 
 export function formDefinition(definition: ResourceDefinition, allowedFields: readonly string[]): ResourceDefinition {

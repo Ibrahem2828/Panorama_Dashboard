@@ -3385,6 +3385,64 @@ export const RESOURCE_DEFINITIONS = {
       "destroy": null
     },
     "fields": []
+  },
+  "chat-reports": {
+    "key": "chat-reports",
+    "collectionPath": "/api/v1/dashboard/chat/reports/",
+    "detailPath": null,
+    "collectionMethods": [
+      "get"
+    ],
+    "detailMethods": [],
+    "operationIds": {
+      "list": "v1_dashboard_chat_reports_list",
+      "create": null,
+      "retrieve": null,
+      "update": null,
+      "partialUpdate": null,
+      "destroy": null
+    },
+    "fields": []
+  },
+  "account-deletions": {
+    "key": "account-deletions",
+    "collectionPath": "/api/v1/dashboard/account-deletions/",
+    "detailPath": "/api/v1/dashboard/account-deletions/{id}/",
+    "collectionMethods": [
+      "get"
+    ],
+    "detailMethods": [
+      "get"
+    ],
+    "operationIds": {
+      "list": "v1_dashboard_account_deletions_list",
+      "create": null,
+      "retrieve": "v1_dashboard_account_deletions_retrieve",
+      "update": null,
+      "partialUpdate": null,
+      "destroy": null
+    },
+    "fields": []
+  },
+  "devices": {
+    "key": "devices",
+    "collectionPath": "/api/v1/dashboard/devices/",
+    "detailPath": "/api/v1/dashboard/devices/{id}/",
+    "collectionMethods": [
+      "get"
+    ],
+    "detailMethods": [
+      "get"
+    ],
+    "operationIds": {
+      "list": "v1_dashboard_devices_list",
+      "create": null,
+      "retrieve": "v1_dashboard_devices_retrieve",
+      "update": null,
+      "partialUpdate": null,
+      "destroy": null
+    },
+    "fields": []
   }
 } as const satisfies Record<string, ResourceDefinition>;
 

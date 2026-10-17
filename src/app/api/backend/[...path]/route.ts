@@ -7,6 +7,7 @@ import { clearSessionCookies, setSessionCookies } from "@/lib/auth/cookies";
 import { readTokens, refreshTokensResult, type RefreshTokensResult } from "@/lib/auth/server-session";
 import { bffTrustHeaders } from "@/lib/security/bff-trust";
 import { assertCsrf, SecurityError } from "@/lib/security/csrf";
+import { isWhatsappChannelPath, scrubWhatsappChannelBody } from "@/lib/security/redact";
 import { jsonError } from "@/lib/security/http";
 import { requestId } from "@/lib/security/request-id";
 
@@ -306,7 +307,13 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     responseHeaders.set("x-request-id", backend.headers.get("x-request-id") ?? id);
     if (!responseHeaders.has("cache-control")) responseHeaders.set("cache-control", "no-store, private");
 
-    const response = new NextResponse(responseBodyWithinLimit(backend.body), { status: backend.status, headers: responseHeaders });
+    // The WhatsApp invite link must never travel to the browser (the contract's response schema includes `url`).
+    const scrubbed = isWhatsappChannelPath(targetPath.split("?", 1)[0] ?? targetPath);
+    if (scrubbed) {
+      for (const name of ["content-length", "etag", "last-modified", "content-range", "accept-ranges"]) responseHeaders.delete(name);
+      responseHeaders.set("content-type", "application/json");
+    }
+    const response = new NextResponse(scrubbed ? ([204, 205, 304].includes(backend.status) ? null : scrubWhatsappChannelBody(await backend.text())) : responseBodyWithinLimit(backend.body), { status: backend.status, headers: responseHeaders });
     if (refreshedTokens) setSessionCookies(response, refreshedTokens);
     return response;
   } catch (error) {

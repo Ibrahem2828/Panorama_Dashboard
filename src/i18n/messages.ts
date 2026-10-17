@@ -960,6 +960,17 @@ export const ar = {
   "lectures.col.faculty": "الكلية",
   "lectures.edit.faculty": "كلية المحاضرة العامة",
   "lectures.edit.facultyHint": "اترك «كل الكليات» لتظهر لجميع الطلبة الموثّقين.",
+  "nav.chatReports": "بلاغات الدردشة",
+  "chatReports.title": "بلاغات الدردشة",
+  "chatReports.subtitle": "مراجعة البلاغات عن رسائل المجموعات: تجاهل البلاغ أو حذف الرسالة المبلَّغ عنها",
+  "chatReports.filter.status": "الحالة",
+  "chatReports.dismiss": "تجاهل البلاغ",
+  "chatReports.dismissTitle": "تجاهل هذا البلاغ؟",
+  "chatReports.dismissBody": "سيُغلق البلاغ دون أي إجراء على الرسالة في المجموعة {group}.",
+  "chatReports.deleteMessage": "حذف الرسالة",
+  "chatReports.deleteTitle": "حذف الرسالة المبلَّغ عنها؟",
+  "chatReports.deleteBody": "ستُحذف الرسالة من المجموعة {group} وتُغلق كل البلاغات المعلّقة عنها. لا يمكن التراجع.",
+  "status.message_deleted": "حُذفت الرسالة",
 } as const;
 
 export const en: Record<keyof typeof ar, string> = {
@@ -1924,6 +1935,17 @@ export const en: Record<keyof typeof ar, string> = {
   "lectures.col.faculty": "Faculty",
   "lectures.edit.faculty": "Faculty of the general lecture",
   "lectures.edit.facultyHint": "Leave “All faculties” to show it to all verified students.",
+  "nav.chatReports": "Chat reports",
+  "chatReports.title": "Chat reports",
+  "chatReports.subtitle": "Review reports about group messages: dismiss a report or delete the reported message",
+  "chatReports.filter.status": "Status",
+  "chatReports.dismiss": "Dismiss report",
+  "chatReports.dismissTitle": "Dismiss this report?",
+  "chatReports.dismissBody": "The report will be closed without any action on the message in the group {group}.",
+  "chatReports.deleteMessage": "Delete message",
+  "chatReports.deleteTitle": "Delete the reported message?",
+  "chatReports.deleteBody": "The message will be deleted from the group {group} and all pending reports about it will be closed. This cannot be undone.",
+  "status.message_deleted": "Message deleted",
 };
 
 export type MessageKey = keyof typeof ar;
