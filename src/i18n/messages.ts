@@ -1199,6 +1199,7 @@ export const ar = {
   "finance.rates.currentCard": "سعر الصرف الحالي",
   "finance.rates.currentLine": "1 دولار = {rate} ليرة سورية جديدة (منذ {date})",
   "finance.rates.none": "لا يوجد سعر صرف ساري. أضف سعرًا لتتمكن التقارير من تحويل الإجماليات بين العملتين.",
+  "enum.maintenance": "صيانة وإصلاحات",
 } as const;
 
 export const en: Record<keyof typeof ar, string> = {
@@ -2402,6 +2403,7 @@ export const en: Record<keyof typeof ar, string> = {
   "finance.rates.currentCard": "Current exchange rate",
   "finance.rates.currentLine": "1 USD = {rate} new Syrian pounds (since {date})",
   "finance.rates.none": "No exchange rate is in force. Add one so reports can convert totals between the two currencies.",
+  "enum.maintenance": "Maintenance and repairs",
 };
 
 export type MessageKey = keyof typeof ar;
