@@ -5,6 +5,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 
+import { CloseLabel } from "@/components/ui/close-label";
 import { cn } from "@/lib/utils";
 
 const Sheet = SheetPrimitive.Root;
@@ -27,26 +28,24 @@ const sheetVariants = cva("fixed z-50 gap-4 bg-background p-6 shadow-lg", {
       bottom: "inset-x-0 bottom-0 border-t",
       start: "inset-y-0 start-0 h-full w-3/4 border-e sm:max-w-sm",
       end: "inset-y-0 end-0 h-full w-3/4 border-s sm:max-w-sm",
-      left: "inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm",
-      right: "inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
     },
   },
   defaultVariants: {
-    side: "right",
+    side: "end",
   },
 });
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content> & VariantProps<typeof sheetVariants>
->(({ side = "right", className, children, ...props }, ref) => (
+>(({ side = "end", className, children, ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
     <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
       {children}
       <SheetPrimitive.Close className="absolute end-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring">
         <X className="size-4" />
-        <span className="sr-only">Close</span>
+        <CloseLabel />
       </SheetPrimitive.Close>
     </SheetPrimitive.Content>
   </SheetPortal>

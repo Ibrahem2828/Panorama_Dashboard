@@ -734,8 +734,26 @@ export const RESOURCE_DEFINITIONS = {
         "type": "integer",
         "input": "number",
         "format": null,
-        "required": true,
-        "nullable": false,
+        "required": false,
+        "nullable": true,
+        "readOnly": false,
+        "writeOnly": false,
+        "minLength": null,
+        "maxLength": null,
+        "minimum": null,
+        "maximum": null,
+        "pattern": null,
+        "enum": null,
+        "defaultValue": null,
+        "description": null
+      },
+      {
+        "name": "faculty",
+        "type": "integer",
+        "input": "number",
+        "format": null,
+        "required": false,
+        "nullable": true,
         "readOnly": false,
         "writeOnly": false,
         "minLength": null,
@@ -3367,6 +3385,64 @@ export const RESOURCE_DEFINITIONS = {
       "destroy": null
     },
     "fields": []
+  },
+  "chat-reports": {
+    "key": "chat-reports",
+    "collectionPath": "/api/v1/dashboard/chat/reports/",
+    "detailPath": null,
+    "collectionMethods": [
+      "get"
+    ],
+    "detailMethods": [],
+    "operationIds": {
+      "list": "v1_dashboard_chat_reports_list",
+      "create": null,
+      "retrieve": null,
+      "update": null,
+      "partialUpdate": null,
+      "destroy": null
+    },
+    "fields": []
+  },
+  "account-deletions": {
+    "key": "account-deletions",
+    "collectionPath": "/api/v1/dashboard/account-deletions/",
+    "detailPath": "/api/v1/dashboard/account-deletions/{id}/",
+    "collectionMethods": [
+      "get"
+    ],
+    "detailMethods": [
+      "get"
+    ],
+    "operationIds": {
+      "list": "v1_dashboard_account_deletions_list",
+      "create": null,
+      "retrieve": "v1_dashboard_account_deletions_retrieve",
+      "update": null,
+      "partialUpdate": null,
+      "destroy": null
+    },
+    "fields": []
+  },
+  "devices": {
+    "key": "devices",
+    "collectionPath": "/api/v1/dashboard/devices/",
+    "detailPath": "/api/v1/dashboard/devices/{id}/",
+    "collectionMethods": [
+      "get"
+    ],
+    "detailMethods": [
+      "get"
+    ],
+    "operationIds": {
+      "list": "v1_dashboard_devices_list",
+      "create": null,
+      "retrieve": "v1_dashboard_devices_retrieve",
+      "update": null,
+      "partialUpdate": null,
+      "destroy": null
+    },
+    "fields": []
   }
 } as const satisfies Record<string, ResourceDefinition>;
 
@@ -3396,6 +3472,10 @@ export const OPERATION_PATHS = {
   "v1_dashboard_academic_years_update": "/api/v1/dashboard/academic-years/{id}/",
   "v1_dashboard_academic_years_partial_update": "/api/v1/dashboard/academic-years/{id}/",
   "v1_dashboard_academic_years_destroy": "/api/v1/dashboard/academic-years/{id}/",
+  "v1_dashboard_account_deletions_list": "/api/v1/dashboard/account-deletions/",
+  "v1_dashboard_account_deletions_retrieve": "/api/v1/dashboard/account-deletions/{id}/",
+  "v1_dashboard_account_deletions_cancel_create": "/api/v1/dashboard/account-deletions/{id}/cancel/",
+  "v1_dashboard_account_deletions_execute_create": "/api/v1/dashboard/account-deletions/{id}/execute/",
   "v1_dashboard_announcements_list": "/api/v1/dashboard/announcements/",
   "v1_dashboard_announcements_create": "/api/v1/dashboard/announcements/",
   "v1_dashboard_announcements_retrieve": "/api/v1/dashboard/announcements/{id}/",
@@ -3407,6 +3487,10 @@ export const OPERATION_PATHS = {
   "v1_dashboard_capabilities_retrieve": "/api/v1/dashboard/capabilities/",
   "v1_dashboard_chat_reports_list": "/api/v1/dashboard/chat/reports/",
   "v1_dashboard_chat_reports_resolve_create": "/api/v1/dashboard/chat/reports/{id}/resolve/",
+  "v1_dashboard_devices_list": "/api/v1/dashboard/devices/",
+  "v1_dashboard_devices_retrieve": "/api/v1/dashboard/devices/{id}/",
+  "v1_dashboard_devices_revoke_create": "/api/v1/dashboard/devices/{id}/revoke/",
+  "v1_dashboard_devices_stats_retrieve": "/api/v1/dashboard/devices/stats/",
   "v1_dashboard_faculties_list": "/api/v1/dashboard/faculties/",
   "v1_dashboard_faculties_create": "/api/v1/dashboard/faculties/",
   "v1_dashboard_faculties_retrieve": "/api/v1/dashboard/faculties/{id}/",
@@ -3623,6 +3707,8 @@ export const OPERATION_PATHS = {
   "v1_policies_accept_create": "/api/v1/policies/accept/",
   "v1_policies_current_retrieve": "/api/v1/policies/current/",
   "v1_policies_status_retrieve": "/api/v1/policies/status/",
+  "v1_printing_convert_create": "/api/v1/printing/convert/",
+  "v1_printing_convert_retrieve": "/api/v1/printing/convert/{token}/",
   "v1_printing_items_access_ticket_create": "/api/v1/printing/items/{id}/access-ticket/",
   "v1_printing_orders_create": "/api/v1/printing/orders/",
   "v1_printing_orders_cancel_create": "/api/v1/printing/orders/{id}/cancel/",

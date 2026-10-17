@@ -15,8 +15,13 @@ export const STALLED_AFTER_MS = 30 * 60 * 1000;
 
 export interface LectureRow {
   id: number;
-  subject: number;
-  subject_name?: string;
+  /** Null for a general lecture (not linked to a subject). */
+  subject: number | null;
+  subject_name?: string | null;
+  /** A general lecture may target one faculty (null: all verified students); for a subject lecture it is null. */
+  faculty?: number | null;
+  faculty_name?: string | null;
+  is_general?: boolean;
   title: string;
   description?: string;
   original_filename?: string;
@@ -32,6 +37,11 @@ export interface LectureRow {
   uploaded_by?: number;
   created_at?: string;
   updated_at?: string;
+}
+
+/** A lecture without a subject. Falls back to `subject == null` for payloads that predate `is_general`. */
+export function isGeneralLecture(row: Pick<LectureRow, "subject" | "is_general">): boolean {
+  return typeof row.is_general === "boolean" ? row.is_general : row.subject === null || row.subject === undefined;
 }
 
 export function isLectureStatus(value: unknown): value is LectureStatus {
@@ -107,6 +117,8 @@ export interface LectureListParams {
   page: number;
   pageSize: number;
   subject: string;
+  /** "general" = not linked to a subject, "subject" = linked, "" = both. */
+  scope: "" | "general" | "subject";
   status: string;
   isPublished: string;
 }
@@ -119,20 +131,23 @@ export function parseLectureParams(params: Params): LectureListParams {
   const size = Number(params.get("page_size"));
   const subject = params.get("subject") ?? "";
   const status = params.get("status") ?? "";
+  const scope = params.get("scope") ?? "";
   const published = params.get("is_published") ?? "";
   return {
     page: Number.isInteger(page) && page >= 1 ? page : 1,
     pageSize: (LECTURE_PAGE_SIZES as readonly number[]).includes(size) ? size : 25,
     subject: /^\d{1,12}$/u.test(subject) ? subject : "",
+    scope: scope === "general" || scope === "subject" ? scope : "",
     status: isLectureStatus(status) ? status : "",
     isPublished: published === "true" || published === "false" ? published : "",
   };
 }
 
-/** Query parameters of the dashboard list endpoint (`filterset_fields = subject, status, is_published`). */
+/** Query parameters of the dashboard list endpoint (`filterset_fields = subject, faculty, status, is_published` plus `scope`). */
 export function lectureQueryFilters(params: LectureListParams): Record<string, string> {
   const filters: Record<string, string> = {};
   if (params.subject) filters.subject = params.subject;
+  if (params.scope) filters.scope = params.scope;
   if (params.status) filters.status = params.status;
   if (params.isPublished) filters.is_published = params.isPublished;
   return filters;

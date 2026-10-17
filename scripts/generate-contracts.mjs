@@ -36,7 +36,10 @@ const curatedResources = {
   "feature-flags": "/api/v1/dashboard/feature-flags/",
   "privacy-policy-versions": "/api/v1/dashboard/privacy-policy-versions/",
   "terms-versions": "/api/v1/dashboard/terms-versions/",
-  "audit-logs": "/api/v1/dashboard/audit-logs/"
+  "audit-logs": "/api/v1/dashboard/audit-logs/",
+  "chat-reports": "/api/v1/dashboard/chat/reports/",
+  "account-deletions": "/api/v1/dashboard/account-deletions/",
+  devices: "/api/v1/dashboard/devices/"
 };
 
 function resolveSchema(schema, depth = 0) {

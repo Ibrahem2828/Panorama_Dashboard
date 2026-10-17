@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   Megaphone,
   MessageSquareText,
+  MessageSquareWarning,
   MonitorSmartphone,
   Network,
   NotebookTabs,
@@ -38,6 +39,8 @@ export interface NavigationItem {
   icon: LucideIcon;
   capability?: string;
   keywords?: string[];
+  /** Small badge shown next to the label (for screens that are not live yet). */
+  badge?: MessageKey;
 }
 
 export interface NavigationGroup {
@@ -71,6 +74,7 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "files", label: "nav.files", href: "/dashboard/files", icon: FileStack, capability: CAPABILITIES.files },
       { key: "groups", label: "nav.groups", href: "/dashboard/groups", icon: Network, capability: CAPABILITIES.groups },
       { key: "announcements", label: "nav.announcements", href: "/dashboard/announcements", icon: Megaphone, capability: CAPABILITIES.announcements },
+      { key: "chatReports", label: "nav.chatReports", href: "/dashboard/chat-reports", icon: MessageSquareWarning, capability: CAPABILITIES.groups },
     ],
   },
   {
@@ -98,7 +102,7 @@ export const navigationGroups: NavigationGroup[] = [
     label: "nav.governance",
     items: [
       { key: "policies", label: "nav.policies", href: "/dashboard/governance/policies", icon: ScrollText, capability: CAPABILITIES.product },
-      { key: "deletions", label: "nav.deletions", href: "/dashboard/governance/deletions", icon: UserRoundCog, capability: CAPABILITIES.product },
+      { key: "deletions", label: "nav.deletions", href: "/dashboard/governance/deletions", icon: UserRoundCog, capability: CAPABILITIES.users },
       { key: "audit", label: "nav.audit", href: "/dashboard/audit", icon: FileCheck2, capability: CAPABILITIES.audit },
     ],
   },

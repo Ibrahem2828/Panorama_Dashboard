@@ -8,7 +8,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { usePreferences } from "@/features/preferences";
 import { useI18n } from "@/i18n/provider";
-import { compactJson, formatDate, formatNumber, humanize } from "@/lib/utils";
+import { CellValue } from "@/components/data-grid/cell-value";
+import { humanize } from "@/lib/utils";
 
 export interface ResourceColumn {
   key: string;
@@ -16,14 +17,6 @@ export interface ResourceColumn {
   render?: (value: unknown, row: Record<string, unknown>) => ReactNode;
 }
 
-function displayValue(key: string, value: unknown, locale: string) {
-  if (value === null || value === undefined || value === "") return <span className="text-muted-foreground">—</span>;
-  if (typeof value === "boolean") return value ? "✓" : "—";
-  if (key.includes("_at") || key.endsWith("date") || key.endsWith("datetime")) return formatDate(value, locale);
-  if (typeof value === "number") return formatNumber(value, locale);
-  if (typeof value === "object") return <span className="block max-w-72 truncate font-mono text-xs text-muted-foreground">{compactJson(value)}</span>;
-  return <span className="block max-w-72 truncate" title={String(value)}>{String(value)}</span>;
-}
 
 export interface RowMenuAction {
   key: string;
@@ -55,7 +48,7 @@ export function ResourceTable({ rows, columns, canEdit, canDelete, rowActions, o
           <TableBody>
             {rows.map((row, index) => (
               <TableRow key={String(row.id ?? index)} className="group">
-                {columns.map((column) => <TableCell key={column.key} className={density === "compact" ? "py-2" : "py-3.5"}>{column.render ? column.render(row[column.key], row) : displayValue(column.key, row[column.key], locale)}</TableCell>)}
+                {columns.map((column) => <TableCell key={column.key} className={density === "compact" ? "py-2" : "py-3.5"}>{column.render ? column.render(row[column.key], row) : <CellValue name={column.key} value={row[column.key]} locale={locale} truncate />}</TableCell>)}
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={t("common.actions")}><MoreHorizontal /></Button></DropdownMenuTrigger>

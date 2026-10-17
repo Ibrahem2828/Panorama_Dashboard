@@ -11,6 +11,8 @@ import { ResourceTable } from "@/components/data-grid/resource-table";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusPill } from "@/components/shared/status-pill";
+import { Ltr } from "@/components/shared/ltr";
+import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,7 +29,7 @@ import { apiFetch, downloadFromBackend, unwrap } from "@/lib/api/browser-client"
 import type { ApiEnvelope } from "@/types/api";
 
 export function VerificationPage() {
-  const { t } = useI18n();
+  const { t, enumLabel } = useI18n();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -71,8 +73,8 @@ export function VerificationPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("verifications.title")} description={t("verifications.subtitle")} eyebrow="IDENTITY REVIEW" actions={<Button variant="outline" onClick={() => query.refetch()}><RefreshCw />{t("common.refresh")}</Button>} />
-      <Card><CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><Label>{t("common.status")}</Label><Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}><SelectTrigger className="w-full sm:w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("common.all")}</SelectItem>{["pending","approved","rejected","needs_update"].map((value)=><SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select></CardContent></Card>
+      <PageHeader title={t("verifications.title")} description={t("verifications.subtitle")} eyebrow={t("eyebrow.identityReview")} actions={<Button variant="outline" onClick={() => query.refetch()}><RefreshCw />{t("common.refresh")}</Button>} />
+      <Card><CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><Label>{t("common.status")}</Label><Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}><SelectTrigger className="w-full sm:w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("common.all")}</SelectItem>{["pending","approved","rejected","needs_update"].map((value)=><SelectItem key={value} value={value}>{enumLabel(value)}</SelectItem>)}</SelectContent></Select></CardContent></Card>
       {query.isPending ? <Skeleton className="h-96 rounded-2xl" /> : query.isError ? <ErrorPanel error={query.error} retry={() => query.refetch()} /> : (
         <>
           <ResourceTable
@@ -90,7 +92,7 @@ export function VerificationPage() {
       )}
 
       <Dialog open={Boolean(selected && !action)} onOpenChange={(open) => { if (!open) setSelected(null); }}>
-        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto"><DialogHeader><DialogTitle>{selected?.user_name as string}</DialogTitle><DialogDescription>{selected?.student_number as string}</DialogDescription></DialogHeader>
+        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto"><DialogHeader><DialogTitle>{selected?.user_name as string}</DialogTitle><DialogDescription>{selected?.student_number ? <Ltr as="span">{String(selected.student_number)}</Ltr> : null}</DialogDescription></DialogHeader>
           {selected ? <VerificationSummary row={selected} cardUrl={inlineCard} cardLoading={card.isPending && !inlineCard} onOpenFull={() => inlineCard && setPreview(inlineCard)} /> : null}
           <DialogFooter className="flex-wrap gap-2"><Button variant="outline" onClick={() => inlineCard && setPreview(inlineCard)} disabled={!inlineCard}><Eye />{t("verifications.cardPreview")}</Button><Button variant="outline" onClick={() => setAction("needs-update")}><RotateCcw />{t("verifications.needsUpdate")}</Button><Button variant="destructive" onClick={() => setAction("reject")}><XCircle />{t("verifications.reject")}</Button><Button onClick={() => setAction("approve")}><CheckCircle2 />{t("verifications.approve")}</Button></DialogFooter>
         </DialogContent>
@@ -113,9 +115,10 @@ export function VerificationPage() {
 
 
 function VerificationSummary({ row, cardUrl, cardLoading, onOpenFull }: { row: EntityRecord; cardUrl: string | null; cardLoading: boolean; onOpenFull: () => void }) {
-  const { t } = useI18n();
+  const { t, enumLabel, locale } = useI18n();
   const named = (value: unknown) => (value && typeof value === "object" ? ((value as { name?: string }).name ?? null) : null);
   const text = (value: unknown) => (value === null || value === undefined || value === "" ? "—" : String(value));
+  const ltrLabels = new Set([t("verifications.field.email"), t("verifications.field.studentNumber")]);
   const fields: [string, string][] = [
     [t("verifications.field.name"), text(row.user_name)],
     [t("verifications.field.email"), text(row.user_email)],
@@ -126,8 +129,8 @@ function VerificationSummary({ row, cardUrl, cardLoading, onOpenFull }: { row: E
     [t("verifications.field.major"), text(named(row.major_detail))],
     [t("verifications.field.academicYear"), text(named(row.academic_year_detail))],
     [t("verifications.field.semester"), text(named(row.semester_detail))],
-    [t("verifications.field.status"), text(row.status)],
-    [t("verifications.field.submitted"), text(row.created_at)],
+    [t("verifications.field.status"), enumLabel(row.status)],
+    [t("verifications.field.submitted"), formatDate(row.created_at, locale)],
   ];
   return (
     <div className="grid gap-4 md:grid-cols-[1.25fr_1fr]">
@@ -135,7 +138,7 @@ function VerificationSummary({ row, cardUrl, cardLoading, onOpenFull }: { row: E
         {fields.map(([label, value]) => (
           <div key={label} className="rounded-xl border p-3">
             <dt className="text-xs font-bold text-muted-foreground">{label}</dt>
-            <dd className="mt-1 break-words text-sm font-medium">{value}</dd>
+            <dd className="mt-1 break-words text-sm font-medium">{ltrLabels.has(label) && value !== "—" ? <Ltr as="span">{value}</Ltr> : value}</dd>
           </div>
         ))}
       </dl>

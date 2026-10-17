@@ -1,11 +1,15 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
-import { cn, humanize } from "@/lib/utils";
+import { useI18n } from "@/i18n/provider";
+import { cn } from "@/lib/utils";
 
 const positive = new Set(["active", "approved", "ready", "completed", "published", "healthy", "success", "open", "enabled"]);
 const negative = new Set(["inactive", "rejected", "failed", "cancelled", "blocked", "deleted", "unhealthy", "disabled"]);
 const warning = new Set(["pending", "queued", "processing", "needs_update", "maintenance", "draft", "in_progress"]);
 
 export function StatusPill({ value, label }: { value: unknown; label?: string }) {
+  const { enumLabel } = useI18n();
   const status = String(value ?? "unknown").toLowerCase();
   return (
     <Badge
@@ -18,7 +22,7 @@ export function StatusPill({ value, label }: { value: unknown; label?: string })
       )}
     >
       <span className="me-1.5 size-1.5 rounded-full bg-current" />
-      {label ?? humanize(status)}
+      {label ?? enumLabel(status)}
     </Badge>
   );
 }

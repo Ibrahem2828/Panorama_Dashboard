@@ -5,23 +5,8 @@ import { AlertTriangle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/i18n/provider";
-import type { MessageKey } from "@/i18n/messages";
 import { AppApiError, idempotencyConflict } from "@/lib/api/errors";
-
-const STATUS_MESSAGE_KEYS: Partial<Record<number, MessageKey>> = {
-  400: "errors.400",
-  401: "errors.401",
-  403: "errors.403",
-  404: "errors.404",
-  409: "errors.409",
-  413: "errors.413",
-  426: "errors.426",
-  429: "errors.429",
-  500: "errors.500",
-  502: "errors.502",
-  503: "errors.503",
-  504: "errors.504",
-};
+import { STATUS_MESSAGE_KEYS } from "@/lib/api/error-message";
 
 export function ErrorPanel({ error, retry }: { error: unknown; retry?: () => void }) {
   const { t } = useI18n();
@@ -32,7 +17,7 @@ export function ErrorPanel({ error, retry }: { error: unknown; retry?: () => voi
     : conflict === "in-progress"
       ? t("idempotency.inProgress")
       : apiError
-        ? t(STATUS_MESSAGE_KEYS[apiError.status] ?? "errors.500")
+        ? apiError.code === "BACKEND_NETWORK_UNAVAILABLE" ? t("errors.network") : t(STATUS_MESSAGE_KEYS[apiError.status] ?? "errors.500")
         : t("common.unknownError");
   // API errors carry the request id; render errors carry the Next.js digest. Either lets support find the failure.
   const digest = !apiError && error && typeof error === "object" && "digest" in error && typeof error.digest === "string" ? error.digest : undefined;

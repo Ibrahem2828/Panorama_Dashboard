@@ -99,15 +99,18 @@ describe("row action visibility", () => {
 describe("URL filters", () => {
   it("reads page, page size, subject, status and published, dropping invalid values", () => {
     const params = new URLSearchParams("page=3&page_size=50&subject=12&status=failed&is_published=true");
-    expect(parseLectureParams(params)).toEqual({ page: 3, pageSize: 50, subject: "12", status: "failed", isPublished: "true" });
-    expect(parseLectureParams(new URLSearchParams("page=-1&page_size=7&subject=abc&status=processing&is_published=maybe"))).toEqual({ page: 1, pageSize: 25, subject: "", status: "", isPublished: "" });
-    expect(parseLectureParams(new URLSearchParams())).toEqual({ page: 1, pageSize: 25, subject: "", status: "", isPublished: "" });
+    expect(parseLectureParams(params)).toEqual({ page: 3, pageSize: 50, subject: "12", scope: "", status: "failed", isPublished: "true" });
+    expect(parseLectureParams(new URLSearchParams("page=-1&page_size=7&subject=abc&scope=other&status=processing&is_published=maybe"))).toEqual({ page: 1, pageSize: 25, subject: "", scope: "", status: "", isPublished: "" });
+    expect(parseLectureParams(new URLSearchParams())).toEqual({ page: 1, pageSize: 25, subject: "", scope: "", status: "", isPublished: "" });
+    expect(parseLectureParams(new URLSearchParams("scope=general")).scope).toBe("general");
+    expect(parseLectureParams(new URLSearchParams("scope=subject")).scope).toBe("subject");
   });
 
   it("sends only the active filters, with the backend's parameter names", () => {
     expect(lectureQueryFilters(parseLectureParams(new URLSearchParams("subject=4&status=ready&is_published=false")))).toEqual({ subject: "4", status: "ready", is_published: "false" });
     expect(lectureQueryFilters(parseLectureParams(new URLSearchParams("status=queued")))).toEqual({ status: "queued" });
     expect(lectureQueryFilters(parseLectureParams(new URLSearchParams()))).toEqual({});
+    expect(lectureQueryFilters(parseLectureParams(new URLSearchParams("scope=general")))).toEqual({ scope: "general" });
   });
 });
 
@@ -129,21 +132,37 @@ describe("upload validation (mirrors LECTURE_DOCUMENT_POLICY)", () => {
 
   it("requires subject, title and file, and caps the title at 255", () => {
     const ok = file("a.pdf", 10);
-    expect(validateLectureForm({ subject: "", title: "  ", description: "", file: null })).toEqual({
+    expect(validateLectureForm({ kind: "subject", subject: "", faculty: "", title: "  ", description: "", file: null })).toEqual({
       subject: { key: "lectures.validation.subject" }, title: { key: "validation.required" }, file: { key: "lectures.validation.file" },
     });
-    expect(validateLectureForm({ subject: "2", title: "x".repeat(256), description: "", file: ok }).title?.key).toBe("validation.maxLength");
-    expect(validateLectureForm({ subject: "2", title: "Intro", description: "", file: ok })).toEqual({});
-    expect(validateLectureForm({ subject: "2", title: "Intro", description: "", file: file("a.exe", 10) }).file?.key).toBe("upload.type");
+    expect(validateLectureForm({ kind: "subject", subject: "2", faculty: "", title: "x".repeat(256), description: "", file: ok }).title?.key).toBe("validation.maxLength");
+    expect(validateLectureForm({ kind: "subject", subject: "2", faculty: "", title: "Intro", description: "", file: ok })).toEqual({});
+    expect(validateLectureForm({ kind: "subject", subject: "2", faculty: "", title: "Intro", description: "", file: file("a.exe", 10) }).file?.key).toBe("upload.type");
+  });
+
+  it("does not require a subject for a general lecture (optional faculty)", () => {
+    const ok = file("a.pdf", 10);
+    expect(validateLectureForm({ kind: "general", subject: "", faculty: "", title: "Orientation", description: "", file: ok })).toEqual({});
+    expect(validateLectureForm({ kind: "general", subject: "", faculty: "5", title: "Orientation", description: "", file: ok })).toEqual({});
   });
 
   it("builds the multipart body with the serializer's field names and omits an empty description", () => {
-    const body = buildLectureFormData({ subject: "2", title: " Intro ", description: "  ", file: file("a.pdf", 10) });
+    const body = buildLectureFormData({ kind: "subject", subject: "2", faculty: "9", title: " Intro ", description: "  ", file: file("a.pdf", 10) });
     expect(body.get("subject")).toBe("2");
+    expect(body.has("faculty")).toBe(false);
     expect(body.get("title")).toBe("Intro");
     expect(body.has("description")).toBe(false);
     expect((body.get("original_file") as File).name).toBe("a.pdf");
-    expect(buildLectureFormData({ subject: "2", title: "T", description: "About", file: null }).get("description")).toBe("About");
+    expect(buildLectureFormData({ kind: "subject", subject: "2", faculty: "", title: "T", description: "About", file: null }).get("description")).toBe("About");
+  });
+
+  it("sends subject XOR faculty: a general lecture sends the faculty or nothing, never an empty subject", () => {
+    const general = buildLectureFormData({ kind: "general", subject: "2", faculty: "5", title: "T", description: "", file: null });
+    expect(general.get("faculty")).toBe("5");
+    expect(general.has("subject")).toBe(false);
+    const allFaculties = buildLectureFormData({ kind: "general", subject: "", faculty: "", title: "T", description: "", file: null });
+    expect(allFaculties.has("subject")).toBe(false);
+    expect(allFaculties.has("faculty")).toBe(false);
   });
 
   it("computes whole-percent progress", () => {
@@ -190,7 +209,7 @@ describe("error mapping", () => {
       expect(messages.ar[`lectures.error.${key}` as keyof typeof messages.ar]).toBeTruthy();
       expect(messages.en[`lectures.error.${key}` as keyof typeof messages.en]).toBeTruthy();
     }
-    expect(messages.en["lectures.error.duplicate"]).toBe("This file already exists for this subject.");
+    expect(messages.en["lectures.error.duplicate"]).toBe("This file already exists in the same scope (subject or faculty).");
   });
 });
 

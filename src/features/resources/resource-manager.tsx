@@ -29,7 +29,8 @@ import { createResource, deleteResource, listResource, updateResource, type Enti
 import { useI18n } from "@/i18n/provider";
 import { apiFetch } from "@/lib/api/browser-client";
 import { apiErrorText } from "@/lib/api/error-message";
-import { compactJson, humanize } from "@/lib/utils";
+import { CellValue } from "@/components/data-grid/cell-value";
+import { humanize } from "@/lib/utils";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { payloadSignature } from "@/lib/api/idempotency";
 
@@ -89,6 +90,8 @@ export function ResourceManager({
   guardSubmit,
   createLabel,
   extraContent,
+  eyebrow,
+  onViewRow,
 }: {
   resourceKey: keyof typeof RESOURCE_DEFINITIONS;
   title: string;
@@ -113,6 +116,10 @@ export function ResourceManager({
   createLabel?: string;
   /** Rendered between the toolbar and the table (for example a "current version" card). */
   extraContent?: React.ReactNode;
+  /** Small heading above the title; defaults to the localized `resource.eyebrow.<resource>` label. */
+  eyebrow?: string;
+  /** Replaces the generic details dialog when a row is opened (for example a drawer with a timeline). */
+  onViewRow?: (row: EntityRecord) => void;
 }) {
   const baseDefinition = RESOURCE_DEFINITIONS[resourceKey] as ResourceDefinition;
   const key = String(resourceKey);
@@ -120,7 +127,7 @@ export function ResourceManager({
   const canAccess = useCan(capability ?? policy?.capability ?? undefined);
   // Writes need the capability the backend write endpoints demand (policy), not just whatever gates the page.
   const hasWriteCapability = useCan(policy?.capability ?? undefined);
-  const { t, tOr } = useI18n();
+  const { t, tOr, locale } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -269,7 +276,7 @@ export function ResourceManager({
       <PageHeader
         title={title}
         description={description}
-        eyebrow={humanize(key)}
+        eyebrow={eyebrow ?? tOr(`resource.eyebrow.${key}`, t("nav.administration"))}
         actions={
           <>
             {extraActions}
@@ -310,7 +317,7 @@ export function ResourceManager({
             canEdit={canEdit ? (row) => canEditRow?.(row) ?? true : false}
             canDelete={canDelete ? (row) => canDeleteRow?.(row) ?? true : false}
             rowActions={menuActions}
-            onView={(row) => setSelected(row)}
+            onView={(row) => (onViewRow ? onViewRow(row) : setSelected(row))}
             onEdit={(row) => { setSelected(row); save.reset(); setFormMode("edit"); }}
             onDelete={setDeleteTarget}
             emptyMessage={search ? t("common.noSearchResults") : t("common.noRecords")}
@@ -341,10 +348,10 @@ export function ResourceManager({
 
       <Dialog open={Boolean(selected && !formMode)} onOpenChange={(open) => { if (!open) setSelected(null); }}>
         <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
-          <DialogHeader><DialogTitle>{t("common.details")}</DialogTitle><DialogDescription>{baseDefinition.collectionPath}</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>{t("common.details")}</DialogTitle><DialogDescription>{title}</DialogDescription></DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
             {selected ? Object.entries(selected).map(([name, value]) => (
-              <div key={name} className="rounded-xl border bg-muted/30 p-3"><div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{tOr(`field.${name}`, humanize(name))}</div><div className="mt-1 break-words text-sm">{compactJson(value)}</div></div>
+              <div key={name} className="rounded-xl border bg-muted/30 p-3"><div className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{tOr(`field.${name}`, humanize(name))}</div><div className="mt-1 break-words text-sm"><CellValue name={name} value={value} locale={locale} /></div></div>
             )) : null}
           </div>
         </DialogContent>

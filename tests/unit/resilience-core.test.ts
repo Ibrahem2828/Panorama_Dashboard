@@ -96,7 +96,10 @@ describe("lifecycle errors", () => {
     const t = (key: keyof typeof messages.en) => messages.en[key];
     expect(apiErrorText(new AppApiError({ status: 409, code: "IDEMPOTENCY_KEY_REUSED", message: "raw" }), t)).toBe(messages.en["idempotency.reused"]);
     expect(apiErrorText(new AppApiError({ status: 409, code: "IDEMPOTENCY_IN_PROGRESS", message: "raw" }), t)).toBe(messages.en["idempotency.inProgress"]);
-    expect(apiErrorText(new AppApiError({ status: 400, message: "Bad field" }), t)).toBe("Bad field");
+    // English transport/BFF text is never shown; an Arabic backend sentence is.
+    expect(apiErrorText(new AppApiError({ status: 400, message: "Bad field" }), t)).toBe(messages.en["errors.400"]);
+    expect(apiErrorText(new AppApiError({ status: 400, message: "حقل غير صالح" }), t)).toBe("حقل غير صالح");
+    expect(apiErrorText(new AppApiError({ status: 503, code: "BACKEND_NETWORK_UNAVAILABLE", message: "The service is temporarily unavailable. Please try again." }), t)).toBe(messages.en["errors.network"]);
     expect(apiErrorText("nope", t)).toBe(messages.en["common.unknownError"]);
   });
 

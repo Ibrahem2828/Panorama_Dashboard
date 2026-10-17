@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import type { ResourceColumn } from "@/components/data-grid/resource-table";
 import { RelationValue } from "@/components/shared/relation-value";
+import { Ltr } from "@/components/shared/ltr";
 import { StatusPill } from "@/components/shared/status-pill";
 import { FilePreviewDialog, type PreviewTarget } from "@/features/files/file-preview-dialog";
 import { protectedSources } from "@/features/files/protected-preview";
@@ -19,7 +20,7 @@ export const FILE_VISIBILITIES = ["public", "students_only", "verified_students_
 
 /** The library: upload / edit metadata / replace / soft-delete via the contract-driven manager, plus a protected preview. */
 export function FilesPage() {
-  const { t, tOr } = useI18n();
+  const { t, tOr, locale, enumLabel } = useI18n();
   const [preview, setPreview] = useState<PreviewTarget | null>(null);
 
   const columns = useMemo<ResourceColumn[]>(() => [
@@ -27,15 +28,15 @@ export function FilesPage() {
     { key: "title" },
     { key: "file_type" },
     { key: "pages_count", render: (value) => (value === null || value === undefined ? "—" : String(value)) },
-    { key: "file_size", render: (value) => formatFileSize(value) },
-    { key: "visibility", render: (value) => tOr(`enum.${String(value)}`, String(value ?? "—")) },
+    { key: "file_size", render: (value) => <Ltr as="span">{formatFileSize(value, locale)}</Ltr> },
+    { key: "visibility", render: (value) => enumLabel(value) },
     { key: "group", render: (value) => <RelationValue field="group" value={value} /> },
     { key: "subject", render: (value) => <RelationValue field="subject" value={value} /> },
     { key: "is_printable", render: (value) => (value ? t("common.yes") : t("common.no")) },
     { key: "is_active", render: (value) => <StatusPill value={value ? "active" : "inactive"} label={value ? t("common.active") : t("common.inactive")} /> },
     { key: "uploaded_by_name" },
     { key: "created_at" },
-  ], [t, tOr]);
+  ], [t, locale, enumLabel]);
 
   const customRowActions = useMemo<ManagerCustomAction[]>(() => [
     {

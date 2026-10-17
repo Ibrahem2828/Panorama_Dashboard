@@ -22,7 +22,7 @@ import { LectureDetailsDialog } from "@/features/lectures/lecture-details-dialog
 import { LectureEditDialog } from "@/features/lectures/lecture-edit-dialog";
 import { lectureErrorText } from "@/features/lectures/lecture-errors";
 import {
-  LECTURE_STATUSES, lectureActions, lectureQueryFilters, parseLectureParams, pollInterval,
+  isGeneralLecture, LECTURE_STATUSES, lectureActions, lectureQueryFilters, parseLectureParams, pollInterval,
   type LectureRow,
 } from "@/features/lectures/lecture-rules";
 import { LectureStatusBadge, useLectureStatusLabel } from "@/features/lectures/lecture-status-badge";
@@ -140,7 +140,15 @@ export function LecturesPage() {
   const columns = useMemo<ResourceColumn[]>(() => [
     { key: "id", label: "#" },
     { key: "title", label: t("lectures.col.title"), render: (value) => <span className="block max-w-72 truncate font-medium" title={String(value ?? "")}>{String(value ?? "—")}</span> },
-    { key: "subject_name", label: t("lectures.col.subject") },
+    {
+      key: "subject_name",
+      label: t("lectures.col.subject"),
+      render: (_value, row) => {
+        const lecture = row as unknown as LectureRow;
+        if (!isGeneralLecture(lecture)) return <span className="block max-w-56 truncate" title={lecture.subject_name ?? ""}>{lecture.subject_name || "—"}</span>;
+        return <span className="block"><span className="font-medium">{t("lectures.general")}</span><span className="block text-xs text-muted-foreground">{lecture.faculty_name || t("lectures.faculty.all")}</span></span>;
+      },
+    },
     { key: "status", label: t("lectures.col.status"), render: (value) => <LectureStatusBadge status={value} /> },
     { key: "page_count", label: t("lectures.col.pages"), render: (value, row) => (row.status === "ready" ? formatNumber(value, locale) : "—") },
     { key: "is_published", label: t("lectures.col.published"), render: (value) => <span className="whitespace-nowrap">{value ? t("lectures.published") : t("lectures.unpublished")}</span> },
@@ -160,7 +168,7 @@ export function LecturesPage() {
   if (!canManage) return <AccessDenied />;
 
   const statusOptions = LECTURE_STATUSES.map((value) => ({ value, label: statusLabel(value) }));
-  const filtered = Boolean(params.subject || params.status || params.isPublished);
+  const filtered = Boolean(params.subject || params.scope || params.status || params.isPublished);
   const confirmText = pending ? {
     publish: { title: t("lectures.confirm.publishTitle"), body: t("lectures.confirm.publishBody", { title: pending.row.title }), label: t("lectures.action.publish") },
     unpublish: { title: t("lectures.confirm.unpublishTitle"), body: t("lectures.confirm.unpublishBody", { title: pending.row.title }), label: t("lectures.action.unpublish") },
@@ -187,7 +195,15 @@ export function LecturesPage() {
           <SelectContent>
             <SelectItem value={ALL}>{t("lectures.filter.subject")}: {t("common.all")}</SelectItem>
             {(subjects.data ?? []).map((item) => <SelectItem key={String(item.id)} value={String(item.id)}>{relationLabel(item)}</SelectItem>)}
-            {params.subject && !(subjects.data ?? []).some((item) => String(item.id) === params.subject) ? <SelectItem value={params.subject}>#{params.subject}</SelectItem> : null}
+            {params.subject && !(subjects.data ?? []).some((item) => String(item.id) === params.subject) ? <SelectItem value={params.subject}>{t("lectures.col.subject")} {formatNumber(params.subject, locale)}</SelectItem> : null}
+          </SelectContent>
+        </Select>
+        <Select value={params.scope || ALL} onValueChange={(next) => updateUrl({ scope: next === ALL ? null : next, page: 1 })}>
+          <SelectTrigger className="h-11 sm:w-52" aria-label={t("lectures.filter.scope")}><SelectValue placeholder={t("lectures.filter.scope")} /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{t("lectures.filter.scope")}: {t("common.all")}</SelectItem>
+            <SelectItem value="subject">{t("lectures.scope.subject")}</SelectItem>
+            <SelectItem value="general">{t("lectures.scope.general")}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={params.status || ALL} onValueChange={(next) => updateUrl({ status: next === ALL ? null : next, page: 1 })}>
@@ -205,7 +221,7 @@ export function LecturesPage() {
             <SelectItem value="false">{t("lectures.unpublished")}</SelectItem>
           </SelectContent>
         </Select>
-        {filtered ? <Button variant="ghost" onClick={() => updateUrl({ subject: null, status: null, is_published: null, page: 1 })}>{t("common.reset")}</Button> : null}
+        {filtered ? <Button variant="ghost" onClick={() => updateUrl({ subject: null, scope: null, status: null, is_published: null, page: 1 })}>{t("common.reset")}</Button> : null}
       </div>
 
       {polling ? <p className="text-xs text-muted-foreground" data-testid="lectures-auto-refresh">{t("lectures.autoRefresh")}</p> : null}

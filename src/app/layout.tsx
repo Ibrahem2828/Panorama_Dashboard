@@ -2,15 +2,16 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 
 import { AppProviders } from "@/app/providers";
+import { messages } from "@/i18n/messages";
 import { normalizeLocale } from "@/i18n/server";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/noto-kufi-arabic";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Panorama Dashboard", template: "%s | Panorama" },
-  description: "Secure bilingual operations dashboard for Panorama student services.",
-  applicationName: "Panorama Dashboard",
+  title: { default: messages.ar["app.name"], template: "%s | بانوراما" },
+  description: messages.ar["meta.description"],
+  applicationName: messages.ar["app.name"],
   icons: {
     icon: [
       { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/icons/apple-touch-icon.png", type: "image/png" }],
   },
-  openGraph: { title: "Panorama Dashboard", images: [{ url: "/brand/og-image.png", width: 1200, height: 630 }] },
+  openGraph: { title: messages.ar["app.name"], images: [{ url: "/brand/og-image.png", width: 1200, height: 630 }] },
   robots: { index: false, follow: false, nocache: true },
 };
 
