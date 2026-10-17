@@ -60,7 +60,11 @@ export interface ManagerCustomAction {
 export interface ManagerFilter {
   param: string;
   label: string;
-  options: readonly { value: string; label: string }[];
+  /** "select" (default) lists `options`; "date" is a date picker (YYYY-MM-DD) for from/to style parameters. */
+  kind?: "select" | "date";
+  options?: readonly { value: string; label: string }[];
+  /** Applied to the loaded rows instead of being sent to the server (for lists the backend does not filter). */
+  clientSide?: boolean;
 }
 
 const ALL_FILTER = "__all__";
@@ -143,7 +147,11 @@ export function ResourceManager({
   const search = searchParams.get("search") ?? "";
   const ordering = searchParams.get("ordering") ?? "-created_at";
   const activeFilters = useMemo(
-    () => Object.fromEntries((filters ?? []).map((filter) => [filter.param, searchParams.get(filter.param) ?? ""]).filter(([, value]) => value)) as Record<string, string>,
+    () => Object.fromEntries((filters ?? []).filter((filter) => !filter.clientSide).map((filter) => [filter.param, searchParams.get(filter.param) ?? ""]).filter(([, value]) => value)) as Record<string, string>,
+    [filters, searchParams],
+  );
+  const clientFilters = useMemo(
+    () => (filters ?? []).filter((filter) => filter.clientSide).map((filter) => [filter.param, searchParams.get(filter.param) ?? ""] as const).filter(([, value]) => value),
     [filters, searchParams],
   );
 
@@ -291,12 +299,17 @@ export function ResourceManager({
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} placeholder={t("common.searchPlaceholder")} aria-label={t("common.search")} className="h-11 ps-10" />
         </form>
-        {(filters ?? []).map((filter) => (
+        {(filters ?? []).map((filter) => filter.kind === "date" ? (
+          <div key={filter.param} className="flex items-center gap-2">
+            <Label htmlFor={`filter-${filter.param}`} className="shrink-0 text-xs text-muted-foreground">{filter.label}</Label>
+            <Input id={`filter-${filter.param}`} type="date" className="h-11 sm:w-40" value={searchParams.get(filter.param) ?? ""} onChange={(event) => updateUrl({ [filter.param]: event.target.value || null, page: 1 })} />
+          </div>
+        ) : (
           <Select key={filter.param} value={searchParams.get(filter.param) || ALL_FILTER} onValueChange={(next) => updateUrl({ [filter.param]: next === ALL_FILTER ? null : next, page: 1 })}>
             <SelectTrigger className="h-11 sm:w-52" aria-label={filter.label}><SelectValue placeholder={filter.label} /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL_FILTER}>{filter.label}: {t("common.all")}</SelectItem>
-              {filter.options.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              {(filter.options ?? []).map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
             </SelectContent>
           </Select>
         ))}
@@ -312,7 +325,7 @@ export function ResourceManager({
       ) : (
         <>
           <ResourceTable
-            rows={query.data.results}
+            rows={clientFilters.length ? query.data.results.filter((row) => clientFilters.every(([param, value]) => String(row[param] ?? "") === value)) : query.data.results}
             columns={resolvedColumns}
             canEdit={canEdit ? (row) => canEditRow?.(row) ?? true : false}
             canDelete={canDelete ? (row) => canDeleteRow?.(row) ?? true : false}

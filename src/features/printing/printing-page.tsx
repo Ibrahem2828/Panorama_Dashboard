@@ -12,7 +12,8 @@ import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusPill } from "@/components/shared/status-pill";
-import { Ltr } from "@/components/shared/ltr";
+import { Money } from "@/components/shared/money";
+import { formatMoney } from "@/features/finance/finance-rules";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { RESOURCE_COLUMNS } from "@/features/resources/columns";
-import { ResourceManager } from "@/features/resources/resource-manager";
+import { ResourceManager, type ManagerFilter } from "@/features/resources/resource-manager";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
@@ -48,10 +49,12 @@ interface PrintOrder {
   status_history?: unknown[];
 }
 
+const CURRENCIES = ["SYP", "USD"] as const;
+
 const statuses = ["submitted", "under_review", "accepted", "printing", "ready", "delivered", "cancelled", "rejected"];
 
 function PrintOrdersPanel() {
-  const { t, enumLabel } = useI18n();
+  const { t, enumLabel, locale } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -135,7 +138,7 @@ function PrintOrdersPanel() {
       {query.isPending ? <Skeleton className="h-96 rounded-2xl" /> : query.isError ? <ErrorPanel error={query.error} retry={() => query.refetch()} /> : (
         <div className="overflow-hidden rounded-2xl border bg-card">
           <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-muted/60 text-start text-xs uppercase text-muted-foreground"><tr><th className="p-3 text-start">#</th><th className="p-3 text-start">{t("users.fullName")}</th><th className="p-3 text-start">{t("common.status")}</th><th className="p-3 text-start">{t("printing.priority")}</th><th className="p-3 text-start">{t("printing.value")}</th><th className="p-3 text-start">{t("support.assign")}</th><th className="p-3 text-start">{t("common.actions")}</th></tr></thead><tbody>
-            {query.data.results.map((order) => <tr key={order.id} className="border-t hover:bg-muted/30"><td className="p-3 font-mono">{order.id}</td><td className="p-3 font-semibold">{order.user_name}</td><td className="p-3"><StatusPill value={order.status} /></td><td className="p-3">{enumLabel(order.priority)}</td><td className="p-3"><Ltr as="span" className="font-mono">{order.total_price} {order.currency}</Ltr></td><td className="p-3">{order.assigned_to_name || "—"}</td><td className="p-3"><Button size="sm" variant="outline" onClick={() => setSelected(order)}><ClipboardList />{t("common.details")}</Button></td></tr>)}
+            {query.data.results.map((order) => <tr key={order.id} className="border-t hover:bg-muted/30"><td className="p-3 font-mono">{order.id}</td><td className="p-3 font-semibold">{order.user_name}</td><td className="p-3"><StatusPill value={order.status} /></td><td className="p-3">{enumLabel(order.priority)}</td><td className="p-3"><Money value={order.total_price} currency={order.currency} /></td><td className="p-3">{order.assigned_to_name || "—"}</td><td className="p-3"><Button size="sm" variant="outline" onClick={() => setSelected(order)}><ClipboardList />{t("common.details")}</Button></td></tr>)}
           </tbody></table></div>
           {!query.data.results.length ? <div className="p-10 text-center text-muted-foreground">{t("common.noData")}</div> : null}
         </div>
@@ -146,7 +149,7 @@ function PrintOrdersPanel() {
         <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
           <DialogHeader><DialogTitle>{t("printing.orderDetails")} #{selected?.id}</DialogTitle><DialogDescription>{selected?.user_name}</DialogDescription></DialogHeader>
           {selected ? <div className="space-y-5">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[[t("common.status"), enumLabel(selected.status)], [t("printing.priority"), enumLabel(selected.priority)], [t("printing.value"), `${selected.total_price} ${selected.currency}`], [t("support.assign"), selected.assigned_to_name || "—"]].map(([label, value]) => <div key={label} className="rounded-xl border bg-muted/30 p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-bold">{label === t("printing.value") ? <Ltr as="span">{value}</Ltr> : value}</p></div>)}</div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[[t("common.status"), enumLabel(selected.status)], [t("printing.priority"), enumLabel(selected.priority)], [t("printing.value"), formatMoney(selected.total_price, selected.currency, locale)], [t("support.assign"), selected.assigned_to_name || "—"]].map(([label, value]) => <div key={label} className="rounded-xl border bg-muted/30 p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-bold">{label === t("printing.value") ? <bdi>{value}</bdi> : value}</p></div>)}</div>
             <div className="grid gap-4 lg:grid-cols-2"><Card><CardHeader><CardTitle className="text-base">{t("printing.userNotes")}</CardTitle></CardHeader><CardContent className="whitespace-pre-wrap text-sm text-muted-foreground">{selected.user_notes || "—"}</CardContent></Card><Card><CardHeader><CardTitle className="text-base">{t("printing.internalNotes")}</CardTitle></CardHeader><CardContent className="whitespace-pre-wrap text-sm text-muted-foreground">{selected.internal_notes || "—"}</CardContent></Card></div>
             <div className="flex flex-wrap gap-2"><Button onClick={() => setAction("status")}><RefreshCw />{t("printing.changeStatus")}</Button><Button variant="outline" onClick={() => setAction("assign")}><UserRoundCheck />{t("support.assign")}</Button><Button variant="outline" onClick={() => setAction("note")}><MessageSquarePlus />{t("printing.addNote")}</Button></div>
             {action ? <Card className="border-primary/30"><CardHeader><CardTitle className="text-base">{action === "status" ? t("printing.changeStatus") : action === "assign" ? t("support.assign") : t("printing.addNote")}</CardTitle></CardHeader><CardContent className="space-y-4">
@@ -164,7 +167,8 @@ function PrintOrdersPanel() {
 }
 
 export function PrintingPage() {
-  const { t } = useI18n();
+  const { t, enumLabel } = useI18n();
+  const currencyFilter = (clientSide: boolean): ManagerFilter[] => [{ param: "currency", label: t("printing.currencyFilter"), clientSide, options: CURRENCIES.map((value) => ({ value, label: enumLabel(value) })) }];
   return (
     <CapabilityGate capability={CAPABILITIES.printing}>
       <div className="space-y-6">
@@ -172,8 +176,8 @@ export function PrintingPage() {
         <Tabs defaultValue="orders" className="space-y-4">
           <TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="orders">{t("printing.orders")}</TabsTrigger><TabsTrigger value="pricing">{t("printing.pricing")}</TabsTrigger><TabsTrigger value="binding">{t("printing.binding")}</TabsTrigger><TabsTrigger value="locations">{t("printing.locations")}</TabsTrigger></TabsList>
           <TabsContent value="orders"><PrintOrdersPanel /></TabsContent>
-          <TabsContent value="pricing"><ResourceManager resourceKey="printing-pricing-rules" columns={RESOURCE_COLUMNS["printing-pricing-rules"]} title={t("printing.pricing")} capability={CAPABILITIES.printing} /></TabsContent>
-          <TabsContent value="binding"><ResourceManager resourceKey="printing-binding-prices" columns={RESOURCE_COLUMNS["printing-binding-prices"]} title={t("printing.binding")} capability={CAPABILITIES.printing} /></TabsContent>
+          <TabsContent value="pricing"><ResourceManager resourceKey="printing-pricing-rules" columns={RESOURCE_COLUMNS["printing-pricing-rules"]} title={t("printing.pricing")} capability={CAPABILITIES.printing} filters={currencyFilter(false)} /></TabsContent>
+          <TabsContent value="binding"><ResourceManager resourceKey="printing-binding-prices" columns={RESOURCE_COLUMNS["printing-binding-prices"]} title={t("printing.binding")} capability={CAPABILITIES.printing} filters={currencyFilter(true)} /></TabsContent>
           <TabsContent value="locations"><ResourceManager resourceKey="printing-pickup-locations" columns={RESOURCE_COLUMNS["printing-pickup-locations"]} title={t("printing.locations")} capability={CAPABILITIES.printing} /></TabsContent>
         </Tabs>
       </div>

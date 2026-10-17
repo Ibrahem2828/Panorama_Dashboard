@@ -170,6 +170,9 @@ export function ContractFieldInput({ spec, value, error, disabled, filterValue, 
     case "datetime":
       control = <Input id={id} type="datetime-local" value={text} onChange={(event) => onChange(event.target.value)} disabled={isDisabled} aria-invalid={invalid ? true : undefined} aria-describedby={describedBy} aria-required={spec.required || undefined} />;
       break;
+    case "date":
+      control = <Input id={id} type="date" value={text} onChange={(event) => onChange(event.target.value)} disabled={isDisabled} aria-invalid={invalid ? true : undefined} aria-describedby={describedBy} aria-required={spec.required || undefined} />;
+      break;
     case "integer":
       control = <Input id={id} type="text" inputMode="numeric" autoComplete="off" value={text} onChange={(event) => onChange(event.target.value)} disabled={isDisabled} aria-invalid={invalid ? true : undefined} aria-describedby={describedBy} aria-required={spec.required || undefined} />;
       break;

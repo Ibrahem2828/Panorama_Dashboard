@@ -68,6 +68,8 @@ export const visibilityNeedsScope: CrossRule = {
 
 const ROLE_VALUES = ["it_support", "admin", "print_staff", "support_staff", "content_manager", "student", "normal_user"] as const;
 /** Smallest-int columns in the backend models (PositiveSmallIntegerField); the contract only says int64. */
+/** Print prices are kept per currency: the new Syrian pound or the US dollar. */
+const CURRENCY_OPTIONS = ["SYP", "USD"] as const;
 const SMALL_ORDER: FieldOverride = { min: 0, max: 32767 };
 
 /**
@@ -135,7 +137,7 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
   "printing-pricing-rules": writablePolicy({
     capability: "printing.manage",
     create: ["name", "color_mode", "paper_size", "sides", "price_per_sheet", "setup_fee", "currency", "effective_from", "effective_to", "is_active"],
-    fieldOverrides: { currency: { defaultValue: "SYP", required: true, hint: "form.hint.currency" }, setup_fee: { defaultValue: "0" }, effective_to: { nullable: true, hint: "form.hint.effectiveTo" } },
+    fieldOverrides: { currency: { kind: "select", options: CURRENCY_OPTIONS, defaultValue: "SYP", required: true, hint: "form.hint.currency" }, setup_fee: { defaultValue: "0" }, effective_to: { nullable: true, hint: "form.hint.effectiveTo" } },
     crossRules: [endAfterStart("effective_from", "effective_to")],
     deletable: true,
   }),
@@ -143,7 +145,7 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
   "printing-binding-prices": writablePolicy({
     capability: "printing.manage",
     create: ["binding", "price_per_copy", "currency", "is_active"],
-    fieldOverrides: { currency: { defaultValue: "SYP", required: true, hint: "form.hint.currency" }, price_per_copy: { defaultValue: "0", required: true } },
+    fieldOverrides: { currency: { kind: "select", options: CURRENCY_OPTIONS, defaultValue: "SYP", required: true, hint: "form.hint.currency" }, price_per_copy: { defaultValue: "0", required: true } },
   }),
   "printing-pickup-locations": writablePolicy({
     capability: "printing.manage",
@@ -198,6 +200,39 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
   "chat-reports": readOnlyPolicy("groups.manage"),
   "account-deletions": readOnlyPolicy("users.manage"),
   devices: readOnlyPolicy("product.manage"),
+  // Finance level (finance.manage, admins). Stock quantities are never edited here: they move only through stock movements.
+  "finance-exchange-rates": writablePolicy({
+    capability: "finance.manage",
+    create: ["effective_from", "syp_per_usd", "note"],
+    fieldOverrides: { syp_per_usd: { required: true, decimalPlaces: 4, hint: "finance.rates.rateHint" }, effective_from: { hint: "finance.rates.effectiveHint" } },
+    deletable: true,
+  }),
+  "finance-expenses": writablePolicy({
+    capability: "finance.manage",
+    create: ["spent_on", "category", "description", "amount", "currency"],
+    fieldOverrides: {
+      spent_on: { defaultValue: "today", required: true },
+      category: { defaultValue: "supplies", required: true },
+      description: { kind: "text", maxLength: 255 },
+      amount: { required: true },
+      currency: { defaultValue: "SYP", required: true },
+    },
+    deletable: true,
+  }),
+  "finance-inventory-items": writablePolicy({
+    capability: "finance.manage",
+    create: ["name", "category", "unit", "sku", "opening_quantity", "reorder_level", "unit_cost", "currency", "location", "notes", "is_active"],
+    update: ["name", "category", "unit", "sku", "reorder_level", "unit_cost", "currency", "location", "notes", "is_active"],
+    fieldOverrides: {
+      category: { defaultValue: "paper", required: true },
+      opening_quantity: { defaultValue: "0", hint: "finance.stock.openingHint" },
+      reorder_level: { defaultValue: "0", hint: "finance.stock.reorderHint" },
+      unit_cost: { defaultValue: "0", hint: "finance.stock.unitCostHint" },
+      currency: { defaultValue: "SYP", required: true },
+      notes: { maxLength: 1000 },
+    },
+    deletable: true,
+  }),
 };
 
 export function formDefinition(definition: ResourceDefinition, allowedFields: readonly string[]): ResourceDefinition {

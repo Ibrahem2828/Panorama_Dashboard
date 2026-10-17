@@ -649,6 +649,186 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "GET",
+    "path": "/api/v1/dashboard/finance/exchange-rates/",
+    "operationId": "v1_dashboard_finance_exchange_rates_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/finance/exchange-rates/",
+    "operationId": "v1_dashboard_finance_exchange_rates_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/finance/exchange-rates/{id}/",
+    "operationId": "v1_dashboard_finance_exchange_rates_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/finance/exchange-rates/{id}/",
+    "operationId": "v1_dashboard_finance_exchange_rates_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/finance/exchange-rates/{id}/",
+    "operationId": "v1_dashboard_finance_exchange_rates_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/finance/exchange-rates/{id}/",
+    "operationId": "v1_dashboard_finance_exchange_rates_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/finance/expenses/",
+    "operationId": "v1_dashboard_finance_expenses_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/finance/expenses/",
+    "operationId": "v1_dashboard_finance_expenses_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/finance/expenses/{id}/",
+    "operationId": "v1_dashboard_finance_expenses_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/finance/expenses/{id}/",
+    "operationId": "v1_dashboard_finance_expenses_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/finance/expenses/{id}/",
+    "operationId": "v1_dashboard_finance_expenses_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/finance/expenses/{id}/",
+    "operationId": "v1_dashboard_finance_expenses_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/finance/inventory-items/",
+    "operationId": "v1_dashboard_finance_inventory_items_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/finance/inventory-items/",
+    "operationId": "v1_dashboard_finance_inventory_items_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/finance/inventory-items/{id}/",
+    "operationId": "v1_dashboard_finance_inventory_items_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/finance/inventory-items/{id}/",
+    "operationId": "v1_dashboard_finance_inventory_items_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/finance/inventory-items/{id}/",
+    "operationId": "v1_dashboard_finance_inventory_items_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/finance/inventory-items/{id}/",
+    "operationId": "v1_dashboard_finance_inventory_items_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/finance/payments/{id}/void/",
+    "operationId": "v1_dashboard_finance_payments_void_create",
+    "tags": [
+      "Dashboard finance"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/finance/summary/",
+    "operationId": "v1_dashboard_finance_summary_retrieve",
+    "tags": [
+      "Dashboard finance"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "POST",
     "path": "/api/v1/dashboard/group-memberships/{id}/approve/",
     "operationId": "v1_dashboard_group_memberships_approve_create",
@@ -1064,6 +1244,24 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/printing/jobs/",
+    "operationId": "v1_dashboard_printing_jobs_list",
+    "tags": [
+      "Dashboard finance"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/jobs/{id}/",
+    "operationId": "v1_dashboard_printing_jobs_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/printing/orders/",
     "operationId": "v1_dashboard_printing_orders_list",
     "tags": [
@@ -1104,6 +1302,33 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_printing_orders_status_partial_update",
     "tags": [
       "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/payments/",
+    "operationId": "v1_dashboard_printing_payments_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/payments/",
+    "operationId": "v1_dashboard_printing_payments_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/payments/{id}/",
+    "operationId": "v1_dashboard_printing_payments_retrieve",
+    "tags": [
+      "v1"
     ],
     "authenticated": true
   },
@@ -1212,6 +1437,60 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_printing_pricing_rules_destroy",
     "tags": [
       "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/stock/",
+    "operationId": "v1_dashboard_printing_stock_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/stock-movements/",
+    "operationId": "v1_dashboard_printing_stock_movements_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/stock-movements/{id}/",
+    "operationId": "v1_dashboard_printing_stock_movements_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/stock/{id}/",
+    "operationId": "v1_dashboard_printing_stock_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/stock/{id}/movement-history/",
+    "operationId": "v1_dashboard_printing_stock_movement_history_list",
+    "tags": [
+      "Dashboard finance"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/stock/{id}/movements/",
+    "operationId": "v1_dashboard_printing_stock_movements_create",
+    "tags": [
+      "Dashboard finance"
     ],
     "authenticated": true
   },
@@ -1623,7 +1902,16 @@ export const API_OPERATIONS = [
   {
     "method": "DELETE",
     "path": "/api/v1/dashboard/users/{user_id}/permission-overrides/",
-    "operationId": "v1_dashboard_users_permission_overrides_destroy",
+    "operationId": "v1_dashboard_users_permission_overrides_remove_legacy",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/users/{user_id}/permission-overrides/{permission_code}/",
+    "operationId": "v1_dashboard_users_permission_overrides_remove",
     "tags": [
       "Dashboard"
     ],
