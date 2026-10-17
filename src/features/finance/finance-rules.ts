@@ -332,3 +332,22 @@ export function periodQuery(range: PeriodRange, extra: Record<string, string | u
   for (const [key, value] of Object.entries(extra)) if (value) params.set(key, value);
   return params;
 }
+
+export type PaymentState = "paid" | "partial" | "unpaid";
+
+/** Settled, partly paid or not paid at all (an order with nothing to pay counts as settled). */
+export function paymentState(total: unknown, paid: unknown): PaymentState {
+  if (isSettled(total, paid)) return "paid";
+  return (toMinor(paid) ?? 0) > 0 ? "partial" : "unpaid";
+}
+
+export interface JobTotals { currency: FinanceCurrency; total: string; orders: number }
+
+/** `totals_by_currency` of the jobs list as an ordered list (pound first), skipping unknown currencies. */
+export function parseJobTotals(raw: unknown): JobTotals[] {
+  const data = record(raw);
+  return FINANCE_CURRENCIES.flatMap((currency) => {
+    const row = record(data[currency]);
+    return text(row.total) === null ? [] : [{ currency, total: String(row.total), orders: count(row.orders) }];
+  });
+}
