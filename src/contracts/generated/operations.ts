@@ -227,6 +227,42 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/account-deletions/",
+    "operationId": "v1_dashboard_account_deletions_list",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/account-deletions/{id}/",
+    "operationId": "v1_dashboard_account_deletions_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/account-deletions/{id}/cancel/",
+    "operationId": "v1_dashboard_account_deletions_cancel_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/account-deletions/{id}/execute/",
+    "operationId": "v1_dashboard_account_deletions_execute_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/announcements/",
     "operationId": "v1_dashboard_announcements_list",
     "tags": [
@@ -319,6 +355,42 @@ export const API_OPERATIONS = [
     "method": "POST",
     "path": "/api/v1/dashboard/chat/reports/{id}/resolve/",
     "operationId": "v1_dashboard_chat_reports_resolve_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/devices/",
+    "operationId": "v1_dashboard_devices_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/devices/{id}/",
+    "operationId": "v1_dashboard_devices_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/devices/{id}/revoke/",
+    "operationId": "v1_dashboard_devices_revoke_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/devices/stats/",
+    "operationId": "v1_dashboard_devices_stats_retrieve",
     "tags": [
       "Dashboard"
     ],
@@ -2265,6 +2337,24 @@ export const API_OPERATIONS = [
     "operationId": "v1_policies_status_retrieve",
     "tags": [
       "Policies"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/printing/convert/",
+    "operationId": "v1_printing_convert_create",
+    "tags": [
+      "Printing"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/printing/convert/{token}/",
+    "operationId": "v1_printing_convert_retrieve",
+    "tags": [
+      "Printing"
     ],
     "authenticated": true
   },

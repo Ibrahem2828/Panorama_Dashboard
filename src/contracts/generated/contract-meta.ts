@@ -2,8 +2,8 @@
 export const CONTRACT_META = {
   "title": "Panorama API",
   "version": "1.0.0",
-  "sha256": "40d5ce3363e2361f84e3e45d027d177fe74f6a260b00e96162167c2088ad4178",
-  "pathCount": 195,
-  "operationCount": 284,
-  "schemaCount": 233
+  "sha256": "eda690bf65aa5c2dd2bec050b73ec14533e67aac83fc9a964ae499cae94ebf16",
+  "pathCount": 205,
+  "operationCount": 294,
+  "schemaCount": 240
 } as const;

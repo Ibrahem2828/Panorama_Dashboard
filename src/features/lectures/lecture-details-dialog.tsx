@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { isStalled, type LectureRow } from "@/features/lectures/lecture-rules";
+import { isGeneralLecture, isStalled, type LectureRow } from "@/features/lectures/lecture-rules";
 import { LectureStatusBadge } from "@/features/lectures/lecture-status-badge";
 import { useI18n } from "@/i18n/provider";
 import { formatDate, formatFileSize, formatNumber } from "@/lib/utils";
@@ -34,7 +34,8 @@ export function LectureDetailsDialog({ lecture, now, onOpenChange }: { lecture: 
           <dl className="grid gap-3 sm:grid-cols-2">
             <Item label={t("lectures.col.status")}><LectureStatusBadge status={lecture.status} /></Item>
             <Item label={t("lectures.col.published")}>{lecture.is_published ? t("lectures.published") : t("lectures.unpublished")}</Item>
-            <Item label={t("lectures.col.subject")}>{lecture.subject_name ?? `#${lecture.subject}`}</Item>
+            <Item label={t("lectures.col.subject")}>{isGeneralLecture(lecture) ? t("lectures.general") : lecture.subject_name || "—"}</Item>
+            <Item label={t("lectures.col.faculty")}>{lecture.faculty_name || (isGeneralLecture(lecture) ? t("lectures.faculty.all") : "—")}</Item>
             <Item label={t("lectures.details.pages")}>{formatNumber(lecture.page_count ?? 0, locale)}</Item>
             <Item label={t("common.description")} wide>{lecture.description?.trim() ? lecture.description : <span className="text-muted-foreground">{t("lectures.details.noDescription")}</span>}</Item>
             {lecture.failure_code || lecture.failure_message ? (

@@ -131,7 +131,7 @@ describe("lecture upload dialog", () => {
     renderDialog();
     await fillValid();
     await userEvent.click(screen.getByRole("button", { name: "Upload lecture" }));
-    const message = await screen.findByText("This file already exists for this subject.");
+    const message = await screen.findByText("This file already exists in the same scope (subject or faculty).");
     expect(message.getAttribute("role")).toBe("alert");
     const input = screen.getByLabelText(/Lecture file/u, { selector: "input" });
     expect(input.getAttribute("aria-invalid")).toBe("true");
@@ -140,7 +140,7 @@ describe("lecture upload dialog", () => {
     uploadMock.mockRejectedValueOnce(new AppApiError({ status: 409, message: "Conflict", code: "CONFLICT" }));
     await userEvent.click(screen.getByRole("button", { name: "Upload lecture" }));
     await waitFor(() => expect(uploadMock).toHaveBeenCalledTimes(2));
-    expect(await screen.findByText("This file already exists for this subject.")).toBeTruthy();
+    expect(await screen.findByText("This file already exists in the same scope (subject or faculty).")).toBeTruthy();
   });
 
   it("maps 400 field errors inline and 413 / 429 / 503 to localized banners", async () => {
@@ -168,5 +168,46 @@ describe("lecture upload dialog", () => {
     renderDialog("ar");
     expect(screen.getByRole("heading", { name: "رفع محاضرة جديدة" })).toBeTruthy();
     expect(screen.getByText(/الأنواع المسموحة: PDF, DOC, DOCX, PPT, PPTX. الحد الأقصى 50 ميغابايت/u)).toBeTruthy();
+  });
+});
+
+describe("lecture kind", () => {
+  it("offers two radio options and uploads a general lecture without a subject (all faculties)", async () => {
+    uploadMock.mockResolvedValue({ data: { id: 3 } });
+    const { onUploaded } = renderDialog();
+    const subjectRadio = screen.getByRole("radio", { name: /Lecture linked to a subject/u }) as HTMLInputElement;
+    const generalRadio = screen.getByRole("radio", { name: /General lecture not linked to a subject/u }) as HTMLInputElement;
+    expect(subjectRadio.checked).toBe(true);
+    await userEvent.click(generalRadio);
+    expect(screen.queryByRole("combobox", { name: /Subject/u })).toBeNull();
+    expect(screen.getAllByText("All faculties").length).toBeGreaterThan(0);
+    await userEvent.type(screen.getByLabelText(/Lecture title/u), "Orientation");
+    await pick(screen.getByLabelText(/Lecture file/u, { selector: "input" }), pdf());
+    await userEvent.click(screen.getByRole("button", { name: "Upload lecture" }));
+    await waitFor(() => expect(onUploaded).toHaveBeenCalled());
+    const body = uploadMock.mock.calls[0]![1] as FormData;
+    expect(body.has("subject")).toBe(false);
+    expect(body.has("faculty")).toBe(false);
+  });
+
+  it("sends the chosen faculty for a general lecture and never both", async () => {
+    uploadMock.mockResolvedValue({ data: { id: 3 } });
+    renderDialog();
+    await userEvent.click(screen.getByRole("radio", { name: /General lecture not linked to a subject/u }));
+    await userEvent.click(screen.getByRole("combobox", { name: /Faculty/u }));
+    await userEvent.click(await screen.findByRole("option", { name: /Databases/u }));
+    await userEvent.type(screen.getByLabelText(/Lecture title/u), "Orientation");
+    await pick(screen.getByLabelText(/Lecture file/u, { selector: "input" }), pdf());
+    await userEvent.click(screen.getByRole("button", { name: "Upload lecture" }));
+    await waitFor(() => expect(uploadMock).toHaveBeenCalled());
+    const body = uploadMock.mock.calls[0]![1] as FormData;
+    expect(body.get("faculty")).toBe("8");
+    expect(body.has("subject")).toBe(false);
+  });
+
+  it("is Arabic: the two kinds are labelled in Arabic", () => {
+    renderDialog("ar");
+    expect(screen.getByRole("radio", { name: /محاضرة مرتبطة بمادة/u })).toBeTruthy();
+    expect(screen.getByRole("radio", { name: /محاضرة عامة غير مرتبطة بمادة/u })).toBeTruthy();
   });
 });
