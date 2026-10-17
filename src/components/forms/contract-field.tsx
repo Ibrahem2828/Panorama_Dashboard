@@ -26,11 +26,8 @@ export function useFieldLabel() {
 
 /** Localized option label: a role, a known enum value, or the humanized raw value. */
 export function useOptionLabel() {
-  const { tOr } = useI18n();
-  return (fieldName: string, value: string) => {
-    if (fieldName === "role") return tOr(`roles.${value}`, humanize(value));
-    return tOr(`enum.${value}`, humanize(value));
-  };
+  const { enumLabel } = useI18n();
+  return (_fieldName: string, value: string) => enumLabel(value);
 }
 
 /** Reads a dashboard collection completely (100 per page, at most 1000 rows), since pickers need every candidate. */

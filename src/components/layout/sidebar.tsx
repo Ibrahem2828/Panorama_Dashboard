@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 
+import { Ltr } from "@/components/shared/ltr";
 import { BrandLockup } from "@/components/brand/brand-lockup";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -62,7 +63,8 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
                       {active ? <span className="absolute inset-y-2 start-0 w-1 rounded-e-full bg-gold" /> : null}
                       <Icon className={cn("size-[18px] shrink-0 transition-transform group-hover:scale-105", active && "text-primary")} />
                       {!collapsed ? <span className="truncate">{t(item.label)}</span> : null}
-                      {!collapsed && active ? (direction === "rtl" ? <ChevronLeft className="ms-auto size-4" /> : <ChevronRight className="ms-auto size-4" />) : null}
+                      {!collapsed && item.badge ? <span className="ms-auto rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">{t(item.badge)}</span> : null}
+                      {!collapsed && active ? (direction === "rtl" ? <ChevronLeft className={cn("size-4", !item.badge && "ms-auto")} /> : <ChevronRight className={cn("size-4", !item.badge && "ms-auto")} />) : null}
                     </Link>
                   );
                   return collapsed ? (
@@ -83,8 +85,8 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
             <div className="truncate text-sm font-bold">{user.full_name}</div>
             <div className="mt-1 truncate text-xs text-muted-foreground">{t(`roles.${user.role}` as "roles.admin")}</div>
             <div className="mt-3 flex items-center justify-between text-[10px] text-muted-foreground">
-              <span>API v{CONTRACT_META.version}</span>
-              <span>{CONTRACT_META.operationCount} ops</span>
+              <Ltr as="span">API v{CONTRACT_META.version}</Ltr>
+              <span>{t("sidebar.ops", { count: CONTRACT_META.operationCount })}</span>
             </div>
           </div>
         ) : (

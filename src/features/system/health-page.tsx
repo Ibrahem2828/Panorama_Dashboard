@@ -5,6 +5,7 @@ import { Activity, CircleCheck, CircleX, Database, HeartPulse, Power, RefreshCw,
 
 import { CapabilityGate } from "@/components/feedback/capability-gate";
 import { PageHeader } from "@/components/shared/page-header";
+import { Ltr } from "@/components/shared/ltr";
 import { StatusPill } from "@/components/shared/status-pill";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +35,7 @@ async function runProbe(path: string): Promise<ProbeResult> {
     return { ok: true, status: 200, payload: unwrap(payload) };
   } catch (error) {
     const value = error as { status?: number; requestId?: string; message?: string };
-    return { ok: false, status: value.status ?? 0, requestId: value.requestId, payload: value.message ?? "Probe failed" };
+    return { ok: false, status: value.status ?? 0, requestId: value.requestId, payload: null };
   }
 }
 
@@ -57,7 +58,7 @@ export function HealthPage() {
         <PageHeader
           title={t("health.title")}
           description={t("health.subtitle")}
-          eyebrow="Observability"
+          eyebrow={t("eyebrow.observability")}
           actions={<Button variant="outline" onClick={refresh} disabled={refreshing}><RefreshCw className={refreshing ? "animate-spin" : ""} />{t("common.refresh")}</Button>}
         />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -74,7 +75,7 @@ export function HealthPage() {
                     {query.isPending ? <Skeleton className="h-6 w-20" /> : <StatusPill value={result?.ok ? "healthy" : result?.status === 403 ? "pending" : "unhealthy"} label={result?.ok ? t("health.healthy") : result?.status === 403 ? t("health.restricted") : t("health.unhealthy")} />}
                   </div>
                   <CardTitle className="text-base">{t(probe.label)}</CardTitle>
-                  <CardDescription className="font-mono text-[11px]">{probe.path}</CardDescription>
+                  <CardDescription className="font-mono text-[11px]"><Ltr as="span">{probe.path}</Ltr></CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                   {query.isPending ? <Skeleton className="h-14 w-full" /> : (
@@ -83,8 +84,8 @@ export function HealthPage() {
                         {result?.ok ? <CircleCheck className="size-4 text-emerald-500" /> : <CircleX className="size-4 text-destructive" />}
                         HTTP {result?.status || "—"}
                       </div>
-                      {result?.status === 403 ? <p className="rounded-lg bg-gold-soft p-2.5 text-xs leading-6 text-gold-text">{t("health.restrictedHint")}</p> : <pre className="max-h-28 overflow-auto rounded-lg bg-muted/50 p-2 text-[10px] text-muted-foreground">{JSON.stringify(result?.payload ?? {}, null, 2)}</pre>}
-                      {result?.requestId ? <p className="text-xs text-muted-foreground">{t("common.requestId")}: <span className="font-mono">{result.requestId}</span></p> : null}
+                      {result?.status === 403 ? <p className="rounded-lg bg-gold-soft p-2.5 text-xs leading-6 text-gold-text">{t("health.restrictedHint")}</p> : <pre dir="ltr" className="max-h-28 overflow-auto rounded-lg bg-muted/50 p-2 text-start text-[10px] text-muted-foreground">{JSON.stringify(result?.payload ?? {}, null, 2)}</pre>}
+                      {result?.requestId ? <p className="text-xs text-muted-foreground">{t("common.requestId")}: <Ltr as="span" className="font-mono">{result.requestId}</Ltr></p> : null}
                     </>
                   )}
                 </CardContent>

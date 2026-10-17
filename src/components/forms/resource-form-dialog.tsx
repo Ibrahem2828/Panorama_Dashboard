@@ -13,6 +13,7 @@ import {
 import { useI18n } from "@/i18n/provider";
 import type { MessageKey } from "@/i18n/messages";
 import { AppApiError } from "@/lib/api/errors";
+import { localizedApiMessage } from "@/lib/api/error-message";
 
 export type FormBody = FormData | Record<string, unknown>;
 
@@ -60,10 +61,10 @@ export function ResourceForm({ specs, mode, entity = null, crossRules, pending, 
   const banner = (() => {
     if (!(serverError instanceof AppApiError)) return null;
     if (serverError.status === 403) return t("form.forbidden");
-    if (serverError.status === 409) return `${t("form.conflict")} ${server.general ?? serverError.message}`.trim();
+    if (serverError.status === 409) return `${t("form.conflict")} ${server.general ?? ""}`.trim();
     if (server.general) return server.general;
     if (Object.keys(server.fields).length) return t("form.fixFields");
-    return serverError.message;
+    return localizedApiMessage(serverError, t);
   })();
 
   const focusFirst = (problems: FieldErrors) => {

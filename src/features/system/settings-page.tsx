@@ -27,7 +27,7 @@ export function SettingsPage() {
   return (
     <CapabilityGate capability={CAPABILITIES.dashboard}>
       <div className="space-y-6">
-        <PageHeader title={t("settings.title")} description={t("settings.subtitle")} eyebrow="Personal workspace" />
+        <PageHeader title={t("settings.title")} description={t("settings.subtitle")} eyebrow={t("eyebrow.personal")} />
         <div className="grid gap-5 lg:grid-cols-2">
           <Card>
             <CardHeader><CardTitle>{t("settings.appearance")}</CardTitle><CardDescription>{t("common.theme")}</CardDescription></CardHeader>
@@ -55,7 +55,7 @@ export function SettingsPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle>{t("settings.reduceMotion")}</CardTitle><CardDescription>Accessibility preference stored locally; no sensitive data is persisted.</CardDescription></CardHeader>
+            <CardHeader><CardTitle>{t("settings.reduceMotion")}</CardTitle><CardDescription>{t("settings.motionNote")}</CardDescription></CardHeader>
             <CardContent>
               <div className="flex items-center justify-between rounded-xl border p-4">
                 <Label htmlFor="reduce-motion" className="flex items-center gap-2"><Sparkles className="size-4" />{t("settings.reduceMotion")}</Label>

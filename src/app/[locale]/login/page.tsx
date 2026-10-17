@@ -7,7 +7,10 @@ import type { Locale } from "@/config/constants";
 import { LoginForm } from "@/features/auth/login-form";
 import { getServerTranslator } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Sign in" };
+export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
+  const { locale } = await params;
+  return { title: getServerTranslator(locale)("login.metaTitle") };
+}
 
 export default async function LoginPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
@@ -28,13 +31,13 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
             <Image src="/brand/logo-512.png" alt="Panorama" width={512} height={362} priority className="h-auto w-[360px] rounded-3xl bg-white/95 p-5 shadow-2xl shadow-black/15" />
           </div>
           <div className="relative z-10 max-w-xl text-white">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-white/70">PANORAMA OPERATIONS</p>
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-white/70">{t("login.operations")}</p>
             <h1 className="mt-4 text-4xl font-black leading-tight xl:text-5xl">{t("app.tagline")}</h1>
             <p className="mt-5 max-w-lg text-base leading-8 text-white/78">{t("dashboard.subtitle")}</p>
             <div className="mt-8 grid grid-cols-3 gap-3 text-center text-xs">
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur"><div className="text-xl font-black">AR / EN</div><div className="mt-1 text-white/70">RTL + LTR</div></div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur"><div className="text-xl font-black">BFF</div><div className="mt-1 text-white/70">HttpOnly</div></div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur"><div className="text-xl font-black">RBAC</div><div className="mt-1 text-white/70">Capabilities</div></div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur"><div className="text-xl font-black">{t("login.tile.langs")}</div><div className="mt-1 text-white/70">{t("login.tile.langsHint")}</div></div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur"><div className="text-xl font-black">{t("login.tile.bff")}</div><div className="mt-1 text-white/70">{t("login.tile.bffHint")}</div></div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur"><div className="text-xl font-black">{t("login.tile.rbac")}</div><div className="mt-1 text-white/70">{t("login.tile.rbacHint")}</div></div>
             </div>
           </div>
         </section>

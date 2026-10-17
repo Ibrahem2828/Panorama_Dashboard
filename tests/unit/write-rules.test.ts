@@ -170,8 +170,9 @@ describe("403 / 409 messages", () => {
   const t = (key: keyof typeof messages.en) => messages.en[key];
 
   it("adds the backend reason to the localized headline", () => {
-    expect(apiErrorText(new AppApiError({ status: 403, message: "You cannot manage an account with an equal or higher role." }), t)).toBe(`${messages.en["errors.403"]} You cannot manage an account with an equal or higher role.`);
+    expect(apiErrorText(new AppApiError({ status: 403, message: "لا يمكنك إدارة حساب بدور مساوٍ أو أعلى." }), t)).toBe(`${messages.en["errors.403"]} لا يمكنك إدارة حساب بدور مساوٍ أو أعلى.`);
+    expect(apiErrorText(new AppApiError({ status: 403, message: "You cannot manage an account with an equal or higher role." }), t)).toBe(messages.en["errors.403"]);
     expect(apiErrorText(new AppApiError({ status: 403, message: "Permission denied" }), t)).toBe(messages.en["errors.403"]);
-    expect(apiErrorText(new AppApiError({ status: 409, code: "CONFLICT", message: "The system must keep one active IT Support account." }), t)).toContain("IT Support");
+    expect(apiErrorText(new AppApiError({ status: 409, code: "CONFLICT", message: "يجب إبقاء حساب دعم تقني واحد نشط." }), t)).toContain("دعم تقني");
   });
 });

@@ -5,6 +5,7 @@ import { Activity, ArrowUpRight, Boxes, ShieldCheck, Sparkles, TriangleAlert } f
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+import { Ltr } from "@/components/shared/ltr";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusPill } from "@/components/shared/status-pill";
@@ -19,36 +20,8 @@ import { useI18n } from "@/i18n/provider";
 import { localizePath } from "@/i18n/routing";
 import { apiFetch, unwrap } from "@/lib/api/browser-client";
 import { hasCapability } from "@/lib/auth/capabilities";
-import { formatNumber, humanize } from "@/lib/utils";
+import { formatNumber } from "@/lib/utils";
 import type { ApiEnvelope } from "@/types/api";
-
-const METRIC_LABELS: Record<string, { ar: string; en: string }> = {
-  "users.total": { ar: "إجمالي المستخدمين", en: "Total users" },
-  "users.students": { ar: "الطلاب", en: "Students" },
-  "users.normal_users": { ar: "المستخدمون العاديون", en: "Regular users" },
-  "users.verified_students": { ar: "الطلاب الموثّقون", en: "Verified students" },
-  "users.pending_verifications": { ar: "طلبات توثيق معلّقة", en: "Pending verifications" },
-  "printing.total_orders": { ar: "إجمالي طلبات الطباعة", en: "Total print orders" },
-  "printing.today_orders": { ar: "طلبات طباعة اليوم", en: "Print orders today" },
-  "printing.pending_orders": { ar: "طلبات طباعة معلّقة", en: "Pending print orders" },
-  "printing.ready_orders": { ar: "طلبات جاهزة للاستلام", en: "Orders ready for pickup" },
-  "printing.delivered_orders": { ar: "طلبات مُسلَّمة", en: "Delivered orders" },
-  "groups.total": { ar: "إجمالي المجموعات", en: "Total groups" },
-  "groups.active": { ar: "المجموعات النشطة", en: "Active groups" },
-  "groups.pending_join_requests": { ar: "طلبات انضمام معلّقة", en: "Pending join requests" },
-  "files.total": { ar: "إجمالي الملفات", en: "Total files" },
-  "files.active": { ar: "الملفات النشطة", en: "Active files" },
-  "support.open_tickets": { ar: "تذاكر دعم مفتوحة", en: "Open support tickets" },
-  "support.urgent_tickets": { ar: "تذاكر دعم عاجلة", en: "Urgent support tickets" },
-  "feedback.total": { ar: "إجمالي الملاحظات", en: "Total feedback" },
-  "feedback.open_items": { ar: "ملاحظات مفتوحة", en: "Open feedback items" },
-  "feedback.ratings": { ar: "التقييمات", en: "Ratings" },
-};
-
-function metricLabel(key: string, locale: string): string {
-  const entry = METRIC_LABELS[key];
-  return entry ? (locale === "ar" ? entry.ar : entry.en) : humanize(key);
-}
 
 function numericMetrics(value: unknown, prefix = ""): { key: string; value: number }[] {
   if (!value || typeof value !== "object") return [];
@@ -61,7 +34,7 @@ function numericMetrics(value: unknown, prefix = ""): { key: string; value: numb
 
 export function DashboardOverview() {
   const { user, capabilities, source } = useSession();
-  const { t, locale } = useI18n();
+  const { t, tOr, locale } = useI18n();
   const params = useParams<{ locale: Locale }>();
   const stats = useQuery({
     queryKey: ["dashboard-stats"],
@@ -96,15 +69,15 @@ export function DashboardOverview() {
         <Card className="relative overflow-hidden border-0 brand-gradient text-white shadow-xl shadow-primary/15">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(255,255,255,.22),transparent_20rem)]" />
           <CardContent className="relative flex min-h-52 flex-col justify-between p-6 sm:p-8">
-            <div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-white/70"><Sparkles className="size-4" />PANORAMA CONTROL CENTER</div><h2 className="mt-4 max-w-2xl text-2xl font-black leading-tight sm:text-3xl">{t("app.tagline")}</h2></div>
-            <div className="mt-7 flex flex-wrap gap-2 text-xs"><span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">{capabilities.includes("*") ? "Full access" : `${capabilities.length} capabilities`}</span><span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">{source}</span><span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">AR · EN · RTL · LTR</span></div>
+            <div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-white/70"><Sparkles className="size-4" />{t("overview.controlCenter")}</div><h2 className="mt-4 max-w-2xl text-2xl font-black leading-tight sm:text-3xl">{t("app.tagline")}</h2></div>
+            <div className="mt-7 flex flex-wrap gap-2 text-xs"><span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">{capabilities.includes("*") ? t("overview.fullAccess") : t("overview.capabilitiesCount", { count: formatNumber(capabilities.length, locale) })}</span><span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">{source === "backend" ? t("session.backendCapabilities") : t("session.compatibilityCapabilities")}</span><span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">{t("overview.localeTile")}</span></div>
           </CardContent>
         </Card>
         <Card className="glass-panel">
           <CardHeader><CardTitle className="flex items-center gap-2"><Activity className="text-primary" />{t("dashboard.systemStatus")}</CardTitle><CardDescription>{t("nav.systemHealth")}</CardDescription></CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between rounded-xl border p-4"><div><div className="font-bold">Backend API</div><div className="mt-1 text-xs text-muted-foreground">Same-origin secure BFF</div></div>{health.isPending ? <Skeleton className="h-7 w-20" /> : <StatusPill value={health.data?.ready ? "healthy" : "unhealthy"} />}</div>
-            <div className="flex items-center justify-between rounded-xl border p-4"><div><div className="font-bold">OpenAPI</div><div className="mt-1 text-xs text-muted-foreground">SHA {CONTRACT_META.sha256.slice(0, 12)}</div></div><StatusPill value="ready" /></div>
+            <div className="flex items-center justify-between rounded-xl border p-4"><div><div className="font-bold">{t("overview.backendApi")}</div><div className="mt-1 text-xs text-muted-foreground">{t("overview.secureBff")}</div></div>{health.isPending ? <Skeleton className="h-7 w-20" /> : <StatusPill value={health.data?.ready ? "healthy" : "unhealthy"} />}</div>
+            <div className="flex items-center justify-between rounded-xl border p-4"><div><div className="font-bold">{t("overview.openapi")}</div><div className="mt-1 text-xs text-muted-foreground">{t("overview.sha", { sha: "" })}<Ltr as="span" className="font-mono">{CONTRACT_META.sha256.slice(0, 12)}</Ltr></div></div><StatusPill value="ready" /></div>
             {!health.data?.ready && !health.isPending ? <div className="flex gap-2 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300"><TriangleAlert className="size-4 shrink-0" />{t("dashboard.backendDegraded")}</div> : null}
           </CardContent>
         </Card>
@@ -116,7 +89,7 @@ export function DashboardOverview() {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {(metrics.length ? metrics : [{ key: "contract.operations", value: CONTRACT_META.operationCount }]).map((metric, index) => (
               <Card key={metric.key} className="group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg">
-                <CardContent className="flex items-center gap-4 p-5"><div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Boxes className="size-5" /></div><div className="min-w-0"><div className="text-2xl font-black">{formatNumber(metric.value, locale)}</div><div className="mt-1 truncate text-xs text-muted-foreground" title={metric.key}>{metricLabel(metric.key, locale)}</div></div><span className="ms-auto text-[10px] text-muted-foreground">0{index + 1}</span></CardContent>
+                <CardContent className="flex items-center gap-4 p-5"><div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Boxes className="size-5" /></div><div className="min-w-0"><div className="text-2xl font-black">{formatNumber(metric.value, locale)}</div><div className="mt-1 truncate text-xs text-muted-foreground" title={metric.key}>{tOr(`metric.${metric.key}`, t("metric.other"))}</div></div><span className="ms-auto text-[10px] text-muted-foreground">0{index + 1}</span></CardContent>
               </Card>
             ))}
           </div>
@@ -129,7 +102,7 @@ export function DashboardOverview() {
           {visibleActions.map((item) => { const Icon = item.icon; return (
             <Link key={item.key} href={localizePath(params.locale, item.href)} className="group flex items-center gap-4 rounded-2xl border bg-card p-4 transition hover:border-primary/30 hover:shadow-lg">
               <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary transition group-hover:brand-gradient group-hover:text-white"><Icon className="size-5" /></span>
-              <span className="font-bold">{t(item.label)}</span><ArrowUpRight className="ms-auto size-4 text-muted-foreground transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary rtl:rotate-[-90deg]" />
+              <span className="font-bold">{t(item.label)}</span><ArrowUpRight className="ms-auto size-4 text-muted-foreground transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary rtl:group-hover:-translate-x-0.5 rtl:rotate-[-90deg]" />
             </Link>
           ); })}
         </div>

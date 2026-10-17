@@ -6,6 +6,7 @@ import { useMemo } from "react";
 
 import { CapabilityGate } from "@/components/feedback/capability-gate";
 import { PageHeader } from "@/components/shared/page-header";
+import { Ltr } from "@/components/shared/ltr";
 import { StatusPill } from "@/components/shared/status-pill";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,7 +40,7 @@ function CurrentVersionCard({ resourceKey }: { resourceKey: PolicyResource }) {
       <CardContent>
         {query.isPending ? <Skeleton className="h-10 rounded-lg" /> : current ? (
           <div className="flex flex-wrap items-center gap-3 text-sm">
-            <strong className="font-mono" data-testid="current-version">{String(current.version)}</strong>
+            <strong className="font-mono" data-testid="current-version"><Ltr as="span">{String(current.version)}</Ltr></strong>
             <StatusPill value="active" />
             <span className="text-muted-foreground">{formatDate(current.published_at, locale)}</span>
             {current.requires_reacceptance ? <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold">{t("policies.requiresReacceptance")}</span> : null}
@@ -102,7 +103,7 @@ export function PoliciesPage() {
   return (
     <CapabilityGate capability={CAPABILITIES.product}>
       <div className="space-y-6">
-        <PageHeader title={t("governance.policies.title")} description={t("governance.policies.subtitle")} eyebrow="Governance" />
+        <PageHeader title={t("governance.policies.title")} description={t("governance.policies.subtitle")} eyebrow={t("nav.governance")} />
         <Tabs defaultValue="privacy" className="space-y-4">
           <TabsList><TabsTrigger value="privacy"><FileCheck2 />{t("governance.privacy")}</TabsTrigger><TabsTrigger value="terms"><ScrollText />{t("governance.terms")}</TabsTrigger></TabsList>
           <TabsContent value="privacy"><PolicyVersions resourceKey="privacy-policy-versions" title={t("governance.privacyVersions")} /></TabsContent>

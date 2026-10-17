@@ -108,11 +108,17 @@ describe("library upload validation", () => {
   });
 
   it("formats sizes for the table", () => {
-    expect(formatFileSize(512)).toBe("512 B");
-    expect(formatFileSize(2048)).toBe("2.0 KB");
-    expect(formatFileSize(12 * MB)).toBe("12.0 MB");
-    expect(formatFileSize(null)).toBe("0 B");
-    expect(formatFileSize("x")).toBe("—");
+    expect(formatFileSize(512, "en")).toBe("512 B");
+    expect(formatFileSize(2048, "en")).toBe("2.0 KB");
+    expect(formatFileSize(12 * MB, "en")).toBe("12.0 MB");
+    expect(formatFileSize(3 * 1024 * MB, "en")).toBe("3.0 GB");
+    expect(formatFileSize(null, "en")).toBe("0 B");
+    expect(formatFileSize("x", "en")).toBe("—");
+    // Arabic is the default: localized units, never B/KB/MB/GB.
+    expect(formatFileSize(512)).toContain("بايت");
+    expect(formatFileSize(2048)).toContain("ك.ب");
+    expect(formatFileSize(12 * MB)).toContain("م.ب");
+    expect(formatFileSize(3 * 1024 * MB)).toContain("غ.ب");
   });
 });
 

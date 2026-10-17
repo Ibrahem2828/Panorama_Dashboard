@@ -10,6 +10,7 @@ import { CommandPalette } from "@/components/navigation/command-palette";
 import { LanguageSwitcher } from "@/components/navigation/language-switcher";
 import { ThemeSwitcher } from "@/components/navigation/theme-switcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Ltr } from "@/components/shared/ltr";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Locale } from "@/config/constants";
@@ -50,7 +51,7 @@ export function Topbar() {
           <DropdownMenuContent align="end" className="w-72 rounded-xl p-2">
             <DropdownMenuLabel className="space-y-1 px-3 py-2">
               <div className="truncate">{user.full_name}</div>
-              <div className="truncate text-xs font-normal text-muted-foreground">{user.email}</div>
+              <Ltr as="div" className="truncate text-xs font-normal text-muted-foreground">{user.email}</Ltr>
               <div className="mt-2 flex items-center gap-1.5 text-[10px] font-normal text-muted-foreground"><ShieldCheck className="size-3" />{source === "backend" ? t("session.backendCapabilities") : t("session.compatibilityCapabilities")}</div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

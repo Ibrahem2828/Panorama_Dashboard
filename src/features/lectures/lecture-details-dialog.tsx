@@ -45,7 +45,7 @@ export function LectureDetailsDialog({ lecture, now, onOpenChange }: { lecture: 
             ) : null}
             {isStalled(lecture, now) ? <Item label={t("common.status")} wide>{t("lectures.details.stalled")}</Item> : null}
             <Item label={t("lectures.details.file")}><span dir="ltr" className="inline-block">{lecture.original_filename || "—"}</span></Item>
-            <Item label={t("lectures.details.size")}>{formatFileSize(lecture.original_size)}</Item>
+            <Item label={t("lectures.details.size")}>{formatFileSize(lecture.original_size, locale)}</Item>
             <Item label={t("lectures.details.type")}><span dir="ltr" className="inline-block">{lecture.original_mime_type || "—"}</span></Item>
             <Item label={t("lectures.details.sha")}><span dir="ltr" className="inline-block font-mono text-xs">{shaPrefix(lecture.original_sha256)}</span></Item>
             <Item label={t("lectures.details.created")}>{formatDate(lecture.created_at, locale)}</Item>
