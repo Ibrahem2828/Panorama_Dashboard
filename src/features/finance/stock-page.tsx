@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { History, MinusCircle, Pencil, Plus, RefreshCw, Search, ShoppingCart, SlidersHorizontal, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -23,7 +24,7 @@ import { Switch } from "@/components/ui/switch";
 import { RESOURCE_DEFINITIONS } from "@/contracts/generated/resource-definitions";
 import type { ResourceDefinition } from "@/contracts/types";
 import {
-  FINANCE_CURRENCIES, FINANCE_PATHS, INVENTORY_CATEGORIES, formatQuantity, groupByCategory, movementBody, purchaseTotal, quantityAfter,
+  FINANCE_CURRENCIES, FINANCE_PATHS, INVENTORY_CATEGORIES, formatQuantity, formatRate, groupByCategory, movementBody, purchaseTotal, quantityAfter,
   stockHistoryPath, stockMovementsPath, formatMoney, type AdjustmentDirection, type FinanceCurrency, type MovementType,
 } from "@/features/finance/finance-rules";
 import { createResource, deleteResource, updateResource, type EntityRecord } from "@/features/resources/resource-api";
@@ -51,11 +52,14 @@ interface StockItem {
   unit_cost: string;
   currency: string;
   stock_value: string;
+  consumption_key?: string;
+  consumption_per_use?: string;
+  pending_consumption?: string;
   is_low: boolean;
   location: string;
   is_active: boolean;
 }
-interface Movement { id: number; movement_type: string; quantity: string; quantity_after: string; unit_cost: string | null; currency: string; note: string; created_by_name: string | null; created_at: string }
+interface Movement { id: number; order?: number | null; movement_type: string; quantity: string; quantity_after: string; unit_cost: string | null; currency: string; note: string; created_by_name: string | null; created_at: string }
 
 const ALL = "all";
 const PAGE_SIZE = 100;
@@ -197,6 +201,7 @@ function HistoryDrawer({ item, onClose }: { item: StockItem | null; onClose: () 
                       {move.created_by_name ? ` · ${t("finance.stock.historyBy", { name: move.created_by_name })}` : ""}
                       {` · ${t("finance.stock.historyAfter", { quantity: formatQuantity(move.quantity_after, locale) })}`}
                     </div>
+                    {move.order ? <Link href={`/${locale}/dashboard/printing?search=${move.order}`} className="mt-1 inline-block text-xs font-semibold text-primary underline-offset-2 hover:underline">{t("finance.stock.historyOrder", { id: move.order })}</Link> : null}
                     {move.note ? <p className="mt-1 text-xs">{move.note}</p> : null}
                   </li>
                 );
@@ -247,7 +252,7 @@ function ItemFormDialog({ item, onClose }: { item: StockItem | "new"; onClose: (
 
 /** المخزون: items grouped by category with low-stock badges, movements (purchase, usage, waste, count) and a history drawer. */
 export function StockPage() {
-  const { t, locale } = useI18n();
+  const { t, enumLabel, locale } = useI18n();
   const categoryLabel = useCategoryLabel();
   const queryClient = useQueryClient();
   const canDefine = useCan(CAPABILITIES.finance);
@@ -325,10 +330,11 @@ export function StockPage() {
                       <tbody>
                         {group.items.map((item) => (
                           <tr key={item.id} className="border-t hover:bg-muted/30">
-                            <td className="p-3">
+                            <td className="min-w-[13rem] p-3">
                               <span className="font-semibold">{item.name}</span>
                               {item.sku ? <bdi className="block text-xs text-muted-foreground" dir="ltr">{item.sku}</bdi> : null}
                               {!item.is_active ? <Badge variant="outline" className="mt-1">{t("finance.stock.inactive")}</Badge> : null}
+                              {item.consumption_key ? <p className="mt-1 max-w-[16rem] text-xs leading-5 text-muted-foreground"><bdi>{t("finance.stock.autoRule", { kind: enumLabel(item.consumption_key), use: formatRate(item.consumption_per_use, locale) })}</bdi></p> : null}
                             </td>
                             <td className="p-3">
                               <span className="font-bold tabular-nums">{formatQuantity(item.quantity, locale)}</span> <span className="text-muted-foreground">{item.unit}</span>

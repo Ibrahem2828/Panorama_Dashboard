@@ -221,11 +221,13 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
   }),
   "finance-inventory-items": writablePolicy({
     capability: "finance.manage",
-    create: ["name", "category", "unit", "sku", "opening_quantity", "reorder_level", "unit_cost", "currency", "location", "notes", "is_active"],
-    update: ["name", "category", "unit", "sku", "reorder_level", "unit_cost", "currency", "location", "notes", "is_active"],
+    create: ["name", "category", "unit", "sku", "opening_quantity", "consumption_key", "consumption_per_use", "reorder_level", "unit_cost", "currency", "location", "notes", "is_active"],
+    update: ["name", "category", "unit", "sku", "consumption_key", "consumption_per_use", "reorder_level", "unit_cost", "currency", "location", "notes", "is_active"],
     fieldOverrides: {
       category: { defaultValue: "paper", required: true },
       opening_quantity: { defaultValue: "0", hint: "finance.stock.openingHint" },
+      consumption_key: { defaultValue: "", hint: "finance.stock.consumptionHint" },
+      consumption_per_use: { defaultValue: "0", hint: "finance.stock.consumptionPerUseHint" },
       reorder_level: { defaultValue: "0", hint: "finance.stock.reorderHint" },
       unit_cost: { defaultValue: "0", hint: "finance.stock.unitCostHint" },
       currency: { defaultValue: "SYP", required: true },
