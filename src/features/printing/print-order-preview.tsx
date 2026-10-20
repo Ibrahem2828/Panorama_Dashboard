@@ -89,6 +89,22 @@ function BindingMark({ model, x, y }: { model: PreviewModel; x: number; y: numbe
       </g>
     );
   }
+  if (binding === "beads") {
+    // A string of beads threaded along the edge.
+    const count = Math.max(5, Math.floor((h - 10) / 11));
+    const gap = (h - 10) / count;
+    return (
+      <g>
+        <line x1={edge - 3} x2={edge - 3} y1={y + 4} y2={y + h - 4} stroke={COIL} strokeWidth={0.8} />
+        {Array.from({ length: count }, (_, index) => (
+          <g key={index}>
+            <circle cx={edge - 3} cy={y + 7 + index * gap} r={3.2} fill={index % 2 ? INK_COLORS.accent : INK_COLORS.primary} />
+            <circle cx={edge - 4.1} cy={y + 5.9 + index * gap} r={0.9} fill="#FFFFFF" opacity={0.7} />
+          </g>
+        ))}
+      </g>
+    );
+  }
   if (binding === "staple") {
     const sx = edge - 22;
     const sy = y + 10;
