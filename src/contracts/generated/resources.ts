@@ -1944,10 +1944,12 @@ export const RESOURCE_DEFINITIONS = {
           "none",
           "staple",
           "spiral",
-          "thermal"
+          "thermal",
+          "beads",
+          "other"
         ],
         "defaultValue": null,
-        "description": "* `none` - None\n* `staple` - Staple\n* `spiral` - Spiral\n* `thermal` - Thermal"
+        "description": "* `none` - None\n* `staple` - Staple\n* `spiral` - Spiral\n* `thermal` - Thermal\n* `beads` - Beads\n* `other` - Other"
       },
       {
         "name": "price_per_copy",
@@ -4023,6 +4025,8 @@ export const OPERATION_PATHS = {
   "v1_dashboard_printing_binding_prices_update": "/api/v1/dashboard/printing/binding-prices/{id}/",
   "v1_dashboard_printing_binding_prices_partial_update": "/api/v1/dashboard/printing/binding-prices/{id}/",
   "v1_dashboard_printing_binding_prices_destroy": "/api/v1/dashboard/printing/binding-prices/{id}/",
+  "v1_dashboard_printing_counter_orders_create": "/api/v1/dashboard/printing/counter-orders/",
+  "v1_dashboard_printing_counter_orders_quote_create": "/api/v1/dashboard/printing/counter-orders/quote/",
   "v1_dashboard_printing_jobs_list": "/api/v1/dashboard/printing/jobs/",
   "v1_dashboard_printing_jobs_retrieve": "/api/v1/dashboard/printing/jobs/{id}/",
   "v1_dashboard_printing_orders_list": "/api/v1/dashboard/printing/orders/",

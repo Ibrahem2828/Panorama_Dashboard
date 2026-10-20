@@ -10,7 +10,7 @@ const row = (over: Record<string, unknown> = {}) => ({
 describe("parseOrderItems", () => {
   it("reads a normal API row", () => {
     expect(parseOrderItems([row()])).toEqual([{
-      id: 1, fileName: "lecture.pdf", copies: 2, pages: 20, sheets: 20, colorMode: "black_white", paperSize: "A4", sides: "double_sided", binding: "spiral", price: "250.00",
+      id: 1, fileName: "lecture.pdf", copies: 2, pages: 20, sheets: 20, colorMode: "black_white", paperSize: "A4", sides: "double_sided", binding: "spiral", bindingNote: "", price: "250.00",
     }]);
   });
   it("is empty for anything that is not a list", () => {
@@ -19,7 +19,7 @@ describe("parseOrderItems", () => {
   it("skips non-objects and falls back to safe defaults for unknown or missing values", () => {
     const [item, ...rest] = parseOrderItems([null, 3, { id: "a", copies: 0, color_mode: "neon", paper_size: "B5", sides: 7, binding: "glue" }]);
     expect(rest).toHaveLength(0);
-    expect(item).toMatchObject({ id: "a", copies: 1, pages: null, sheets: null, colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", price: null, fileName: "" });
+    expect(item).toMatchObject({ id: "a", copies: 1, pages: null, sheets: null, colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", price: null, fileName: "", bindingNote: "" });
   });
   it("uses the library title when there is no upload name, and numeric strings for counts", () => {
     expect(parseOrderItems([row({ original_file_name: "", source_file_title: "محاضرة 3", pages_count: "12", sheets_count: -4 })])[0]).toMatchObject({ fileName: "محاضرة 3", pages: 12, sheets: null });

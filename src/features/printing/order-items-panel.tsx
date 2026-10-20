@@ -112,6 +112,7 @@ export function OrderItemsPanel({ orderId, items: rawItems, currency, pickup }: 
                   <div className="min-w-0 flex-1">
                     <p className="text-xs text-muted-foreground">{t("printing.itemLabel", { number: index + 1 })}</p>
                     <p className="break-words font-semibold" dir="auto">{item.fileName || t("printing.unnamedFile")}</p>
+                    {item.bindingNote ? <p className="mt-0.5 break-words text-xs text-muted-foreground" dir="auto">{t("printing.bindingNote")}: {item.bindingNote}</p> : null}
                   </div>
                   {item.price !== null ? <Money value={item.price} currency={currency} /> : null}
                 </div>

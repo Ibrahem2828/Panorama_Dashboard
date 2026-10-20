@@ -1243,6 +1243,24 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/counter-orders/",
+    "operationId": "v1_dashboard_printing_counter_orders_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/counter-orders/quote/",
+    "operationId": "v1_dashboard_printing_counter_orders_quote_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "GET",
     "path": "/api/v1/dashboard/printing/jobs/",
     "operationId": "v1_dashboard_printing_jobs_list",
