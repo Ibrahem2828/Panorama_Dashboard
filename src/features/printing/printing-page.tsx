@@ -60,6 +60,8 @@ interface PrintOrder {
   created_at: string;
   items?: unknown;
   pickup_location_detail?: { name?: string; address?: string; instructions?: string } | null;
+  stock_deducted_at?: string | null;
+  stock_usage?: { item: string; unit: string; quantity: string }[];
   status_history?: unknown[];
 }
 
@@ -167,6 +169,24 @@ function OrderDialog({ order, onClose }: { order: PrintOrder; onClose: () => voi
           </div>
 
           <OrderItemsPanel key={order.id} orderId={order.id} items={order.items} currency={order.currency} pickup={order.pickup_location_detail} />
+
+          {order.stock_deducted_at ? (
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-base">{t("printing.stockUsage")}</CardTitle><CardDescription>{t("printing.stockUsageHint")}</CardDescription></CardHeader>
+              <CardContent>
+                {order.stock_usage?.length ? (
+                  <ul className="grid gap-2 sm:grid-cols-2">
+                    {order.stock_usage.map((usage) => (
+                      <li key={usage.item} className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                        <span className="min-w-0 break-words">{usage.item}</span>
+                        <bdi className="shrink-0 font-bold tabular-nums">{usage.quantity} <span className="font-normal text-muted-foreground">{usage.unit}</span></bdi>
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="text-sm text-muted-foreground">{t("printing.stockUsageNone")}</p>}
+              </CardContent>
+            </Card>
+          ) : null}
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card><CardHeader><CardTitle className="text-base">{t("printing.userNotes")}</CardTitle></CardHeader><CardContent className="whitespace-pre-wrap break-words text-sm text-muted-foreground">{order.user_notes || "—"}</CardContent></Card>
