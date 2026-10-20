@@ -22,7 +22,7 @@ export interface BackendSchemas {
   "ConfirmPasswordReset": { identifier?: string; email?: string; phone_number?: string; channel?: BackendSchemas["OtpChannelEnum"]; code: string; };
   "ConfirmPasswordResetRequest": { identifier?: string; email?: string; phone_number?: string; channel?: BackendSchemas["OtpChannelEnum"]; code: string; new_password: string; new_password_confirm: string; };
   "ConsentKindEnum": "terms" | "privacy";
-  "ConsumptionKeyEnum": "paper_a5" | "paper_a4" | "paper_a3" | "binding_staple" | "binding_spiral" | "binding_thermal" | "binding_beads";
+  "ConsumptionKeyEnum": "paper_a5" | "paper_a4" | "paper_a3" | "binding_staple" | "binding_spiral" | "binding_thermal" | "binding_beads" | "ink_black" | "ink_cyan" | "ink_magenta" | "ink_yellow" | "per_sheet" | "per_order";
   "ContextEnum": "app" | "onboarding" | "registration" | "login" | "verification" | "home" | "subject" | "group" | "chat" | "file" | "printing" | "notification" | "support" | "profile" | "search" | "announcement" | "settings" | "external_channel" | "other";
   "CounterItem": { title?: string; pages_count: number; copies: number; color_mode: BackendSchemas["ColorModeEnum"]; paper_size: BackendSchemas["PaperSizeEnum"]; sides: BackendSchemas["SidesEnum"]; binding?: BackendSchemas["BindingEnum"]; binding_note?: string; };
   "CounterItemRequest": { title?: string; pages_count: number; copies: number; color_mode: BackendSchemas["ColorModeEnum"]; paper_size: BackendSchemas["PaperSizeEnum"]; sides: BackendSchemas["SidesEnum"]; binding?: BackendSchemas["BindingEnum"]; binding_note?: string; };

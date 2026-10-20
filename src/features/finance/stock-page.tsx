@@ -24,7 +24,7 @@ import { Switch } from "@/components/ui/switch";
 import { RESOURCE_DEFINITIONS } from "@/contracts/generated/resource-definitions";
 import type { ResourceDefinition } from "@/contracts/types";
 import {
-  FINANCE_CURRENCIES, FINANCE_PATHS, INVENTORY_CATEGORIES, formatQuantity, formatRate, groupByCategory, movementBody, purchaseTotal, quantityAfter,
+  FINANCE_CURRENCIES, FINANCE_PATHS, INVENTORY_CATEGORIES, formatPerUse, formatQuantity, groupByCategory, movementBody, purchaseTotal, quantityAfter,
   stockHistoryPath, stockMovementsPath, formatMoney, type AdjustmentDirection, type FinanceCurrency, type MovementType,
 } from "@/features/finance/finance-rules";
 import { createResource, deleteResource, updateResource, type EntityRecord } from "@/features/resources/resource-api";
@@ -334,7 +334,7 @@ export function StockPage() {
                               <span className="font-semibold">{item.name}</span>
                               {item.sku ? <bdi className="block text-xs text-muted-foreground" dir="ltr">{item.sku}</bdi> : null}
                               {!item.is_active ? <Badge variant="outline" className="mt-1">{t("finance.stock.inactive")}</Badge> : null}
-                              {item.consumption_key ? <p className="mt-1 max-w-[16rem] text-xs leading-5 text-muted-foreground"><bdi>{t("finance.stock.autoRule", { kind: enumLabel(item.consumption_key), use: formatRate(item.consumption_per_use, locale) })}</bdi></p> : null}
+                              {item.consumption_key ? <p className="mt-1 max-w-[16rem] text-xs leading-5 text-muted-foreground"><bdi>{t("finance.stock.autoRule", { kind: enumLabel(item.consumption_key), use: formatPerUse(item.consumption_per_use, locale) })}</bdi></p> : null}
                             </td>
                             <td className="p-3">
                               <span className="font-bold tabular-nums">{formatQuantity(item.quantity, locale)}</span> <span className="text-muted-foreground">{item.unit}</span>

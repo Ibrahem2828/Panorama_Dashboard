@@ -66,6 +66,13 @@ export function formatRate(value: unknown, locale = "ar"): string {
   return new Intl.NumberFormat(numberLocale(locale), { minimumFractionDigits: 0, maximumFractionDigits: 4 }).format(number);
 }
 
+/** A stock rule amount ("0.00005" for ink): up to six places, Western digits, never rounded to "0". */
+export function formatPerUse(value: unknown, locale = "ar"): string {
+  const number = Number(value);
+  if (value === null || value === undefined || value === "" || !Number.isFinite(number)) return "—";
+  return new Intl.NumberFormat(numberLocale(locale), { minimumFractionDigits: 0, maximumFractionDigits: 6 }).format(number);
+}
+
 /** Quantities keep up to two places and never show an Arabic digit ("12.5"). */
 export function formatQuantity(value: unknown, locale = "ar"): string {
   return formatAmount(value, locale, { min: 0, max: 2 });

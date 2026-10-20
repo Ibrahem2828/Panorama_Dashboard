@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  barShares, isFutureMonth, monthOf, parseStockReport, shiftMonth, stockCover, stockReportCsv,
+  formatPerUse, barShares, isFutureMonth, monthOf, parseStockReport, shiftMonth, stockCover, stockReportCsv,
   isOutOfStock, newlyLow, sortLowStock,
   currentExchangeRate, customRangeProblem, dueAmount, expenseTotals, formatMoney, formatRate, groupByCategory, isSettled, missingRateForTotals, movementBody,
   parseJobTotals, parseSummary, paymentAmountProblem, paymentBody, paymentState, periodRange, quantityAfter, signedAdjustment,
@@ -212,5 +212,17 @@ describe("monthly stock report", () => {
     expect(csv).toContain('"\'=HYPERLINK(""x"")"'); // a leading = is neutralised, then quoted
     expect(csv).toContain('"ورق, A4 ""80"""'); // commas and quotes are escaped
     expect(csv.split("\r\n")[1]).toContain(",20.00,10.00,"); // numbers stay plain numbers
+  });
+});
+
+describe("formatPerUse", () => {
+  it("keeps the tiny amounts of ink instead of rounding them to zero", () => {
+    expect(formatPerUse("0.00005")).toBe("0.00005");
+    expect(formatPerUse("0.002000")).toBe("0.002");
+    expect(formatPerUse("0.0001", "en")).toBe("0.0001");
+    expect(formatPerUse(1)).toBe("1");
+    expect(formatPerUse("")).toBe("—");
+    expect(formatPerUse(null)).toBe("—");
+    expect(formatPerUse("abc")).toBe("—");
   });
 });
