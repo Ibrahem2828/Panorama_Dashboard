@@ -152,7 +152,7 @@ function OrderDialog({ order, onClose }: { order: PrintOrder; onClose: () => voi
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
         <DialogHeader className="pe-10">
-          <DialogTitle className="flex flex-wrap items-center gap-2">{t("printing.orderDetails")} #{order.id}<SourceBadge source={order.source} /></DialogTitle>
+          <DialogTitle className="flex flex-wrap items-center gap-2">{t("printing.orderDetails")} <bdi>#{order.id}</bdi><SourceBadge source={order.source} /></DialogTitle>
           <DialogDescription>{order.user_name}</DialogDescription>
         </DialogHeader>
         <div className="space-y-6">

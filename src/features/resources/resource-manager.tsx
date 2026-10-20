@@ -294,26 +294,26 @@ export function ResourceManager({
         }
       />
 
-      <div className="glass-panel flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:items-center sm:p-4">
-        <form className="relative flex-1" onSubmit={(event) => { event.preventDefault(); updateUrl({ search: searchDraft, page: 1 }); }}>
+      <div className="glass-panel flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:flex-wrap sm:items-center sm:p-4">
+        <form className="relative flex-1 sm:min-w-[14rem]" onSubmit={(event) => { event.preventDefault(); updateUrl({ search: searchDraft, page: 1 }); }}>
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} placeholder={t("common.searchPlaceholder")} aria-label={t("common.search")} className="h-11 ps-10" />
         </form>
         {(filters ?? []).map((filter) => filter.kind === "date" ? (
-          <div key={filter.param} className="flex items-center gap-2">
+          <div key={filter.param} className="flex shrink-0 items-center gap-2">
             <Label htmlFor={`filter-${filter.param}`} className="shrink-0 text-xs text-muted-foreground">{filter.label}</Label>
             <Input id={`filter-${filter.param}`} type="date" className="h-11 sm:w-40" value={searchParams.get(filter.param) ?? ""} onChange={(event) => updateUrl({ [filter.param]: event.target.value || null, page: 1 })} />
           </div>
         ) : (
           <Select key={filter.param} value={searchParams.get(filter.param) || ALL_FILTER} onValueChange={(next) => updateUrl({ [filter.param]: next === ALL_FILTER ? null : next, page: 1 })}>
-            <SelectTrigger className="h-11 sm:w-52" aria-label={filter.label}><SelectValue placeholder={filter.label} /></SelectTrigger>
+            <SelectTrigger className="h-11 shrink-0 sm:w-52" aria-label={filter.label}><SelectValue placeholder={filter.label} /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL_FILTER}>{filter.label}: {t("common.all")}</SelectItem>
               {(filter.options ?? []).map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
             </SelectContent>
           </Select>
         ))}
-        <Button variant="outline" onClick={() => updateUrl({ search: searchDraft, page: 1 })}><Search />{t("common.search")}</Button>
+        <Button variant="outline" className="shrink-0" onClick={() => updateUrl({ search: searchDraft, page: 1 })}><Search />{t("common.search")}</Button>
       </div>
 
       {extraContent}

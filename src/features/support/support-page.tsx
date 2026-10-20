@@ -138,7 +138,7 @@ export function SupportPage() {
 
         <Dialog open={Boolean(selected)} onOpenChange={(open) => { if (!open) setSelected(null); }}>
           <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
-            <DialogHeader><DialogTitle>{selected?.subject}</DialogTitle><DialogDescription>#{selected?.id} · {selected?.user_name}</DialogDescription></DialogHeader>
+            <DialogHeader><DialogTitle>{selected?.subject}</DialogTitle><DialogDescription><bdi>#{selected?.id}</bdi> · {selected?.user_name}</DialogDescription></DialogHeader>
             {selected ? <div className="grid gap-5 lg:grid-cols-[1.35fr_.65fr]">
               <div className="space-y-3">
                 <h3 className="font-bold">{t("support.conversation")}</h3>
