@@ -31,6 +31,7 @@ import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key
 import { payloadSignature } from "@/lib/api/idempotency";
 import { useAssignees } from "@/features/staff/use-assignees";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { OrderItemsPanel } from "@/features/printing/order-items-panel";
 import { useI18n } from "@/i18n/provider";
 
 interface PrintOrder {
@@ -45,7 +46,8 @@ interface PrintOrder {
   user_notes?: string;
   internal_notes?: string;
   created_at: string;
-  items?: unknown[];
+  items?: unknown;
+  pickup_location_detail?: { name?: string; address?: string; instructions?: string } | null;
   status_history?: unknown[];
 }
 
@@ -150,6 +152,7 @@ function PrintOrdersPanel() {
           <DialogHeader><DialogTitle>{t("printing.orderDetails")} #{selected?.id}</DialogTitle><DialogDescription>{selected?.user_name}</DialogDescription></DialogHeader>
           {selected ? <div className="space-y-5">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[[t("common.status"), enumLabel(selected.status)], [t("printing.priority"), enumLabel(selected.priority)], [t("printing.value"), formatMoney(selected.total_price, selected.currency, locale)], [t("support.assign"), selected.assigned_to_name || "—"]].map(([label, value]) => <div key={label} className="rounded-xl border bg-muted/30 p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-bold">{label === t("printing.value") ? <bdi>{value}</bdi> : value}</p></div>)}</div>
+            <OrderItemsPanel key={selected.id} orderId={selected.id} items={selected.items} currency={selected.currency} pickup={selected.pickup_location_detail} />
             <div className="grid gap-4 lg:grid-cols-2"><Card><CardHeader><CardTitle className="text-base">{t("printing.userNotes")}</CardTitle></CardHeader><CardContent className="whitespace-pre-wrap text-sm text-muted-foreground">{selected.user_notes || "—"}</CardContent></Card><Card><CardHeader><CardTitle className="text-base">{t("printing.internalNotes")}</CardTitle></CardHeader><CardContent className="whitespace-pre-wrap text-sm text-muted-foreground">{selected.internal_notes || "—"}</CardContent></Card></div>
             <div className="flex flex-wrap gap-2"><Button onClick={() => setAction("status")}><RefreshCw />{t("printing.changeStatus")}</Button><Button variant="outline" onClick={() => setAction("assign")}><UserRoundCheck />{t("support.assign")}</Button><Button variant="outline" onClick={() => setAction("note")}><MessageSquarePlus />{t("printing.addNote")}</Button></div>
             {action ? <Card className="border-primary/30"><CardHeader><CardTitle className="text-base">{action === "status" ? t("printing.changeStatus") : action === "assign" ? t("support.assign") : t("printing.addNote")}</CardTitle></CardHeader><CardContent className="space-y-4">
