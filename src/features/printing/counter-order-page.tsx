@@ -172,6 +172,7 @@ function CounterOrderForm() {
       mutateKey.reset();
       setDone(order as DoneOrder);
       void queryClient.invalidateQueries({ queryKey: ["printing-orders"] });
+      void queryClient.invalidateQueries({ queryKey: ["finance-stock"] });
     },
     onError: mutateError,
   });

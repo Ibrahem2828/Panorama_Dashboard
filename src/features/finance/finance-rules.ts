@@ -357,3 +357,32 @@ export function expenseTotals(summary: FinanceSummary, category: string, currenc
   const source = category ? summary.expensesByCategory.find((row) => row.category === category)?.amounts ?? {} : summary.expenses;
   return FINANCE_CURRENCIES.filter((code) => !currency || currency === code).flatMap((code) => (source[code] !== undefined ? [{ currency: code, total: source[code] as string }] : []));
 }
+
+// --- low-stock alerts ---------------------------------------------------------------------------------------------
+
+/** The part of a stock row the alert needs. Quantities are decimal strings. */
+export interface LowStockItem { id: number; name: string; unit: string; quantity: string; reorder_level: string }
+
+export const LOW_STOCK_PATH = "/api/v1/dashboard/printing/stock/?low=true&active=true&page_size=50";
+
+export function isOutOfStock(item: Pick<LowStockItem, "quantity">): boolean {
+  return (toMinor(item.quantity) ?? 0) <= 0;
+}
+
+/** Items that ran out first, then the ones furthest under their reorder level (the emptiest relative to the level). */
+export function sortLowStock<T extends LowStockItem>(items: readonly T[]): T[] {
+  const fill = (item: LowStockItem) => {
+    const level = toMinor(item.reorder_level) ?? 0;
+    return level > 0 ? (toMinor(item.quantity) ?? 0) / level : 0;
+  };
+  return [...items].sort((a, b) => Number(isOutOfStock(b)) - Number(isOutOfStock(a)) || fill(a) - fill(b) || a.name.localeCompare(b.name));
+}
+
+/**
+ * The items that are low now but were not in the previous list: the ones to announce with a toast. `previous` is null on the
+ * very first load, when everything that is low is already on the banner and must not pop up as if it had just happened.
+ */
+export function newlyLow<T extends LowStockItem>(previous: ReadonlySet<number> | null, current: readonly T[]): T[] {
+  if (previous === null) return [];
+  return current.filter((item) => !previous.has(item.id));
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isOutOfStock, newlyLow, sortLowStock,
   currentExchangeRate, customRangeProblem, dueAmount, expenseTotals, formatMoney, formatRate, groupByCategory, isSettled, missingRateForTotals, movementBody,
   parseJobTotals, parseSummary, paymentAmountProblem, paymentBody, paymentState, periodRange, quantityAfter, signedAdjustment,
 } from "@/features/finance/finance-rules";
@@ -135,5 +136,26 @@ describe("permission override path and date/decimal fields", () => {
     const rate: FieldSpec = { name: "syp_per_usd", kind: "decimal", required: true, nullable: false, decimalPlaces: 4 };
     expect(parseField(rate, "13250.1234", "create").ok).toBe(true);
     expect(parseField({ ...rate, decimalPlaces: undefined }, "1.234", "create").ok).toBe(false);
+  });
+});
+
+describe("low-stock alerts", () => {
+  const item = (id: number, name: string, quantity: string, level = "5") => ({ id, name, unit: "رزمة", quantity, reorder_level: level });
+  it("an item at zero or below is out of stock", () => {
+    expect(isOutOfStock({ quantity: "0" })).toBe(true);
+    expect(isOutOfStock({ quantity: "0.00" })).toBe(true);
+    expect(isOutOfStock({ quantity: "0.01" })).toBe(false);
+    expect(isOutOfStock({ quantity: "" })).toBe(true);
+  });
+  it("lists what ran out first, then the emptiest relative to the level", () => {
+    const sorted = sortLowStock([item(1, "ب", "4"), item(2, "أ", "0"), item(3, "ج", "1"), item(4, "د", "2", "20")]);
+    expect(sorted.map((row) => row.id)).toEqual([2, 4, 3, 1]);
+  });
+  it("only announces items that were not low before, never on the first load", () => {
+    const now = [item(1, "أ", "4"), item(2, "ب", "1")];
+    expect(newlyLow(null, now)).toEqual([]);
+    expect(newlyLow(new Set([1]), now).map((row) => row.id)).toEqual([2]);
+    expect(newlyLow(new Set([1, 2]), now)).toEqual([]);
+    expect(newlyLow(new Set(), [])).toEqual([]);
   });
 });

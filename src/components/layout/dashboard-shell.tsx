@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { AccessDenied } from "@/components/feedback/access-denied";
 import { BackendReadinessBanner } from "@/components/layout/backend-readiness-banner";
+import { LowStockBanner } from "@/features/finance/low-stock";
 import { DesktopSidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,6 +44,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <div className={cn("min-h-screen transition-[padding] duration-300 lg:ps-[var(--app-sidebar-expanded)]", collapsed && "lg:ps-[var(--app-sidebar-collapsed)]")}>
         <Topbar />
         <BackendReadinessBanner />
+        <LowStockBanner />
         <main className="mx-auto w-full max-w-[var(--app-content-max-width)] px-3 py-5 sm:px-5 sm:py-7 lg:px-8">{children}</main>
       </div>
     </div>
