@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  barShares, isFutureMonth, monthOf, parseStockReport, shiftMonth, stockCover, stockReportCsv,
   isOutOfStock, newlyLow, sortLowStock,
   currentExchangeRate, customRangeProblem, dueAmount, expenseTotals, formatMoney, formatRate, groupByCategory, isSettled, missingRateForTotals, movementBody,
   parseJobTotals, parseSummary, paymentAmountProblem, paymentBody, paymentState, periodRange, quantityAfter, signedAdjustment,
@@ -157,5 +158,59 @@ describe("low-stock alerts", () => {
     expect(newlyLow(new Set([1]), now).map((row) => row.id)).toEqual([2]);
     expect(newlyLow(new Set([1, 2]), now)).toEqual([]);
     expect(newlyLow(new Set(), [])).toEqual([]);
+  });
+});
+
+describe("monthly stock report", () => {
+  it("steps between months across the year boundary and rejects anything that is not YYYY-MM", () => {
+    expect(shiftMonth("2026-10", -1)).toBe("2026-09");
+    expect(shiftMonth("2026-01", -1)).toBe("2025-12");
+    expect(shiftMonth("2026-12", 1)).toBe("2027-01");
+    expect(shiftMonth("2026-10", 0)).toBe("2026-10");
+    for (const bad of ["2026-13", "2026-00", "2026-9", "x", ""]) expect(shiftMonth(bad, 1)).toBeNull();
+    expect(monthOf(new Date(2026, 9, 20))).toBe("2026-10");
+    expect(isFutureMonth("2026-11", new Date(2026, 9, 20))).toBe(true);
+    expect(isFutureMonth("2026-10", new Date(2026, 9, 20))).toBe(false);
+  });
+
+  const raw = {
+    month: "2026-09", days_elapsed: 30, cover_days: 30,
+    items: [
+      { id: 1, name: "ورق A4", category: "paper", unit: "رزمة", opening: 20, purchased: 10, purchase_cost: { USD: "40.00", XXX: "9" }, used: 5, used_by_orders: 3, used_by_hand: 2, waste: 1, adjustment: 0.5, closing: 24.5, is_low: false, daily_usage: 0.1667, days_left: 147, suggested_purchase: 0 },
+      { id: 2, name: "غلاف", category: "other", unit: "علبة", opening: "2", purchased: "0", used: "6", used_by_orders: "6", used_by_hand: "0", waste: "0", adjustment: "0", closing: "1", is_low: true, daily_usage: null, days_left: null, suggested_purchase: null },
+      { id: "bad", name: 5 }, null,
+    ],
+    totals: { purchase_cost: { USD: "40.00" }, orders_delivered: 3, sheets_printed: 120, items_low: 1 },
+  };
+  it("reads a report, keeping missing projections empty and dropping broken rows", () => {
+    const report = parseStockReport(raw);
+    expect(report).toMatchObject({ month: "2026-09", daysElapsed: 30, coverDays: 30, ordersDelivered: 3, sheetsPrinted: 120, itemsLow: 1, purchaseCost: { USD: "40.00" } });
+    expect(report?.rows).toHaveLength(2);
+    expect(report?.rows[0]).toMatchObject({ opening: "20.00", closing: "24.50", purchaseCost: { USD: "40.00" }, dailyUsage: "0.1667", daysLeft: 147, suggestedPurchase: "0.00" });
+    expect(report?.rows[1]).toMatchObject({ dailyUsage: null, daysLeft: null, suggestedPurchase: null, isLow: true });
+  });
+  it("is null for anything that is not a report", () => {
+    for (const value of [null, undefined, "x", 4, {}, { month: "2026-09" }, { items: [] }]) expect(parseStockReport(value)).toBeNull();
+  });
+  it("grades the cover: out, under a week, under two weeks, fine, unknown", () => {
+    expect(stockCover({ closing: "0.00", daysLeft: 0 })).toBe("out");
+    expect(stockCover({ closing: "3.00", daysLeft: 6 })).toBe("critical");
+    expect(stockCover({ closing: "3.00", daysLeft: 13 })).toBe("soon");
+    expect(stockCover({ closing: "3.00", daysLeft: 14 })).toBe("ok");
+    expect(stockCover({ closing: "3.00", daysLeft: null })).toBe("unknown");
+  });
+  it("sizes the bars against the biggest figure of the month", () => {
+    expect(barShares([{ purchased: "10.00", used: "5.00" }, { purchased: "0.00", used: "2.50" }])).toEqual([{ purchased: 100, used: 50 }, { purchased: 0, used: 25 }]);
+    expect(barShares([{ purchased: "0.00", used: "0.00" }])).toEqual([{ purchased: 0, used: 0 }]);
+    expect(barShares([])).toEqual([]);
+  });
+  it("exports a CSV Excel can open, quoting commas and defusing formulas", () => {
+    const report = parseStockReport({ ...raw, items: [{ ...raw.items[0], name: '=HYPERLINK("x")' }, { ...raw.items[1], name: 'ورق, A4 "80"' }] });
+    const csv = stockReportCsv(report?.rows ?? [], ["الصنف", "الوحدة"]);
+    expect(csv.startsWith("﻿")).toBe(true);
+    expect(csv.split("\r\n")[0]).toBe("﻿الصنف,الوحدة");
+    expect(csv).toContain('"\'=HYPERLINK(""x"")"'); // a leading = is neutralised, then quoted
+    expect(csv).toContain('"ورق, A4 ""80"""'); // commas and quotes are escaped
+    expect(csv.split("\r\n")[1]).toContain(",20.00,10.00,"); // numbers stay plain numbers
   });
 });

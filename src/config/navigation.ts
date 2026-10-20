@@ -1,4 +1,4 @@
-import {
+import { BarChart3,
   Activity,
   BellRing,
   ArrowLeftRight,
@@ -99,6 +99,7 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "financeOverview", label: "nav.financeOverview", href: "/dashboard/finance", icon: Wallet, capability: CAPABILITIES.finance },
       { key: "financeJobs", label: "nav.financeJobs", href: "/dashboard/finance/jobs", icon: ReceiptText, capability: CAPABILITIES.printing },
       { key: "financeStock", label: "nav.financeStock", href: "/dashboard/finance/stock", icon: Boxes, capability: CAPABILITIES.printing },
+      { key: "financeStockReport", label: "nav.financeStockReport", href: "/dashboard/finance/stock-report", icon: BarChart3, capability: CAPABILITIES.finance },
       { key: "financeExpenses", label: "nav.financeExpenses", href: "/dashboard/finance/expenses", icon: Receipt, capability: CAPABILITIES.finance },
       { key: "financeRates", label: "nav.financeRates", href: "/dashboard/finance/rates", icon: ArrowLeftRight, capability: CAPABILITIES.finance },
     ],

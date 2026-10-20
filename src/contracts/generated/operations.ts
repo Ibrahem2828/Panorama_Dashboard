@@ -821,6 +821,15 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/finance/stock-report/",
+    "operationId": "v1_dashboard_finance_stock_report_retrieve",
+    "tags": [
+      "Dashboard finance"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/finance/summary/",
     "operationId": "v1_dashboard_finance_summary_retrieve",
     "tags": [
