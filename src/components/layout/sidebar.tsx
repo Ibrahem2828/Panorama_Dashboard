@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import type { Locale } from "@/config/constants";
 import { navigationGroups } from "@/config/navigation";
 import { CONTRACT_META } from "@/contracts/generated/contract-meta";
+import { useLowStockCount } from "@/features/finance/low-stock";
 import { usePreferences } from "@/features/preferences";
 import { useSession } from "@/features/session";
 import { useI18n } from "@/i18n/provider";
@@ -25,6 +26,7 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
   const pathname = usePathname();
   const collapsed = usePreferences((state) => state.sidebarCollapsed) && !mobile;
   const toggle = usePreferences((state) => state.toggleSidebar);
+  const lowStock = useLowStockCount();
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -63,8 +65,17 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
                       {active ? <span className="absolute inset-y-2 start-0 w-1 rounded-e-full bg-gold" /> : null}
                       <Icon className={cn("size-[18px] shrink-0 transition-transform group-hover:scale-105", active && "text-primary")} />
                       {!collapsed ? <span className="truncate">{t(item.label)}</span> : null}
+                      {item.key === "financeStock" && lowStock > 0 ? (
+                        <span
+                          className={cn("flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white", collapsed ? "absolute end-1 top-1 min-w-4 px-1" : "ms-auto")}
+                          aria-label={t("lowStock.badge", { count: lowStock })}
+                          title={t("lowStock.badge", { count: lowStock })}
+                        >
+                          {lowStock}
+                        </span>
+                      ) : null}
                       {!collapsed && item.badge ? <span className="ms-auto rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">{t(item.badge)}</span> : null}
-                      {!collapsed && active ? (direction === "rtl" ? <ChevronLeft className={cn("size-4", !item.badge && "ms-auto")} /> : <ChevronRight className={cn("size-4", !item.badge && "ms-auto")} />) : null}
+                      {!collapsed && active ? (direction === "rtl" ? <ChevronLeft className={cn("size-4", !item.badge && !(item.key === "financeStock" && lowStock > 0) && "ms-auto")} /> : <ChevronRight className={cn("size-4", !item.badge && !(item.key === "financeStock" && lowStock > 0) && "ms-auto")} />) : null}
                     </Link>
                   );
                   return collapsed ? (

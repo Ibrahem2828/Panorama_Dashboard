@@ -113,7 +113,10 @@ function OrderDialog({ order, onClose }: { order: PrintOrder; onClose: () => voi
 
   const mutateKey = useIdempotencyKey();
   const mutateError = useMutationError(mutateKey);
-  const refresh = () => void queryClient.invalidateQueries({ queryKey: ["printing-orders"] });
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: ["printing-orders"] });
+    void queryClient.invalidateQueries({ queryKey: ["finance-stock"] }); // delivering an order deducts stock
+  };
   const mutate = useMutation({
     mutationFn: async (override?: { status: string }) => {
       const send = (path: string, httpMethod: "PATCH" | "POST", body: Record<string, unknown>) =>
