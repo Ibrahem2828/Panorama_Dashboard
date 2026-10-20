@@ -386,3 +386,136 @@ export function newlyLow<T extends LowStockItem>(previous: ReadonlySet<number> |
   if (previous === null) return [];
   return current.filter((item) => !previous.has(item.id));
 }
+
+// --- monthly stock report ---------------------------------------------------------------------------------------------
+
+export const STOCK_REPORT_PATH = "/api/v1/dashboard/finance/stock-report/";
+
+/** "2026-10" for a date: the month the report opens on. */
+export function monthOf(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** The month `delta` months from `month` ("2026-01", -1 -> "2025-12"); null when `month` is not YYYY-MM. */
+export function shiftMonth(month: string, delta: number): string | null {
+  const match = /^(\d{4})-(\d{2})$/u.exec(month);
+  if (!match || Number(match[2]) < 1 || Number(match[2]) > 12) return null;
+  const index = Number(match[1]) * 12 + (Number(match[2]) - 1) + delta;
+  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
+}
+
+export function isFutureMonth(month: string, now: Date = new Date()): boolean {
+  return month > monthOf(now);
+}
+
+export interface StockReportRow {
+  id: number;
+  name: string;
+  category: string;
+  unit: string;
+  opening: string;
+  purchased: string;
+  purchaseCost: Partial<Record<FinanceCurrency, string>>;
+  used: string;
+  usedByOrders: string;
+  usedByHand: string;
+  waste: string;
+  adjustment: string;
+  closing: string;
+  isLow: boolean;
+  dailyUsage: string | null;
+  daysLeft: number | null;
+  suggestedPurchase: string | null;
+}
+
+export interface StockReport {
+  month: string;
+  daysElapsed: number;
+  coverDays: number;
+  rows: StockReportRow[];
+  purchaseCost: Partial<Record<FinanceCurrency, string>>;
+  ordersDelivered: number;
+  sheetsPrinted: number;
+  itemsLow: number;
+}
+
+function amountText(value: unknown, fallback = "0.00"): string {
+  const minor = toMinor(value);
+  return minor === null ? fallback : fromMinor(minor);
+}
+
+function optionalNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function costMap(raw: unknown): Partial<Record<FinanceCurrency, string>> {
+  const result: Partial<Record<FinanceCurrency, string>> = {};
+  if (typeof raw === "object" && raw !== null) {
+    for (const [currency, amount] of Object.entries(raw)) if (isFinanceCurrency(currency) && toMinor(amount) !== null) result[currency] = amountText(amount);
+  }
+  return result;
+}
+
+/** The monthly report from the API, with every number checked: an unexpected shape gives null instead of a broken table. */
+export function parseStockReport(raw: unknown): StockReport | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const data = raw as Record<string, unknown>;
+  if (typeof data.month !== "string" || !Array.isArray(data.items)) return null;
+  const totals = (typeof data.totals === "object" && data.totals !== null ? data.totals : {}) as Record<string, unknown>;
+  const rows = data.items.flatMap((entry): StockReportRow[] => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const item = entry as Record<string, unknown>;
+    if (typeof item.id !== "number" || typeof item.name !== "string") return [];
+    const daily = optionalNumber(item.daily_usage);
+    const suggested = optionalNumber(item.suggested_purchase);
+    return [{
+      id: item.id, name: item.name, category: typeof item.category === "string" ? item.category : "other", unit: typeof item.unit === "string" ? item.unit : "",
+      opening: amountText(item.opening), purchased: amountText(item.purchased), purchaseCost: costMap(item.purchase_cost), used: amountText(item.used),
+      usedByOrders: amountText(item.used_by_orders), usedByHand: amountText(item.used_by_hand), waste: amountText(item.waste), adjustment: amountText(item.adjustment), closing: amountText(item.closing),
+      isLow: item.is_low === true, dailyUsage: daily === null ? null : String(daily), daysLeft: optionalNumber(item.days_left),
+      suggestedPurchase: suggested === null ? null : amountText(suggested),
+    }];
+  });
+  return {
+    month: data.month,
+    daysElapsed: optionalNumber(data.days_elapsed) ?? 0,
+    coverDays: optionalNumber(data.cover_days) ?? 30,
+    rows,
+    purchaseCost: costMap(totals.purchase_cost),
+    ordersDelivered: optionalNumber(totals.orders_delivered) ?? 0,
+    sheetsPrinted: optionalNumber(totals.sheets_printed) ?? 0,
+    itemsLow: optionalNumber(totals.items_low) ?? 0,
+  };
+}
+
+export type StockCoverState = "out" | "critical" | "soon" | "ok" | "unknown";
+
+/** How worried to be about an item: out of stock, under a week of cover, under two, fine, or not enough usage data to say. */
+export function stockCover(row: Pick<StockReportRow, "closing" | "daysLeft">): StockCoverState {
+  if ((toMinor(row.closing) ?? 0) <= 0) return "out";
+  if (row.daysLeft === null) return "unknown";
+  if (row.daysLeft < 7) return "critical";
+  return row.daysLeft < 14 ? "soon" : "ok";
+}
+
+/** Bar lengths (0-100) for purchases and usage, both measured against the biggest figure of the month so rows compare. */
+export function barShares(rows: readonly Pick<StockReportRow, "purchased" | "used">[]): { purchased: number; used: number }[] {
+  const peak = Math.max(0, ...rows.flatMap((row) => [toMinor(row.purchased) ?? 0, toMinor(row.used) ?? 0]));
+  const share = (value: string) => (peak > 0 ? Math.round(((toMinor(value) ?? 0) / peak) * 100) : 0);
+  return rows.map((row) => ({ purchased: share(row.purchased), used: share(row.used) }));
+}
+
+/** CSV (with a BOM so Excel reads Arabic) of the report; `labels` are the column titles in the user's language. */
+export function stockReportCsv(rows: readonly StockReportRow[], labels: readonly string[]): string {
+  const cell = (value: string | number | null) => {
+    const textValue = value === null ? "" : String(value);
+    // A cell that starts like a formula is neutralised so a stock name cannot run in a spreadsheet.
+    const safe = /^[=+\-@\t\r]/u.test(textValue) && !/^-?\d+(?:\.\d+)?$/u.test(textValue) ? `'${textValue}` : textValue;
+    return /[",\n\r]/u.test(safe) ? `"${safe.replace(/"/gu, '""')}"` : safe;
+  };
+  const lines = [labels.map(cell).join(",")];
+  for (const row of rows) {
+    lines.push([row.name, row.unit, row.opening, row.purchased, row.used, row.usedByOrders, row.usedByHand, row.waste, row.adjustment, row.closing, row.dailyUsage, row.daysLeft, row.suggestedPurchase].map(cell).join(","));
+  }
+  return `﻿${lines.join("\r\n")}\r\n`;
+}

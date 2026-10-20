@@ -4022,6 +4022,7 @@ export const OPERATION_PATHS = {
   "v1_dashboard_finance_inventory_items_partial_update": "/api/v1/dashboard/finance/inventory-items/{id}/",
   "v1_dashboard_finance_inventory_items_destroy": "/api/v1/dashboard/finance/inventory-items/{id}/",
   "v1_dashboard_finance_payments_void_create": "/api/v1/dashboard/finance/payments/{id}/void/",
+  "v1_dashboard_finance_stock_report_retrieve": "/api/v1/dashboard/finance/stock-report/",
   "v1_dashboard_finance_summary_retrieve": "/api/v1/dashboard/finance/summary/",
   "v1_dashboard_group_memberships_approve_create": "/api/v1/dashboard/group-memberships/{id}/approve/",
   "v1_dashboard_group_memberships_block_create": "/api/v1/dashboard/group-memberships/{id}/block/",
