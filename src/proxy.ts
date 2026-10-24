@@ -4,7 +4,7 @@ import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from "@/config/constan
 /** Canonical destinations for routes that existed before locale-scoped routing. */
 const LEGACY_ROUTE_ALIASES: Readonly<Record<string, string>> = {
   "/login": "/login",
-  "/forgot-password": "/login",
+  "/forgot-password": "/forgot-password",
   "/academic": "/dashboard/academic",
   "/academic/academic-years": "/dashboard/academic/academic-years",
   "/academic/faculties": "/dashboard/academic/faculties",

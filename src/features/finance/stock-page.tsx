@@ -24,7 +24,7 @@ import { Switch } from "@/components/ui/switch";
 import { RESOURCE_DEFINITIONS } from "@/contracts/generated/resource-definitions";
 import type { ResourceDefinition } from "@/contracts/types";
 import {
-  FINANCE_CURRENCIES, FINANCE_PATHS, INVENTORY_CATEGORIES, formatPerUse, formatQuantity, groupByCategory, movementBody, purchaseTotal, quantityAfter,
+  FINANCE_CURRENCIES, FINANCE_PATHS, INVENTORY_CATEGORIES, WASTE_REASONS, formatPerUse, formatQuantity, groupByCategory, movementBody, purchaseTotal, quantityAfter,
   stockHistoryPath, stockMovementsPath, formatMoney, type AdjustmentDirection, type FinanceCurrency, type MovementType,
 } from "@/features/finance/finance-rules";
 import { createResource, deleteResource, updateResource, type EntityRecord } from "@/features/resources/resource-api";
@@ -81,10 +81,11 @@ function MovementDialog({ item, type, onClose }: { item: StockItem; type: Moveme
   const [currency, setCurrency] = useState<FinanceCurrency>(item.currency === "USD" ? "USD" : "SYP");
   const [recordExpense, setRecordExpense] = useState(false);
   const [note, setNote] = useState("");
+  const [wasteReason, setWasteReason] = useState<(typeof WASTE_REASONS)[number] | "">("");
   const [touched, setTouched] = useState(false);
   const keys = useIdempotencyKey();
   const keyError = useMutationError(keys);
-  const body = movementBody({ type, quantity, direction, unitCost, currency, note, recordExpense });
+  const body = movementBody({ type, quantity, direction, unitCost, currency, note, recordExpense, wasteReason });
   const quantityBody = movementBody({ type: type === "purchase" ? "usage" : type, quantity, direction });
   const quantityOk = quantityBody !== null;
   const costOk = type !== "purchase" || movementBody({ type, quantity: "1", unitCost }) !== null;
@@ -152,6 +153,18 @@ function MovementDialog({ item, type, onClose }: { item: StockItem; type: Moveme
                 <Switch id="move-expense" checked={recordExpense} onCheckedChange={setRecordExpense} />
               </div>
             </>
+          ) : null}
+          {type === "waste" ? (
+            <div className="space-y-2">
+              <Label htmlFor="move-waste-reason">{t("finance.move.wasteReason")}</Label>
+              <Select value={wasteReason || "none"} onValueChange={(value) => setWasteReason(value === "none" ? "" : (value as (typeof WASTE_REASONS)[number]))}>
+                <SelectTrigger id="move-waste-reason"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t("finance.move.wasteReasonNone")}</SelectItem>
+                  {WASTE_REASONS.map((reason) => <SelectItem key={reason} value={reason}>{t(`finance.waste.${reason}` as MessageKey)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           ) : null}
           <div className="space-y-2">
             <Label htmlFor="move-note">{t("finance.move.note")}</Label>

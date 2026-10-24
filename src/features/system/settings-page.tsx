@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
+import { ChangePasswordForm } from "@/features/auth/public-auth";
 import { usePreferences } from "@/features/preferences";
 import { useI18n } from "@/i18n/provider";
 
@@ -53,6 +54,10 @@ export function SettingsPage() {
                 <Button variant={density === "compact" ? "default" : "outline"} className="h-20 flex-col" onClick={() => setDensity("compact")}><TableProperties />{t("settings.compact")}</Button>
               </div>
             </CardContent>
+          </Card>
+          <Card className="lg:col-span-2">
+            <CardHeader><CardTitle>{t("publicAuth.changePassword")}</CardTitle><CardDescription>{t("publicAuth.changeSubtitle")}</CardDescription></CardHeader>
+            <CardContent className="max-w-md"><ChangePasswordForm /></CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>{t("settings.reduceMotion")}</CardTitle><CardDescription>{t("settings.motionNote")}</CardDescription></CardHeader>

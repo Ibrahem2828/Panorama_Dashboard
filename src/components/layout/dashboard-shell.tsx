@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { AccessDenied } from "@/components/feedback/access-denied";
 import { BackendReadinessBanner } from "@/components/layout/backend-readiness-banner";
@@ -34,7 +35,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const collapsed = usePreferences((state) => state.sidebarCollapsed);
   const { session } = useSessionState();
   const pathname = usePathname();
+  const router = useRouter();
+  const mustChange = session?.user.must_change_password === true;
+  const onChangeScreen = /\/dashboard\/change-password\/?$/u.test(pathname);
+  const locale = pathname.split("/")[1] === "en" ? "en" : "ar";
+  // An account created with a temporary password may only change it until it has done so.
+  useEffect(() => {
+    if (mustChange && !onChangeScreen) router.replace(`/${locale}/dashboard/change-password`);
+  }, [mustChange, onChangeScreen, router, locale]);
   if (!session) return <DashboardShellSkeleton />;
+  if (mustChange && !onChangeScreen) return <DashboardShellSkeleton />;
   const requiredCapability = capabilityForDashboardPath(pathname);
   if (requiredCapability && !hasCapability(session.effectiveCapabilities, requiredCapability)) return <AccessDenied />;
 
