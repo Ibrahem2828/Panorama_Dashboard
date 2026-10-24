@@ -1,12 +1,15 @@
 "use client";
 
-import { Eye } from "lucide-react";
+import { Eye, Layers, UploadCloud } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import type { ResourceColumn } from "@/components/data-grid/resource-table";
 import { RelationValue } from "@/components/shared/relation-value";
 import { Ltr } from "@/components/shared/ltr";
 import { StatusPill } from "@/components/shared/status-pill";
+import { BulkUploadDialog } from "@/features/files/bulk-upload";
+import { Button } from "@/components/ui/button";
 import { FilePreviewDialog, type PreviewTarget } from "@/features/files/file-preview-dialog";
 import { protectedSources } from "@/features/files/protected-preview";
 import type { FieldOverride } from "@/features/resources/form-schema";
@@ -22,6 +25,7 @@ export const FILE_VISIBILITIES = ["public", "students_only", "verified_students_
 export function FilesPage() {
   const { t, tOr, locale, enumLabel } = useI18n();
   const [preview, setPreview] = useState<PreviewTarget | null>(null);
+  const [bulk, setBulk] = useState(false);
 
   const columns = useMemo<ResourceColumn[]>(() => [
     { key: "id", label: "#" },
@@ -63,10 +67,15 @@ export function FilesPage() {
         capability={CAPABILITIES.files}
         columns={columns}
         customRowActions={customRowActions}
+        extraActions={<>
+          <Button asChild variant="outline"><Link href={`/${locale}/dashboard/files/templates`}><Layers className="size-4" />{t("files.templates.title")}</Link></Button>
+          <Button variant="outline" onClick={() => setBulk(true)}><UploadCloud className="size-4" />{t("files.bulk.title")}</Button>
+        </>}
         filters={filters}
         createLabel={t("files.upload")}
         formOverrides={(mode): Record<string, FieldOverride> => (mode === "edit" ? { file: { hint: "files.replaceHint", required: false } } : {})}
       />
+      {bulk ? <BulkUploadDialog onClose={() => setBulk(false)} /> : null}
       <FilePreviewDialog target={preview} onOpenChange={(open) => { if (!open) setPreview(null); }} />
     </>
   );

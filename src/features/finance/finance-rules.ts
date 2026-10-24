@@ -15,6 +15,8 @@ export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number];
 export const EXPENSE_CATEGORIES = ["supplies", "equipment", "maintenance", "salaries", "rent", "utilities", "transport", "other"] as const;
 export const PAYMENT_METHODS = ["cash", "bank_transfer", "mobile_wallet", "other"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+export const WASTE_REASONS = ["jam", "misprint", "damaged", "expired", "lost", "other"] as const;
+export type WasteReason = (typeof WASTE_REASONS)[number];
 export const MOVEMENT_TYPES = ["purchase", "usage", "waste", "adjustment"] as const;
 export type MovementType = (typeof MOVEMENT_TYPES)[number];
 
@@ -269,6 +271,7 @@ export interface MovementInput {
   currency?: FinanceCurrency;
   note?: string;
   recordExpense?: boolean;
+  wasteReason?: WasteReason | "";
 }
 
 /** Request body of POST stock/{id}/movements/; null when the quantity (or a purchase's unit cost) is not valid. */
@@ -278,6 +281,7 @@ export function movementBody(input: MovementInput): Record<string, unknown> | nu
   if (quantity === null) return null;
   const body: Record<string, unknown> = { movement_type: input.type, quantity };
   if (input.note?.trim()) body.note = input.note.trim();
+  if (input.type === "waste" && input.wasteReason) body.waste_reason = input.wasteReason;
   if (input.type === "purchase") {
     const cost = (input.unitCost ?? "").trim();
     if (!/^\d+(?:\.\d{1,2})?$/u.test(cost)) return null;
@@ -427,6 +431,7 @@ export interface StockReportRow {
   usedByOrders: string;
   usedByHand: string;
   waste: string;
+  wasteByReason: Record<string, string>;
   adjustment: string;
   closing: string;
   isLow: boolean;
@@ -444,6 +449,12 @@ export interface StockReport {
   ordersDelivered: number;
   sheetsPrinted: number;
   itemsLow: number;
+}
+
+function wasteMap(raw: unknown): Record<string, string> {
+  const result: Record<string, string> = {};
+  if (raw && typeof raw === "object") for (const [reason, amount] of Object.entries(raw)) if (toMinor(amount) !== null) result[reason] = amountText(amount);
+  return result;
 }
 
 function amountText(value: unknown, fallback = "0.00"): string {
@@ -478,7 +489,7 @@ export function parseStockReport(raw: unknown): StockReport | null {
     return [{
       id: item.id, name: item.name, category: typeof item.category === "string" ? item.category : "other", unit: typeof item.unit === "string" ? item.unit : "",
       opening: amountText(item.opening), purchased: amountText(item.purchased), purchaseCost: costMap(item.purchase_cost), used: amountText(item.used),
-      usedByOrders: amountText(item.used_by_orders), usedByHand: amountText(item.used_by_hand), waste: amountText(item.waste), adjustment: amountText(item.adjustment), closing: amountText(item.closing),
+      usedByOrders: amountText(item.used_by_orders), usedByHand: amountText(item.used_by_hand), waste: amountText(item.waste), wasteByReason: wasteMap(item.waste_by_reason), adjustment: amountText(item.adjustment), closing: amountText(item.closing),
       isLow: item.is_low === true, dailyUsage: daily === null ? null : String(daily), daysLeft: optionalNumber(item.days_left),
       suggestedPurchase: suggested === null ? null : amountText(suggested),
     }];
