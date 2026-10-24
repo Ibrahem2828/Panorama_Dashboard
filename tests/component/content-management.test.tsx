@@ -83,7 +83,7 @@ describe("files page wiring", () => {
     granted.add("files.manage");
     render(wrap(<FilesPage />));
     expect(captured.createLabel).toBe("Upload file");
-    expect(captured.filters.map((filter) => filter.param)).toEqual(["visibility", "is_active", "is_printable"]);
+    expect(captured.filters.map((filter) => filter.param)).toEqual(["visibility", "is_active", "is_printable", "processing_status"]);
     expect(captured.filters[0]?.options.map((option) => option.value)).toEqual(["public", "students_only", "verified_students_only", "major_only", "group_only", "admin_only"]);
   });
 

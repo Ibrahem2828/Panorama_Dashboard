@@ -112,10 +112,10 @@ export function FilesPage() {
   ], [t]);
 
   const filters = useMemo<ManagerFilter[]>(() => [
-    { param: "processing_status", label: t("filesProcessing.status"), options: PROCESSING_STATUSES.map((value) => ({ value, label: enumLabel(value) })) },
     { param: "visibility", label: t("field.visibility"), options: FILE_VISIBILITIES.map((value) => ({ value, label: tOr(`enum.${value}`, value) })) },
     { param: "is_active", label: t("common.status"), options: [{ value: "true", label: t("common.active") }, { value: "false", label: t("common.inactive") }] },
     { param: "is_printable", label: t("field.is_printable"), options: [{ value: "true", label: t("common.yes") }, { value: "false", label: t("common.no") }] },
+    { param: "processing_status", label: t("filesProcessing.status"), options: PROCESSING_STATUSES.map((value) => ({ value, label: enumLabel(value) })) },
   ], [t, tOr, enumLabel]);
 
   return (
