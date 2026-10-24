@@ -173,6 +173,15 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/chat/unread/",
+    "operationId": "v1_chat_unread_retrieve",
+    "tags": [
+      "Chat"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/academic-years/",
     "operationId": "v1_dashboard_academic_years_list",
     "tags": [
@@ -344,6 +353,15 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/chat/groups/",
+    "operationId": "v1_dashboard_chat_groups_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/chat/reports/",
     "operationId": "v1_dashboard_chat_reports_list",
     "tags": [
@@ -391,6 +409,60 @@ export const API_OPERATIONS = [
     "method": "GET",
     "path": "/api/v1/dashboard/devices/stats/",
     "operationId": "v1_dashboard_devices_stats_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/enrollment/requests/",
+    "operationId": "v1_dashboard_enrollment_requests_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/enrollment/requests/{id}/",
+    "operationId": "v1_dashboard_enrollment_requests_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/enrollment/requests/{id}/decision/",
+    "operationId": "v1_dashboard_enrollment_requests_decision_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/enrollment/requests/{id}/screenshot-ticket/",
+    "operationId": "v1_dashboard_enrollment_requests_screenshot_ticket_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/enrollment/requests/bulk-decision/",
+    "operationId": "v1_dashboard_enrollment_requests_bulk_decision_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/enrollment/summary/",
+    "operationId": "v1_dashboard_enrollment_summary_retrieve",
     "tags": [
       "Dashboard"
     ],
@@ -1271,6 +1343,60 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/printing/covers/",
+    "operationId": "v1_dashboard_printing_covers_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/covers/",
+    "operationId": "v1_dashboard_printing_covers_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/covers/{id}/",
+    "operationId": "v1_dashboard_printing_covers_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/printing/covers/{id}/",
+    "operationId": "v1_dashboard_printing_covers_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/printing/covers/{id}/",
+    "operationId": "v1_dashboard_printing_covers_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/printing/covers/{id}/",
+    "operationId": "v1_dashboard_printing_covers_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/printing/jobs/",
     "operationId": "v1_dashboard_printing_jobs_list",
     "tags": [
@@ -1318,6 +1444,15 @@ export const API_OPERATIONS = [
     "method": "POST",
     "path": "/api/v1/dashboard/printing/orders/{id}/note/",
     "operationId": "v1_dashboard_printing_orders_note_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/orders/{id}/print-jobs/",
+    "operationId": "v1_dashboard_printing_orders_print_jobs_create",
     "tags": [
       "Dashboard"
     ],
@@ -1469,6 +1604,105 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/printing/print-jobs/",
+    "operationId": "v1_dashboard_printing_print_jobs_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/print-jobs/{id}/",
+    "operationId": "v1_dashboard_printing_print_jobs_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/print-jobs/{id}/file/",
+    "operationId": "v1_dashboard_printing_print_jobs_file_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/print-jobs/{id}/retry/",
+    "operationId": "v1_dashboard_printing_print_jobs_retry_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/printing/print-jobs/{id}/status/",
+    "operationId": "v1_dashboard_printing_print_jobs_status_partial_update",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/products/",
+    "operationId": "v1_dashboard_printing_products_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/products/",
+    "operationId": "v1_dashboard_printing_products_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/products/{id}/",
+    "operationId": "v1_dashboard_printing_products_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/printing/products/{id}/",
+    "operationId": "v1_dashboard_printing_products_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/printing/products/{id}/",
+    "operationId": "v1_dashboard_printing_products_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/printing/products/{id}/",
+    "operationId": "v1_dashboard_printing_products_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/printing/stock/",
     "operationId": "v1_dashboard_printing_stock_list",
     "tags": [
@@ -1518,6 +1752,60 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_printing_stock_movements_create",
     "tags": [
       "Dashboard finance"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/wire-specs/",
+    "operationId": "v1_dashboard_printing_wire_specs_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/wire-specs/",
+    "operationId": "v1_dashboard_printing_wire_specs_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/wire-specs/{id}/",
+    "operationId": "v1_dashboard_printing_wire_specs_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/printing/wire-specs/{id}/",
+    "operationId": "v1_dashboard_printing_wire_specs_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/printing/wire-specs/{id}/",
+    "operationId": "v1_dashboard_printing_wire_specs_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/printing/wire-specs/{id}/",
+    "operationId": "v1_dashboard_printing_wire_specs_destroy",
+    "tags": [
+      "v1"
     ],
     "authenticated": true
   },
@@ -1626,6 +1914,60 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_semesters_destroy",
     "tags": [
       "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/shop/items/",
+    "operationId": "v1_dashboard_shop_items_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/shop/items/{id}/",
+    "operationId": "v1_dashboard_shop_items_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/shop/sales/",
+    "operationId": "v1_dashboard_shop_sales_list",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/shop/sales/{id}/",
+    "operationId": "v1_dashboard_shop_sales_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/shop/sales/create/",
+    "operationId": "v1_dashboard_shop_sales_create_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/shop/sales/report/",
+    "operationId": "v1_dashboard_shop_sales_report_retrieve",
+    "tags": [
+      "Dashboard"
     ],
     "authenticated": true
   },
@@ -2000,6 +2342,51 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/enrollment-screenshot-access/{token}/",
+    "operationId": "v1_enrollment_screenshot_access_retrieve",
+    "tags": [
+      "Protected Assets"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/enrollment/requests/",
+    "operationId": "v1_enrollment_requests_list",
+    "tags": [
+      "Enrollment"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/enrollment/requests/",
+    "operationId": "v1_enrollment_requests_create",
+    "tags": [
+      "Enrollment"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/enrollment/requests/{id}/cancel/",
+    "operationId": "v1_enrollment_requests_cancel_create",
+    "tags": [
+      "Enrollment"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/enrollment/subjects/",
+    "operationId": "v1_enrollment_subjects_list",
+    "tags": [
+      "Enrollment"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/external-channels/open/{token}/",
     "operationId": "v1_external_channels_open_retrieve",
     "tags": [
@@ -2153,6 +2540,33 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/groups/{group_id}/chat/preferences/",
+    "operationId": "v1_groups_chat_preferences_retrieve",
+    "tags": [
+      "Chat"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/groups/{group_id}/chat/preferences/",
+    "operationId": "v1_groups_chat_preferences_update",
+    "tags": [
+      "Chat"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/groups/{group_id}/chat/receipts/",
+    "operationId": "v1_groups_chat_receipts_create",
+    "tags": [
+      "Chat"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/groups/{group_id}/messages/",
     "operationId": "v1_groups_messages_list",
     "tags": [
@@ -2182,6 +2596,24 @@ export const API_OPERATIONS = [
     "method": "DELETE",
     "path": "/api/v1/groups/{group_id}/messages/{message_id}/delete/",
     "operationId": "v1_groups_messages_delete_destroy",
+    "tags": [
+      "Chat"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/groups/{group_id}/messages/{message_id}/reaction/",
+    "operationId": "v1_groups_messages_reaction_update",
+    "tags": [
+      "Chat"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/groups/{group_id}/messages/{message_id}/reaction/",
+    "operationId": "v1_groups_messages_reaction_destroy",
     "tags": [
       "Chat"
     ],
@@ -2683,6 +3115,15 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "GET",
+    "path": "/api/v1/printing/options/",
+    "operationId": "v1_printing_options_retrieve",
+    "tags": [
+      "Printing"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "POST",
     "path": "/api/v1/printing/orders/",
     "operationId": "v1_printing_orders_create",
@@ -2731,6 +3172,24 @@ export const API_OPERATIONS = [
     "method": "GET",
     "path": "/api/v1/printing/pickup-locations/{id}/",
     "operationId": "v1_printing_pickup_locations_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/printing/products/",
+    "operationId": "v1_printing_products_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/printing/products/{id}/",
+    "operationId": "v1_printing_products_retrieve",
     "tags": [
       "v1"
     ],

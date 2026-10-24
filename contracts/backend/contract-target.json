@@ -1,7 +1,7 @@
 {
   "canonicalSource": "docs/api/openapi.json",
-  "sha256": "ad33fe9b659fefd1041effe12020dfd1652ed64d86e692c3f950acdabcc3f14e",
-  "pathCount": 227,
-  "operationCount": 329,
-  "schemaCount": 274
+  "sha256": "e46ea2b6e0eebf54f58d504526c8cb35029d535590f7d354fa37abfbd4c0d218",
+  "pathCount": 263,
+  "operationCount": 380,
+  "schemaCount": 320
 }

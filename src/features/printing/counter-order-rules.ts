@@ -29,12 +29,15 @@ export interface CounterLine {
   sides: Sides;
   binding: Binding;
   bindingNote: string;
+  /** A ready-made product: its specification and fixed price are used and the options above are ignored. */
+  productId: number | null;
+  productName: string;
 }
 
 let counter = 0;
 export function newLine(): CounterLine {
   counter += 1;
-  return { key: `line-${Date.now().toString(36)}-${counter}`, title: "", pages: "", copies: "1", colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", bindingNote: "" };
+  return { key: `line-${Date.now().toString(36)}-${counter}`, title: "", pages: "", copies: "1", colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", bindingNote: "", productId: null, productName: "" };
 }
 
 /** A positive whole number within bounds, or null. */
@@ -49,8 +52,9 @@ export interface LineProblems { pages?: boolean; copies?: boolean; bindingNote?:
 
 export function lineProblems(line: CounterLine): LineProblems {
   const problems: LineProblems = {};
-  if (wholeNumber(line.pages, COUNTER_MAX_PAGES) === null) problems.pages = true;
   if (wholeNumber(line.copies, COUNTER_MAX_COPIES) === null) problems.copies = true;
+  if (line.productId !== null) return problems;
+  if (wholeNumber(line.pages, COUNTER_MAX_PAGES) === null) problems.pages = true;
   if (line.binding === "other" && !line.bindingNote.trim()) problems.bindingNote = true;
   return problems;
 }
@@ -61,6 +65,7 @@ export function lineIsValid(line: CounterLine): boolean {
 
 /** Physical sheets for all copies: a double-sided sheet carries two pages. */
 export function lineSheets(line: CounterLine): number | null {
+  if (line.productId !== null) return null; // the sheets of a product come from its specification, on the server
   const pages = wholeNumber(line.pages, COUNTER_MAX_PAGES);
   const copies = wholeNumber(line.copies, COUNTER_MAX_COPIES);
   if (pages === null || copies === null) return null;
@@ -68,6 +73,7 @@ export function lineSheets(line: CounterLine): number | null {
 }
 
 export function itemBody(line: CounterLine): Record<string, unknown> {
+  if (line.productId !== null) return { product: line.productId, copies: Number(line.copies) };
   const body: Record<string, unknown> = {
     pages_count: Number(line.pages),
     copies: Number(line.copies),
