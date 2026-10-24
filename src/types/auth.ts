@@ -13,6 +13,8 @@ export interface SessionUser {
   effective_capabilities?: unknown;
   locale?: "ar" | "en";
   phone_number?: string;
+  /** True for accounts created with a temporary password: the dashboard sends them to the change-password screen first. */
+  must_change_password?: boolean;
 }
 
 export interface DashboardSession {

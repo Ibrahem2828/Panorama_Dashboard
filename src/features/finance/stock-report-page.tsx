@@ -18,6 +18,7 @@ import {
   stockCover, stockReportCsv, type StockCoverState, type StockReport, type StockReportRow,
 } from "@/features/finance/finance-rules";
 import { useI18n } from "@/i18n/provider";
+import type { MessageKey } from "@/i18n/messages";
 import { apiFetch, unwrap } from "@/lib/api/browser-client";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { cn, formatNumber } from "@/lib/utils";
@@ -95,7 +96,12 @@ function ReportTable({ report, rows, category }: { report: StockReport; rows: St
                       <span className="font-bold tabular-nums">{q(row.used)}</span>
                       {Number(row.used) > 0 ? <span className="block text-xs text-muted-foreground"><bdi>{t("stockReport.usedSplit", { orders: q(row.usedByOrders), hand: q(row.usedByHand) })}</bdi></span> : null}
                     </td>
-                    <td className="p-3 tabular-nums">{q(row.waste)}</td>
+                    <td className="p-3 tabular-nums">
+                      {q(row.waste)}
+                      {Object.keys(row.wasteByReason).length > 0 ? (
+                        <span className="block text-xs text-muted-foreground">{Object.entries(row.wasteByReason).map(([reason, amount]) => `${t(`finance.waste.${reason}` as MessageKey)}: ${q(amount)}`).join(" · ")}</span>
+                      ) : null}
+                    </td>
                     <td className="p-3 tabular-nums"><bdi dir="ltr">{Number(row.adjustment) > 0 ? "+" : ""}{q(row.adjustment)}</bdi></td>
                     <td className="p-3"><span className={cn("font-bold tabular-nums", state === "out" && "text-red-600 dark:text-red-400")}>{q(row.closing)}</span>{row.isLow ? <Badge variant="warning" className="ms-2 whitespace-nowrap">{t("finance.stock.low")}</Badge> : null}</td>
                     <td className="p-3 tabular-nums">{row.dailyUsage === null ? "—" : <bdi>{formatRate(row.dailyUsage, locale)}</bdi>}</td>

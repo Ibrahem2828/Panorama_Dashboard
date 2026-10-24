@@ -1,6 +1,8 @@
 "use client";
 
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [touched, setTouched] = useState(false);
   const login = useLogin();
+  const params = useParams<{ locale: string }>();
   const { t } = useI18n();
   const valid = identifier.trim().length >= 3 && password.length >= 8;
 
@@ -45,6 +48,7 @@ export function LoginForm() {
         </div>
         {touched && password.length < 8 ? <p className="text-xs text-destructive">{t("auth.passwordMinimum")}</p> : null}
       </div>
+      <div className="-mt-2 text-end"><Link href={`/${params.locale}/forgot-password`} className="text-xs font-semibold text-primary underline-offset-4 hover:underline">{t("auth.forgotPassword")}</Link></div>
       <Button type="submit" className="h-12 w-full rounded-xl brand-gradient text-white shadow-lg shadow-primary/15" isLoading={login.isPending} disabled={login.isPending}>
         {login.isPending ? t("auth.signingIn") : t("auth.signIn")}
       </Button>
