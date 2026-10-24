@@ -6,6 +6,8 @@ import { useCallback, useMemo, useState } from "react";
 import { Money } from "@/components/shared/money";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PrintOrderPreview } from "@/features/printing/print-order-preview";
+import { parseItemOptions } from "@/features/printing/print-options";
+import { SheetSimulation } from "@/features/printing/sheet-simulation";
 import { countLabel, parseOrderItems, prepProgress, summarizePrep } from "@/features/printing/print-order-rules";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
@@ -37,6 +39,7 @@ interface Pickup { name?: string; address?: string; instructions?: string }
 export function OrderItemsPanel({ orderId, items: rawItems, currency, pickup }: { orderId: number; items: unknown; currency: string; pickup?: Pickup | null }) {
   const { t, enumLabel, locale } = useI18n();
   const items = useMemo(() => parseOrderItems(rawItems), [rawItems]);
+  const rawList = useMemo(() => (Array.isArray(rawItems) ? (rawItems as Record<string, unknown>[]) : []), [rawItems]);
   const prep = useMemo(() => summarizePrep(items), [items]);
   // Mounted per order (see the `key` at the call site) and only after the cashier opens it, so reading storage here is safe.
   const [done, setDone] = useState<Set<string>>(() => loadDone(orderId));
@@ -117,6 +120,7 @@ export function OrderItemsPanel({ orderId, items: rawItems, currency, pickup }: 
                   {item.price !== null ? <Money value={item.price} currency={currency} /> : null}
                 </div>
                 <PrintOrderPreview item={item} pages={item.pages} />
+                <SheetSimulation item={{ pages: item.pages, copies: item.copies, sides: item.sides, options: parseItemOptions(rawList.find((entry) => entry.id === item.id) ?? {}) }} />
                 <dl className="grid grid-cols-3 gap-2 text-center text-xs">
                   {[[t("printing.copies"), item.copies], [t("printing.pages"), item.pages ?? "—"], [t("printing.sheets"), item.sheets ?? "—"]].map(([label, value]) => (
                     <div key={String(label)} className="rounded-lg bg-muted/40 py-2"><dt className="text-muted-foreground">{label}</dt><dd className="mt-0.5 text-sm font-bold"><bdi>{value}</bdi></dd></div>

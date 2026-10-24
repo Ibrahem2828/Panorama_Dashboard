@@ -25,7 +25,7 @@ import { Field, Segmented, type SegmentedOption } from "@/features/printing/segm
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { useI18n } from "@/i18n/provider";
-import { apiFetch, unwrap } from "@/lib/api/browser-client";
+import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
 import { payloadSignature } from "@/lib/api/idempotency";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { cn } from "@/lib/utils";
@@ -53,6 +53,15 @@ function Stepper({ id, value, onChange, max, invalid, label }: { id: string; val
   );
 }
 
+interface ShopProduct { id: number; name: string; price: string; currency: string }
+interface ShopBinding { code: string; name: string }
+
+function useShopCatalog() {
+  const products = useQuery({ queryKey: ["print-products-counter"], staleTime: 60_000, queryFn: async () => normalizeCollection<ShopProduct>(await apiFetch("/api/v1/printing/products/")) });
+  const options = useQuery({ queryKey: ["print-options-counter"], staleTime: 60_000, queryFn: async () => unwrap(apiFetch<{ data: { binding_types: ShopBinding[] } }>("/api/v1/printing/options/")) });
+  return { products: products.data?.results ?? [], bindings: options.data?.binding_types ?? [] };
+}
+
 function LineCard({ line, index, canRemove, quoteLine, currency, showErrors, onChange, onRemove }: {
   line: CounterLine; index: number; canRemove: boolean; quoteLine?: QuoteLine; currency: FinanceCurrency; showErrors: boolean;
   onChange: (patch: Partial<CounterLine>) => void; onRemove: () => void;
@@ -65,6 +74,29 @@ function LineCard({ line, index, canRemove, quoteLine, currency, showErrors, onC
   const paperOptions: SegmentedOption<CounterLine["paperSize"]>[] = COUNTER_PAPERS.map((value) => ({ value, label: value }));
   const bindingOptions: SegmentedOption<Binding>[] = COUNTER_BINDINGS.map((value) => ({ value, label: enumLabel(value), icon: BINDING_ICON[value] }));
   const id = `counter-${line.key}`;
+  const catalog = useShopCatalog();
+  const custom = catalog.bindings.filter((type) => !COUNTER_BINDINGS.includes(type.code));
+  const bindingChoices: SegmentedOption<Binding>[] = [...bindingOptions, ...custom.map((type) => ({ value: type.code, label: type.name || type.code, icon: <BookMarked className="size-4" /> }))];
+  if (line.productId !== null) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 pb-3">
+          <CardTitle className="text-base">{t("counter.itemN", { number: index + 1 })} · {t("counter.productLine")}</CardTitle>
+          <div className="flex gap-1">
+            <Button type="button" variant="outline" size="sm" onClick={() => onChange({ productId: null, productName: "", title: "" })}>{t("counter.productClear")}</Button>
+            {canRemove ? <Button type="button" variant="ghost" size="icon" className="size-10 text-destructive hover:text-destructive" aria-label={t("counter.removeItem", { number: index + 1 })} onClick={onRemove}><Trash2 /></Button> : null}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="font-semibold" dir="auto">{line.productName}</p>
+          <Field label={t("counter.copies")} htmlFor={`${id}-copies`} error={showErrors && problems.copies ? t("counter.copiesProblem", { max: COUNTER_MAX_COPIES }) : null}>
+            <Stepper id={`${id}-copies`} value={line.copies} onChange={(copies) => onChange({ copies })} max={COUNTER_MAX_COPIES} invalid={showErrors && Boolean(problems.copies)} label={t("counter.copies")} />
+          </Field>
+          {quoteLine?.subtotal ? <p className="rounded-xl bg-muted/50 px-3 py-2 text-sm font-bold">{t("counter.linePrice", { price: formatMoney(quoteLine.subtotal, currency, locale) })}</p> : null}
+        </CardContent>
+      </Card>
+    );
+  }
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 pb-3">
@@ -73,6 +105,14 @@ function LineCard({ line, index, canRemove, quoteLine, currency, showErrors, onC
       </CardHeader>
       <CardContent className="grid gap-6 md:grid-cols-[minmax(0,1fr)_17rem]">
         <div className="min-w-0 space-y-5">
+          {catalog.products.length > 0 ? (
+            <Field label={t("counter.productPick")} htmlFor={`${id}-product`} optional={t("counter.optional")}>
+              <select id={`${id}-product`} className="h-11 w-full rounded-md border bg-background px-3 text-sm" value="" onChange={(event) => { const product = catalog.products.find((entry) => String(entry.id) === event.target.value); if (product) onChange({ productId: product.id, productName: product.name, title: product.name }); }}>
+                <option value="">{t("counter.productNone")}</option>
+                {catalog.products.map((product) => <option key={product.id} value={product.id}>{product.name} — {product.price} {product.currency}</option>)}
+              </select>
+            </Field>
+          ) : null}
           <Field label={t("counter.itemTitle")} htmlFor={`${id}-title`} optional={t("counter.optional")}>
             <Input id={`${id}-title`} value={line.title} maxLength={255} onChange={(event) => onChange({ title: event.target.value })} placeholder={t("counter.itemTitlePlaceholder")} className="h-11" />
           </Field>
@@ -87,7 +127,7 @@ function LineCard({ line, index, canRemove, quoteLine, currency, showErrors, onC
           <Segmented label={t("counter.color")} value={line.colorMode} options={colorOptions} onChange={(colorMode) => onChange({ colorMode })} />
           <Segmented label={t("counter.sides")} value={line.sides} options={sideOptions} onChange={(sides) => onChange({ sides })} />
           <Segmented label={t("counter.paper")} value={line.paperSize} options={paperOptions} onChange={(paperSize) => onChange({ paperSize })} minItemRem={5} />
-          <Segmented label={t("counter.binding")} value={line.binding} options={bindingOptions} onChange={(binding) => onChange({ binding })} minItemRem={8} />
+          <Segmented label={t("counter.binding")} value={line.binding} options={bindingChoices} onChange={(binding) => onChange({ binding })} minItemRem={8} />
           {line.binding === "other" ? (
             <Field label={t("counter.bindingNote")} htmlFor={`${id}-note`} error={showErrors && problems.bindingNote ? t("counter.noteProblem") : null}>
               <Input id={`${id}-note`} value={line.bindingNote} maxLength={BINDING_NOTE_MAX} onChange={(event) => onChange({ bindingNote: event.target.value })} placeholder={t("counter.bindingNotePlaceholder")} className="h-11" aria-invalid={showErrors && Boolean(problems.bindingNote)} />

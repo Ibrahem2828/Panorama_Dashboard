@@ -17,7 +17,7 @@ describe("parseOrderItems", () => {
     for (const value of [undefined, null, "x", 5, {}]) expect(parseOrderItems(value)).toEqual([]);
   });
   it("skips non-objects and falls back to safe defaults for unknown or missing values", () => {
-    const [item, ...rest] = parseOrderItems([null, 3, { id: "a", copies: 0, color_mode: "neon", paper_size: "B5", sides: 7, binding: "glue" }]);
+    const [item, ...rest] = parseOrderItems([null, 3, { id: "a", copies: 0, color_mode: "neon", paper_size: "B5", sides: 7, binding: "bad code!" }]);
     expect(rest).toHaveLength(0);
     expect(item).toMatchObject({ id: "a", copies: 1, pages: null, sheets: null, colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", price: null, fileName: "", bindingNote: "" });
   });

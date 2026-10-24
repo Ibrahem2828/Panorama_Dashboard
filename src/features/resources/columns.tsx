@@ -41,7 +41,16 @@ export const RESOURCE_COLUMNS: Record<string, ResourceColumn[]> = {
     { key: "price_per_sheet" }, { key: "setup_fee" }, { key: "currency" }, { key: "is_active", render: active }, { key: "effective_from" }, { key: "effective_to" },
   ],
   "printing-binding-prices": [
-    { key: "id", label: "#" }, { key: "binding" }, { key: "price_per_copy" }, { key: "currency" }, { key: "is_active", render: active },
+    { key: "id", label: "#" }, { key: "binding" }, { key: "name" }, { key: "kind" }, { key: "price_mode" }, { key: "price_per_copy" }, { key: "price_per_kg" }, { key: "currency" }, { key: "is_active", render: active },
+  ],
+  "printing-covers": [
+    { key: "id", label: "#" }, { key: "code" }, { key: "name" }, { key: "color_hex" }, { key: "price_per_copy" }, { key: "currency" }, { key: "is_active", render: active },
+  ],
+  "printing-wire-specs": [
+    { key: "id", label: "#" }, { key: "name" }, { key: "min_sheets" }, { key: "max_sheets" }, { key: "weight_grams" }, { key: "is_active", render: active },
+  ],
+  "printing-products": [
+    { key: "id", label: "#" }, { key: "name" }, { key: "pages_count" }, { key: "paper_size" }, { key: "binding" }, { key: "price" }, { key: "currency" }, { key: "is_active", render: active },
   ],
   "printing-pickup-locations": [
     { key: "id", label: "#" }, { key: "name" }, { key: "address" }, { key: "sort_order" }, { key: "is_active", render: active },
