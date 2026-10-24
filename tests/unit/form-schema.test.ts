@@ -17,7 +17,7 @@ describe("resource form policies (contract coverage)", () => {
   it("exposes exactly the resources the dashboard can write", () => {
     expect([...WRITABLE].sort()).toEqual([
       "academic-years", "announcements", "faculties", "feature-flags", "files", "finance-exchange-rates", "finance-expenses", "finance-inventory-items", "groups", "maintenance-modes", "majors", "mobile-release-policies",
-      "printing-binding-prices", "printing-pickup-locations", "printing-pricing-rules", "privacy-policy-versions", "semesters",
+      "printing-binding-prices", "printing-covers", "printing-pickup-locations", "printing-pricing-rules", "printing-products", "printing-wire-specs", "privacy-policy-versions", "semesters",
       "subjects", "terms-versions", "universities", "users",
     ]);
   });
@@ -59,7 +59,7 @@ describe("resource form policies (contract coverage)", () => {
 
   it("only offers delete where a soft delete does not break re-creation", () => {
     const deletable = WRITABLE.filter((key) => policyAllows(RESOURCE_FORM_POLICIES[key], "delete")).sort();
-    expect(deletable).toEqual(["academic-years", "announcements", "faculties", "files", "finance-exchange-rates", "finance-expenses", "finance-inventory-items", "majors", "printing-pickup-locations", "printing-pricing-rules", "semesters", "subjects", "universities"]);
+    expect(deletable).toEqual(["academic-years", "announcements", "faculties", "files", "finance-exchange-rates", "finance-expenses", "finance-inventory-items", "majors", "printing-pickup-locations", "printing-pricing-rules", "printing-products", "printing-wire-specs", "semesters", "subjects", "universities"]);
   });
 });
 
@@ -114,7 +114,7 @@ describe("validateForm per resource", () => {
     semesters: { name: "Autumn", order: "1", is_active: true },
     subjects: { faculty: "3", major: "5", academic_year: "1", semester: "2", name: "Algorithms", code: "CS201", description: "", is_active: true },
     "printing-pricing-rules": { name: "A4 mono", color_mode: "black_white", paper_size: "A4", sides: "one_sided", price_per_sheet: "150.50", setup_fee: "0", currency: "SYP", effective_from: "", effective_to: "", is_active: true },
-    "printing-binding-prices": { binding: "spiral", price_per_copy: "1200", currency: "SYP", is_active: true },
+    "printing-binding-prices": { binding: "spiral", kind: "spiral", price_mode: "per_copy", price_per_copy: "1200", currency: "SYP", is_active: true },
     "printing-pickup-locations": { name: "Main library", address: "Ground floor", instructions: "", sort_order: "2", is_active: true },
     "privacy-policy-versions": { version: "2026-01", content_url: "https://example.com/privacy", requires_reacceptance: true, is_active: false, published_at: "" },
     "terms-versions": { version: "2026-01", content_url: "https://example.com/terms", requires_reacceptance: false, is_active: false, published_at: "" },
@@ -175,8 +175,8 @@ describe("validateForm per resource", () => {
   it("enforces required relations and select options", () => {
     const subject = validateForm(formSpecsFor("subjects", "create"), { ...valid.subjects, faculty: "", semester: "x" }, "create");
     expect(subject).toMatchObject({ ok: false, errors: { faculty: "validation.required", semester: "validation.relation" } });
-    const binding = validateForm(formSpecsFor("printing-binding-prices", "create"), { ...valid["printing-binding-prices"], binding: "glue" }, "create");
-    expect(binding).toMatchObject({ ok: false, errors: { binding: "validation.option" } });
+    const binding = validateForm(formSpecsFor("printing-binding-prices", "create"), { ...valid["printing-binding-prices"], kind: "glue" }, "create");
+    expect(binding).toMatchObject({ ok: false, errors: { kind: "validation.option" } });
   });
 
   it("enforces max lengths from the contract", () => {

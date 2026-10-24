@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FINANCE_PATHS, PAYMENT_METHODS, formatMoney, paymentAmountProblem, paymentBody, paymentState, type PaymentMethod, type PaymentState } from "@/features/finance/finance-rules";
 import { nextStatus } from "@/features/printing/counter-order-rules";
 import { OrderItemsPanel } from "@/features/printing/order-items-panel";
+import { PrintJobPanel } from "@/features/printing/print-job-panel";
 import { signedRounding } from "@/features/printing/counter-order-rules";
 import { RESOURCE_COLUMNS } from "@/features/resources/columns";
 import { ResourceManager, type ManagerFilter } from "@/features/resources/resource-manager";
@@ -197,6 +198,7 @@ function OrderDialog({ order, onClose }: { order: PrintOrder; onClose: () => voi
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <PrintJobPanel orderId={order.id} status={order.status} source={order.source ?? ""} items={order.items} />
             {next ? (
               <ConfirmDialog
                 trigger={<Button disabled={mutate.isPending}><StepForward />{t("printing.nextStep", { status: enumLabel(next) })}</Button>}
@@ -388,10 +390,13 @@ export function PrintingPage() {
           actions={<Button asChild size="lg"><Link href={`/${locale}/dashboard/printing/counter`}><Plus />{t("printing.newCounterOrder")}</Link></Button>}
         />
         <Tabs defaultValue="orders" className="space-y-4">
-          <TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="orders">{t("printing.orders")}</TabsTrigger><TabsTrigger value="pricing">{t("printing.pricing")}</TabsTrigger><TabsTrigger value="binding">{t("printing.binding")}</TabsTrigger><TabsTrigger value="locations">{t("printing.locations")}</TabsTrigger></TabsList>
+          <TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="orders">{t("printing.orders")}</TabsTrigger><TabsTrigger value="pricing">{t("printing.pricing")}</TabsTrigger><TabsTrigger value="binding">{t("printing.binding")}</TabsTrigger><TabsTrigger value="covers">{t("printing.covers")}</TabsTrigger><TabsTrigger value="wire">{t("printing.wire")}</TabsTrigger><TabsTrigger value="products">{t("printing.products")}</TabsTrigger><TabsTrigger value="locations">{t("printing.locations")}</TabsTrigger></TabsList>
           <TabsContent value="orders"><PrintOrdersPanel /></TabsContent>
           <TabsContent value="pricing"><ResourceManager resourceKey="printing-pricing-rules" columns={RESOURCE_COLUMNS["printing-pricing-rules"]} title={t("printing.pricing")} capability={CAPABILITIES.printing} filters={currencyFilter(false)} /></TabsContent>
           <TabsContent value="binding"><ResourceManager resourceKey="printing-binding-prices" columns={RESOURCE_COLUMNS["printing-binding-prices"]} title={t("printing.binding")} capability={CAPABILITIES.printing} filters={currencyFilter(true)} /></TabsContent>
+          <TabsContent value="covers"><ResourceManager resourceKey="printing-covers" columns={RESOURCE_COLUMNS["printing-covers"]} title={t("printing.covers")} capability={CAPABILITIES.printing} filters={currencyFilter(true)} /></TabsContent>
+          <TabsContent value="wire"><ResourceManager resourceKey="printing-wire-specs" columns={RESOURCE_COLUMNS["printing-wire-specs"]} title={t("printing.wire")} capability={CAPABILITIES.printing} /></TabsContent>
+          <TabsContent value="products"><ResourceManager resourceKey="printing-products" columns={RESOURCE_COLUMNS["printing-products"]} title={t("printing.products")} capability={CAPABILITIES.printing} /></TabsContent>
           <TabsContent value="locations"><ResourceManager resourceKey="printing-pickup-locations" columns={RESOURCE_COLUMNS["printing-pickup-locations"]} title={t("printing.locations")} capability={CAPABILITIES.printing} /></TabsContent>
         </Tabs>
       </div>
