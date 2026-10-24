@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BellRing, Download, Paperclip, Plus, Search, Trash2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -54,7 +55,8 @@ export function PurchasesPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [page, setPage] = useState(1);
-  const [adding, setAdding] = useState(false);
+  // `?new=1` (from the quick-access panel) opens the quick-add form straight away.
+  const [adding, setAdding] = useState(useSearchParams()?.get("new") === "1");
   const [reminderDialog, setReminderDialog] = useState(false);
   const month = thisMonth();
 

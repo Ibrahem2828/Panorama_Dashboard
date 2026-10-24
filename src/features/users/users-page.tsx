@@ -1,6 +1,7 @@
 "use client";
 
 import { History, LockKeyholeOpen, UserCheck, UserX } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import type { FieldOverride } from "@/features/resources/form-schema";
@@ -20,7 +21,8 @@ export function UsersPage() {
   const { user } = useSession();
   const actor = useMemo(() => ({ id: user.id, role: user.role }), [user.id, user.role]);
   const roles = useMemo(() => assignableRoles(actor.role), [actor.role]);
-  const [inviting, setInviting] = useState(false);
+  // `?new=1` (from the quick-access panel) opens the invite form straight away.
+  const [inviting, setInviting] = useState(useSearchParams()?.get("new") === "1");
   const [activityOf, setActivityOf] = useState<{ id: number; full_name: string } | null>(null);
 
   const rowActions = useMemo<ManagerRowAction[]>(() => [

@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Locale } from "@/config/constants";
 import { allNavigationItems } from "@/config/navigation";
 import { CONTRACT_META } from "@/contracts/generated/contract-meta";
+import { QuickAccessPanel } from "@/features/quick-access/quick-access-panel";
 import { useSession } from "@/features/session";
 import { useI18n } from "@/i18n/provider";
 import { localizePath } from "@/i18n/routing";
@@ -82,6 +83,8 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
       </div>
+
+      <QuickAccessPanel />
 
       <section>
         <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-black">{t("dashboard.attention")}</h2><span className="text-xs text-muted-foreground">{t("common.updatedAt")}</span></div>
