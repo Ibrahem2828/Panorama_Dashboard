@@ -6,6 +6,7 @@ import { BarChart3,
   Boxes,
   Building2,
   ClipboardCheck,
+  Inbox,
   ShoppingCart,
   Store,
   ListChecks,
@@ -62,6 +63,7 @@ export const navigationGroups: NavigationGroup[] = [
     key: "overview",
     items: [
       { key: "overview", label: "nav.overview", href: "/dashboard", icon: LayoutDashboard, capability: CAPABILITIES.dashboard },
+      { key: "inbox", label: "nav.inbox", href: "/dashboard/inbox", icon: Inbox, capability: CAPABILITIES.dashboard, keywords: ["إشعارات", "inbox", "notifications"] },
     ],
   },
   {
@@ -133,6 +135,7 @@ export const navigationGroups: NavigationGroup[] = [
   {
     key: "system",
     items: [
+      { key: "notificationHealth", label: "nav.notificationHealth", href: "/dashboard/system/notification-health", icon: BellRing, capability: CAPABILITIES.system },
       { key: "health", label: "nav.systemHealth", href: "/dashboard/system/health", icon: Activity, capability: CAPABILITIES.dashboard },
       { key: "settings", label: "nav.settings", href: "/dashboard/settings", icon: Settings, capability: CAPABILITIES.dashboard },
     ],

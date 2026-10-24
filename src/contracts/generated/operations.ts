@@ -1460,6 +1460,15 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/notifications/health/",
+    "operationId": "v1_dashboard_notifications_health_retrieve",
+    "tags": [
+      "Dashboard notifications"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/permission-templates/",
     "operationId": "v1_dashboard_permission_templates_list",
     "tags": [
@@ -2103,6 +2112,15 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_privacy_policy_versions_destroy",
     "tags": [
       "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/quick-access/",
+    "operationId": "v1_dashboard_quick_access_retrieve",
+    "tags": [
+      "Dashboard notifications"
     ],
     "authenticated": true
   },
@@ -3361,6 +3379,15 @@ export const API_OPERATIONS = [
     "method": "POST",
     "path": "/api/v1/notifications/read-all/",
     "operationId": "v1_notifications_read_all_create",
+    "tags": [
+      "Notifications"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/notifications/summary/",
+    "operationId": "v1_notifications_summary_retrieve",
     "tags": [
       "Notifications"
     ],

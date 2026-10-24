@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, LogOut, Settings, ShieldCheck } from "lucide-react";
+import { LogOut, Settings, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -9,18 +9,18 @@ import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { CommandPalette } from "@/components/navigation/command-palette";
 import { LanguageSwitcher } from "@/components/navigation/language-switcher";
 import { ThemeSwitcher } from "@/components/navigation/theme-switcher";
+import { NotificationBell } from "@/features/notifications/notification-bell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Ltr } from "@/components/shared/ltr";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Locale } from "@/config/constants";
 import { useLogout, useSession } from "@/features/session";
-import { CAPABILITIES, hasCapability } from "@/lib/auth/capabilities";
 import { useI18n } from "@/i18n/provider";
 import { localizePath } from "@/i18n/routing";
 
 export function Topbar() {
-  const { user, source, capabilities } = useSession();
+  const { user, source } = useSession();
   const logout = useLogout();
   const params = useParams<{ locale: Locale }>();
   const { t } = useI18n();
@@ -33,11 +33,7 @@ export function Topbar() {
         <ConnectivityIndicator />
         <LanguageSwitcher />
         <ThemeSwitcher />
-        {hasCapability(capabilities, CAPABILITIES.product) ? (
-          <Button variant="ghost" size="icon" asChild aria-label={t("nav.notifications")}>
-            <Link href={localizePath(params.locale, "/dashboard/notifications")}><Bell /></Link>
-          </Button>
-        ) : null}
+        <NotificationBell />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-11 gap-2 rounded-xl px-1.5 sm:px-2.5">
