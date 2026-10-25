@@ -1,7 +1,8 @@
 "use client";
 
-import { LockKeyholeOpen, UserCheck, UserX } from "lucide-react";
-import { useMemo } from "react";
+import { History, LockKeyholeOpen, UserCheck, UserX } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import type { FieldOverride } from "@/features/resources/form-schema";
 import { RESOURCE_COLUMNS } from "@/features/resources/columns";
@@ -9,6 +10,7 @@ import { ResourceManager, type ManagerRowAction } from "@/features/resources/res
 import type { EntityRecord } from "@/features/resources/resource-api";
 import { useSession } from "@/features/session";
 import { assignableRoles, canActivateUser, canChangeRole, canDeactivateUser, canEditUser, canUnlockLogin, type UserRef } from "@/features/users/user-rules";
+import { InviteUserDialog, StaffHeaderActions, UserActivityDialog } from "@/features/users/staff-onboarding";
 import { useI18n } from "@/i18n/provider";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 
@@ -19,6 +21,9 @@ export function UsersPage() {
   const { user } = useSession();
   const actor = useMemo(() => ({ id: user.id, role: user.role }), [user.id, user.role]);
   const roles = useMemo(() => assignableRoles(actor.role), [actor.role]);
+  // `?new=1` (from the quick-access panel) opens the invite form straight away.
+  const [inviting, setInviting] = useState(useSearchParams()?.get("new") === "1");
+  const [activityOf, setActivityOf] = useState<{ id: number; full_name: string } | null>(null);
 
   const rowActions = useMemo<ManagerRowAction[]>(() => [
     {
@@ -50,8 +55,11 @@ export function UsersPage() {
   ], [actor, t]);
 
   return (
+    <>
     <ResourceManager
       resourceKey="users"
+      extraActions={<StaffHeaderActions onAdd={() => setInviting(true)} />}
+      customRowActions={[{ key: "activity", label: t("staff.activity"), icon: <History />, visible: (row) => canEditUser(actor, asUser(row)), onSelect: (row) => setActivityOf({ id: Number(row.id), full_name: String(row.full_name ?? row.email ?? row.id) }) }]}
       title={t("users.title")}
       description={t("users.subtitle")}
       capability={CAPABILITIES.users}
@@ -72,5 +80,8 @@ export function UsersPage() {
       }}
       rowActions={rowActions}
     />
+    {inviting ? <InviteUserDialog onClose={() => setInviting(false)} /> : null}
+    {activityOf ? <UserActivityDialog user={activityOf} onClose={() => setActivityOf(null)} /> : null}
+    </>
   );
 }

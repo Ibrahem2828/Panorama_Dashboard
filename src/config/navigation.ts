@@ -6,6 +6,10 @@ import { BarChart3,
   Boxes,
   Building2,
   ClipboardCheck,
+  Inbox,
+  ShoppingCart,
+  Store,
+  ListChecks,
   FileCheck2,
   FileStack,
   Flag,
@@ -59,6 +63,7 @@ export const navigationGroups: NavigationGroup[] = [
     key: "overview",
     items: [
       { key: "overview", label: "nav.overview", href: "/dashboard", icon: LayoutDashboard, capability: CAPABILITIES.dashboard },
+      { key: "inbox", label: "nav.inbox", href: "/dashboard/inbox", icon: Inbox, capability: CAPABILITIES.dashboard, keywords: ["إشعارات", "inbox", "notifications"] },
     ],
   },
   {
@@ -68,6 +73,7 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "users", label: "nav.users", href: "/dashboard/users", icon: Users, capability: CAPABILITIES.users },
       { key: "rbac", label: "nav.rbac", href: "/dashboard/rbac", icon: ShieldCheck, capability: CAPABILITIES.users },
       { key: "academic", label: "nav.academic", href: "/dashboard/academic", icon: GraduationCap, capability: CAPABILITIES.academic },
+      { key: "enrollment", label: "nav.enrollment", href: "/dashboard/enrollment", icon: ListChecks, capability: CAPABILITIES.enrollment },
       { key: "verifications", label: "nav.verifications", href: "/dashboard/verifications", icon: ClipboardCheck, capability: CAPABILITIES.verification },
     ],
   },
@@ -79,6 +85,7 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "files", label: "nav.files", href: "/dashboard/files", icon: FileStack, capability: CAPABILITIES.files },
       { key: "groups", label: "nav.groups", href: "/dashboard/groups", icon: Network, capability: CAPABILITIES.groups },
       { key: "announcements", label: "nav.announcements", href: "/dashboard/announcements", icon: Megaphone, capability: CAPABILITIES.announcements },
+      { key: "chatConsole", label: "nav.chatConsole", href: "/dashboard/chat-console", icon: MessageSquareText, capability: CAPABILITIES.groups },
       { key: "chatReports", label: "nav.chatReports", href: "/dashboard/chat-reports", icon: MessageSquareWarning, capability: CAPABILITIES.groups },
     ],
   },
@@ -87,6 +94,7 @@ export const navigationGroups: NavigationGroup[] = [
     label: "nav.operations",
     items: [
       { key: "printing", label: "nav.printing", href: "/dashboard/printing", icon: Printer, capability: CAPABILITIES.printing },
+      { key: "shop", label: "nav.shop", href: "/dashboard/shop", icon: Store, capability: CAPABILITIES.printing },
       { key: "support", label: "nav.support", href: "/dashboard/support", icon: Headphones, capability: CAPABILITIES.support },
       { key: "feedback", label: "nav.feedback", href: "/dashboard/feedback", icon: MessageSquareText, capability: CAPABILITIES.feedback },
       { key: "notifications", label: "nav.notifications", href: "/dashboard/notifications", icon: BellRing, capability: CAPABILITIES.product },
@@ -100,6 +108,7 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "financeJobs", label: "nav.financeJobs", href: "/dashboard/finance/jobs", icon: ReceiptText, capability: CAPABILITIES.printing },
       { key: "financeStock", label: "nav.financeStock", href: "/dashboard/finance/stock", icon: Boxes, capability: CAPABILITIES.printing },
       { key: "financeStockReport", label: "nav.financeStockReport", href: "/dashboard/finance/stock-report", icon: BarChart3, capability: CAPABILITIES.finance },
+      { key: "financePurchases", label: "nav.financePurchases", href: "/dashboard/finance/purchases", icon: ShoppingCart, capability: CAPABILITIES.finance },
       { key: "financeExpenses", label: "nav.financeExpenses", href: "/dashboard/finance/expenses", icon: Receipt, capability: CAPABILITIES.finance },
       { key: "financeRates", label: "nav.financeRates", href: "/dashboard/finance/rates", icon: ArrowLeftRight, capability: CAPABILITIES.finance },
     ],
@@ -126,6 +135,7 @@ export const navigationGroups: NavigationGroup[] = [
   {
     key: "system",
     items: [
+      { key: "notificationHealth", label: "nav.notificationHealth", href: "/dashboard/system/notification-health", icon: BellRing, capability: CAPABILITIES.system },
       { key: "health", label: "nav.systemHealth", href: "/dashboard/system/health", icon: Activity, capability: CAPABILITIES.dashboard },
       { key: "settings", label: "nav.settings", href: "/dashboard/settings", icon: Settings, capability: CAPABILITIES.dashboard },
     ],

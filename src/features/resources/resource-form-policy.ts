@@ -144,8 +144,46 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
   // `binding` is unique and soft-deleted rows keep their value, so a binding price is deactivated (is_active) rather than deleted.
   "printing-binding-prices": writablePolicy({
     capability: "printing.manage",
-    create: ["binding", "price_per_copy", "currency", "is_active"],
-    fieldOverrides: { currency: { kind: "select", options: CURRENCY_OPTIONS, defaultValue: "SYP", required: true, hint: "form.hint.currency" }, price_per_copy: { defaultValue: "0", required: true } },
+    create: ["binding", "name", "description", "kind", "price_mode", "price_per_copy", "price_per_kg", "sort_order", "currency", "is_active"],
+    fieldOverrides: {
+      currency: { kind: "select", options: CURRENCY_OPTIONS, defaultValue: "SYP", required: true, hint: "form.hint.currency" },
+      price_per_copy: { defaultValue: "0", required: true },
+      price_per_kg: { defaultValue: "0", hint: "form.hint.pricePerKg" },
+      kind: { defaultValue: "other", required: true, hint: "form.hint.bindingKind" },
+      price_mode: { defaultValue: "per_copy", required: true, hint: "form.hint.priceMode" },
+      binding: { hint: "form.hint.bindingCode" },
+      sort_order: { ...SMALL_ORDER, defaultValue: 0 },
+    },
+  }),
+  "printing-covers": writablePolicy({
+    capability: "printing.manage",
+    create: ["code", "name", "color_hex", "price_per_copy", "currency", "sort_order", "is_active"],
+    fieldOverrides: {
+      currency: { kind: "select", options: CURRENCY_OPTIONS, defaultValue: "SYP", required: true, hint: "form.hint.currency" },
+      color_hex: { defaultValue: "#1E3A8A", hint: "form.hint.colorHex" },
+      price_per_copy: { defaultValue: "0", required: true },
+      sort_order: { ...SMALL_ORDER, defaultValue: 0 },
+    },
+  }),
+  "printing-wire-specs": writablePolicy({
+    capability: "printing.manage",
+    create: ["name", "min_sheets", "max_sheets", "weight_grams", "is_active"],
+    fieldOverrides: { weight_grams: { required: true, hint: "form.hint.wireGrams" }, min_sheets: { min: 1, required: true }, max_sheets: { min: 1, required: true } },
+    deletable: true,
+  }),
+  "printing-products": writablePolicy({
+    capability: "printing.manage",
+    create: ["name", "description", "image", "pages_count", "paper_size", "color_mode", "sides", "binding", "cover", "price", "currency", "sort_order", "is_active"],
+    fieldOverrides: {
+      description: { kind: "textarea", maxLength: 1000 },
+      currency: { kind: "select", options: CURRENCY_OPTIONS, defaultValue: "SYP", required: true, hint: "form.hint.currency" },
+      price: { required: true, hint: "form.hint.productPrice" },
+      pages_count: { min: 1, defaultValue: 1 },
+      sides: { defaultValue: "double_sided" },
+      binding: { defaultValue: "none", hint: "form.hint.bindingCode" },
+      sort_order: { ...SMALL_ORDER, defaultValue: 0 },
+    },
+    deletable: true,
   }),
   "printing-pickup-locations": writablePolicy({
     capability: "printing.manage",
@@ -221,8 +259,8 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
   }),
   "finance-inventory-items": writablePolicy({
     capability: "finance.manage",
-    create: ["name", "category", "unit", "sku", "opening_quantity", "consumption_key", "consumption_per_use", "reorder_level", "unit_cost", "currency", "location", "notes", "is_active"],
-    update: ["name", "category", "unit", "sku", "consumption_key", "consumption_per_use", "reorder_level", "unit_cost", "currency", "location", "notes", "is_active"],
+    create: ["name", "category", "unit", "sku", "opening_quantity", "consumption_key", "consumption_per_use", "reorder_level", "unit_cost", "is_sellable", "sale_price", "currency", "location", "notes", "is_active"],
+    update: ["name", "category", "unit", "sku", "consumption_key", "consumption_per_use", "reorder_level", "unit_cost", "is_sellable", "sale_price", "currency", "location", "notes", "is_active"],
     fieldOverrides: {
       category: { defaultValue: "paper", required: true },
       opening_quantity: { defaultValue: "0", hint: "finance.stock.openingHint" },
@@ -230,6 +268,7 @@ export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
       consumption_per_use: { defaultValue: "0", hint: "finance.stock.consumptionPerUseHint" },
       reorder_level: { defaultValue: "0", hint: "finance.stock.reorderHint" },
       unit_cost: { defaultValue: "0", hint: "finance.stock.unitCostHint" },
+      sale_price: { defaultValue: "0", hint: "finance.stock.salePriceHint" },
       currency: { defaultValue: "SYP", required: true },
       notes: { maxLength: 1000 },
     },

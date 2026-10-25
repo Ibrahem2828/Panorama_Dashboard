@@ -1,7 +1,8 @@
 export type ColorMode = "black_white" | "color";
 export type PaperSize = "A5" | "A4" | "A3";
 export type Sides = "one_sided" | "double_sided";
-export type Binding = "none" | "staple" | "spiral" | "thermal" | "beads" | "other";
+/** `none`, a built-in code, or a binding type the shop defined itself (any short code). */
+export type Binding = string;
 
 /** One print order item as the cashier works with it. Every field is checked: the API list type is `unknown[]`. */
 export interface OrderItemView {
@@ -24,7 +25,6 @@ export interface OrderItemView {
 const COLOR_MODES: readonly ColorMode[] = ["black_white", "color"];
 const PAPER_SIZES: readonly PaperSize[] = ["A5", "A4", "A3"];
 const SIDES: readonly Sides[] = ["one_sided", "double_sided"];
-const BINDINGS: readonly Binding[] = ["none", "staple", "spiral", "thermal", "beads", "other"];
 
 function oneOf<T extends string>(allowed: readonly T[], value: unknown, fallback: T): T {
   return typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
@@ -54,7 +54,7 @@ export function parseOrderItems(raw: unknown): OrderItemView[] {
       colorMode: oneOf(COLOR_MODES, item.color_mode, "black_white"),
       paperSize: oneOf(PAPER_SIZES, item.paper_size, "A4"),
       sides: oneOf(SIDES, item.sides, "one_sided"),
-      binding: oneOf(BINDINGS, item.binding, "none"),
+      binding: typeof item.binding === "string" && /^[a-z0-9_-]{1,32}$/iu.test(item.binding) ? item.binding : "none",
       bindingNote: text(item.binding_note),
       price: typeof item.price === "string" || typeof item.price === "number" ? String(item.price) : null,
     }];

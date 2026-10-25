@@ -158,7 +158,7 @@ function PrintOrderPreviewComponent({ item, pages, className }: { item: PreviewI
       {item.copies > 1 ? <span className="absolute start-3 top-3 rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-foreground" dir="ltr">×{item.copies}</span> : null}
       <figcaption className="mt-2 space-y-1 text-xs">
         <p className="font-semibold text-foreground/80">{caption}</p>
-        <p className="leading-5 text-muted-foreground">{t(`printing.bindingHint.${item.binding}` as const)}</p>
+        <p className="leading-5 text-muted-foreground">{t(`printing.bindingHint.${(["none", "staple", "spiral", "thermal", "beads"] as const).find((code) => code === item.binding) ?? "other"}` as const)}</p>
       </figcaption>
     </figure>
   );
