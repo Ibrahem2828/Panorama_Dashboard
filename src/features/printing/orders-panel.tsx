@@ -1,17 +1,15 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ClipboardList, Coins, MessageSquarePlus, Plus, RefreshCw, Search, Store, Smartphone, StepForward, UserRoundCheck } from "lucide-react";
+import { ClipboardList, Coins, Copy, MessageSquarePlus, RefreshCw, Search, Store, Smartphone, StepForward, UserRoundCheck } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
-import { CapabilityGate } from "@/components/feedback/capability-gate";
 import { Pagination } from "@/components/data-grid/pagination";
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { ErrorPanel } from "@/components/feedback/error-panel";
-import { PageHeader } from "@/components/shared/page-header";
 import { StatusPill } from "@/components/shared/status-pill";
 import { Money } from "@/components/shared/money";
 import { Badge } from "@/components/ui/badge";
@@ -22,17 +20,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { FINANCE_PATHS, PAYMENT_METHODS, formatMoney, paymentAmountProblem, paymentBody, paymentState, type PaymentMethod, type PaymentState } from "@/features/finance/finance-rules";
-import { nextStatus } from "@/features/printing/counter-order-rules";
+import { nextStatus, signedRounding } from "@/features/printing/counter-order-rules";
+import { CustomerLink } from "@/features/printing/customer-link";
 import { OrderItemsPanel } from "@/features/printing/order-items-panel";
 import { PrintJobPanel } from "@/features/printing/print-job-panel";
-import { signedRounding } from "@/features/printing/counter-order-rules";
-import { RESOURCE_COLUMNS } from "@/features/resources/columns";
-import { ResourceManager, type ManagerFilter } from "@/features/resources/resource-manager";
-import { CAPABILITIES } from "@/lib/auth/capabilities";
-import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
+import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { payloadSignature } from "@/lib/api/idempotency";
 import { useAssignees } from "@/features/staff/use-assignees";
@@ -42,6 +36,7 @@ import { cn } from "@/lib/utils";
 
 interface PrintOrder {
   id: number;
+  user?: number | null;
   user_name: string;
   source?: "app" | "counter";
   customer_name?: string;
@@ -66,7 +61,6 @@ interface PrintOrder {
   status_history?: unknown[];
 }
 
-const CURRENCIES = ["SYP", "USD"] as const;
 const SOURCES = ["counter", "app"] as const;
 const statuses = ["submitted", "under_review", "accepted", "printing", "ready", "delivered", "cancelled", "rejected"];
 const PAYMENT_STYLE: Record<PaymentState, "success" | "warning" | "destructive"> = { paid: "success", partial: "warning", unpaid: "destructive" };
@@ -154,7 +148,7 @@ function OrderDialog({ order, onClose }: { order: PrintOrder; onClose: () => voi
       <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
         <DialogHeader className="pe-10">
           <DialogTitle className="flex flex-wrap items-center gap-2">{t("printing.orderDetails")} <bdi>#{order.id}</bdi><SourceBadge source={order.source} /></DialogTitle>
-          <DialogDescription>{order.user_name}</DialogDescription>
+          <DialogDescription><CustomerLink userId={counter ? null : order.user} name={order.user_name} className="font-semibold text-primary underline-offset-4 hover:underline" /></DialogDescription>
         </DialogHeader>
         <div className="space-y-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -165,7 +159,7 @@ function OrderDialog({ order, onClose }: { order: PrintOrder; onClose: () => voi
             </Detail>
             <Detail label={t("printing.paidAmount")}>{order.paid_amount !== undefined ? <Money value={order.paid_amount} currency={order.currency} /> : "—"}</Detail>
             <Detail label={t("printing.dueAmount")}>{order.due_amount !== undefined ? <Money value={order.due_amount} currency={order.currency} className={owes ? "text-amber-700 dark:text-amber-300" : "text-emerald-700 dark:text-emerald-300"} /> : "—"}</Detail>
-            <Detail label={t("printing.customer")}>{order.user_name}</Detail>
+            <Detail label={t("printing.customer")}><CustomerLink userId={counter ? null : order.user} name={order.user_name} /></Detail>
             {counter && order.customer_phone ? <Detail label={t("printing.contact")}><bdi dir="ltr">{order.customer_phone}</bdi></Detail> : null}
             {counter && order.created_by_name ? <Detail label={t("printing.createdBy")}>{order.created_by_name}</Detail> : null}
             <Detail label={t("support.assign")}>{order.assigned_to_name || "—"}</Detail>
@@ -209,6 +203,7 @@ function OrderDialog({ order, onClose }: { order: PrintOrder; onClose: () => voi
                 onConfirm={() => mutate.mutate({ status: next })}
               />
             ) : null}
+            <Button asChild variant="outline"><Link href={`/${locale}/dashboard/printing?tab=counter&from=${order.id}`}><Copy />{t("printing.copyToCounter")}</Link></Button>
             {owes ? <Button variant="outline" onClick={() => { setAmount(due); setAction("payment"); }}><Coins />{t("printing.recordPayment")}</Button> : null}
             <Button variant="outline" onClick={() => setAction("status")}><RefreshCw />{t("printing.changeStatus")}</Button>
             <Button variant="outline" onClick={() => setAction("assign")}><UserRoundCheck />{t("support.assign")}</Button>
@@ -265,19 +260,20 @@ function OrderDialog({ order, onClose }: { order: PrintOrder; onClose: () => voi
   );
 }
 
-function PrintOrdersPanel() {
+export function PrintOrdersPanel() {
   const { t, enumLabel, locale } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const search = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "all";
   const source = searchParams.get("source") ?? "all";
+  const assignee = searchParams.get("assigned_to") ?? "all";
+  const openId = /^\d+$/u.test(searchParams.get("order") ?? "") ? Number(searchParams.get("order")) : null;
   const page = Math.max(1, Number(searchParams.get("page") ?? 1));
   const pageSize = Math.min(100, Math.max(10, Number(searchParams.get("page_size") ?? 25)));
   const [searchDraft, setSearchDraft] = useState(search);
   const debouncedSearch = useDebouncedValue(searchDraft);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [snapshot, setSnapshot] = useState<PrintOrder | null>(null);
+  const assignees = useAssignees("printing");
 
   const updateUrl = useCallback((changes: Record<string, string | number | null>) => {
     const next = new URLSearchParams(searchParams.toString());
@@ -293,34 +289,41 @@ function PrintOrdersPanel() {
   }, [debouncedSearch, search, updateUrl]);
 
   const query = useQuery({
-    queryKey: ["printing-orders", page, pageSize, search, status, source],
+    queryKey: ["printing-orders", page, pageSize, search, status, source, assignee],
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), page_size: String(pageSize), ordering: "-created_at" });
       if (search) params.set("search", search);
       if (status !== "all") params.set("status", status);
       if (source !== "all") params.set("source", source);
+      if (assignee !== "all") params.set("assigned_to", assignee);
       return normalizeCollection<PrintOrder>(await apiFetch(`/api/v1/dashboard/printing/orders/?${params}`));
     },
   });
-  // The open order follows the refreshed list, so a status change or payment shows at once; the snapshot covers an order that left the page.
-  const selected = selectedId === null ? null : (query.data?.results.find((order) => order.id === selectedId) ?? snapshot);
+  // The open order follows the refreshed list, so a status change or payment shows at once. An order that is not on this page
+  // (a link from the job queue, a search that moved on) is fetched by its number.
+  const inList = openId === null ? undefined : query.data?.results.find((order) => order.id === openId);
+  const single = useQuery({
+    queryKey: ["printing-orders", "one", openId],
+    enabled: openId !== null && !inList && !query.isPending,
+    queryFn: async () => (await unwrap<PrintOrder>(apiFetch(`/api/v1/dashboard/printing/orders/${openId}/`))) as PrintOrder,
+  });
+  const selected = inList ?? (openId === null ? null : single.data ?? null);
+  const filtered = status !== "all" || source !== "all" || assignee !== "all" || search !== "";
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 md:grid-cols-3">
-        <Card><CardHeader className="pb-2"><CardDescription>{t("printing.orders")}</CardDescription><CardTitle>{query.data?.count ?? 0}</CardTitle></CardHeader></Card>
-        <Card><CardHeader className="pb-2"><CardDescription>{t("printing.ordersOnPage")}</CardDescription><CardTitle>{query.data?.results.length ?? 0}</CardTitle></CardHeader></Card>
-        <Card><CardHeader className="pb-2"><CardDescription>{t("common.status")}</CardDescription><CardTitle>{status === "all" ? t("common.all") : enumLabel(status)}</CardTitle></CardHeader></Card>
-      </div>
-
-      <div className="glass-panel grid gap-3 rounded-2xl border p-3 md:grid-cols-[minmax(0,1fr)_11rem_11rem_auto]">
+      <div className="glass-panel grid gap-3 rounded-2xl border p-3 md:grid-cols-[minmax(0,1fr)_11rem_11rem_12rem_auto]">
         <div className="relative min-w-0">
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input className="ps-10" value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} placeholder={t("printing.ordersSearch")} aria-label={t("common.search")} />
         </div>
-        <Select value={status} onValueChange={(value) => updateUrl({ status: value === "all" ? null : value, page: 1 })}><SelectTrigger aria-label={t("common.status")}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("common.all")}</SelectItem>{statuses.map((value) => <SelectItem key={value} value={value}>{enumLabel(value)}</SelectItem>)}</SelectContent></Select>
+        <Select value={status} onValueChange={(value) => updateUrl({ status: value === "all" ? null : value, page: 1 })}><SelectTrigger aria-label={t("common.status")}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("printing.allStatuses")}</SelectItem>{statuses.map((value) => <SelectItem key={value} value={value}>{enumLabel(value)}</SelectItem>)}</SelectContent></Select>
         <Select value={source} onValueChange={(value) => updateUrl({ source: value === "all" ? null : value, page: 1 })}><SelectTrigger aria-label={t("printing.source")}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("printing.allSources")}</SelectItem>{SOURCES.map((value) => <SelectItem key={value} value={value}>{value === "counter" ? t("printing.sourceCounter") : t("printing.sourceApp")}</SelectItem>)}</SelectContent></Select>
-        <Button variant="outline" onClick={() => query.refetch()}><RefreshCw className={query.isFetching ? "animate-spin" : ""} />{t("common.refresh")}</Button>
+        <Select value={assignee} onValueChange={(value) => updateUrl({ assigned_to: value === "all" ? null : value, page: 1 })}><SelectTrigger aria-label={t("support.assign")}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("printing.allAssignees")}</SelectItem>{assignees.options.map((user) => <SelectItem key={user.id} value={String(user.id)}>{user.name}</SelectItem>)}</SelectContent></Select>
+        <div className="flex gap-2">
+          {filtered ? <Button variant="ghost" onClick={() => { setSearchDraft(""); updateUrl({ search: null, status: null, source: null, assigned_to: null, page: 1 }); }}>{t("printing.clearFilters")}</Button> : null}
+          <Button variant="outline" onClick={() => query.refetch()}><RefreshCw className={query.isFetching ? "animate-spin" : ""} />{t("common.refresh")}</Button>
+        </div>
       </div>
 
       {query.isPending ? <Skeleton className="h-96 rounded-2xl" /> : query.isError ? <ErrorPanel error={query.error} retry={() => query.refetch()} /> : (
@@ -345,7 +348,7 @@ function PrintOrdersPanel() {
                     <tr key={order.id} className="border-t align-top hover:bg-muted/30">
                       <td className="p-3 font-mono tabular-nums">{order.id}</td>
                       <td className="min-w-[14rem] p-3">
-                        <p className="break-words font-semibold" dir="auto">{order.user_name}</p>
+                        <CustomerLink userId={order.source === "counter" ? null : order.user} name={order.user_name} className={order.source === "counter" ? "break-words font-semibold" : undefined} />
                         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                           <SourceBadge source={order.source} />
                           {order.source === "counter" && order.customer_phone ? <bdi dir="ltr" className="text-xs text-muted-foreground">{order.customer_phone}</bdi> : null}
@@ -360,46 +363,20 @@ function PrintOrdersPanel() {
                         </div>
                       </td>
                       <td className="p-3">{order.assigned_to_name || "—"}</td>
-                      <td className="p-3"><Button size="sm" variant="outline" onClick={() => { setSnapshot(order); setSelectedId(order.id); }}><ClipboardList />{t("common.details")}</Button></td>
+                      <td className="p-3"><Button size="sm" variant="outline" onClick={() => updateUrl({ order: order.id })}><ClipboardList />{t("common.details")}</Button></td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-          {!query.data.results.length ? <div className="p-10 text-center text-muted-foreground">{t("common.noData")}</div> : null}
+          {!query.data.results.length ? <div className="p-10 text-center text-muted-foreground">{filtered ? t("printing.noMatches") : t("common.noData")}</div> : null}
         </div>
       )}
       {query.data ? <Pagination page={page} pageSize={pageSize} count={query.data.count} onPage={(next) => updateUrl({ page: next })} onPageSize={(next) => updateUrl({ page_size: next, page: 1 })} /> : null}
 
-      {selected ? <OrderDialog key={selected.id} order={selected} onClose={() => setSelectedId(null)} /> : null}
+      {openId !== null && single.isError && !inList ? <ErrorPanel error={single.error} retry={() => single.refetch()} /> : null}
+      {selected ? <OrderDialog key={selected.id} order={selected} onClose={() => updateUrl({ order: null })} /> : null}
     </div>
-  );
-}
-
-export function PrintingPage() {
-  const { t, enumLabel, locale } = useI18n();
-  const currencyFilter = (clientSide: boolean): ManagerFilter[] => [{ param: "currency", label: t("printing.currencyFilter"), clientSide, options: CURRENCIES.map((value) => ({ value, label: enumLabel(value) })) }];
-  return (
-    <CapabilityGate capability={CAPABILITIES.printing}>
-      <div className="space-y-6">
-        <PageHeader
-          title={t("printing.title")}
-          description={t("printing.subtitle")}
-          eyebrow={t("nav.operations")}
-          actions={<Button asChild size="lg"><Link href={`/${locale}/dashboard/printing/counter`}><Plus />{t("printing.newCounterOrder")}</Link></Button>}
-        />
-        <Tabs defaultValue="orders" className="space-y-4">
-          <TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="orders">{t("printing.orders")}</TabsTrigger><TabsTrigger value="pricing">{t("printing.pricing")}</TabsTrigger><TabsTrigger value="binding">{t("printing.binding")}</TabsTrigger><TabsTrigger value="covers">{t("printing.covers")}</TabsTrigger><TabsTrigger value="wire">{t("printing.wire")}</TabsTrigger><TabsTrigger value="products">{t("printing.products")}</TabsTrigger><TabsTrigger value="locations">{t("printing.locations")}</TabsTrigger></TabsList>
-          <TabsContent value="orders"><PrintOrdersPanel /></TabsContent>
-          <TabsContent value="pricing"><ResourceManager resourceKey="printing-pricing-rules" columns={RESOURCE_COLUMNS["printing-pricing-rules"]} title={t("printing.pricing")} capability={CAPABILITIES.printing} filters={currencyFilter(false)} /></TabsContent>
-          <TabsContent value="binding"><ResourceManager resourceKey="printing-binding-prices" columns={RESOURCE_COLUMNS["printing-binding-prices"]} title={t("printing.binding")} capability={CAPABILITIES.printing} filters={currencyFilter(true)} /></TabsContent>
-          <TabsContent value="covers"><ResourceManager resourceKey="printing-covers" columns={RESOURCE_COLUMNS["printing-covers"]} title={t("printing.covers")} capability={CAPABILITIES.printing} filters={currencyFilter(true)} /></TabsContent>
-          <TabsContent value="wire"><ResourceManager resourceKey="printing-wire-specs" columns={RESOURCE_COLUMNS["printing-wire-specs"]} title={t("printing.wire")} capability={CAPABILITIES.printing} /></TabsContent>
-          <TabsContent value="products"><ResourceManager resourceKey="printing-products" columns={RESOURCE_COLUMNS["printing-products"]} title={t("printing.products")} capability={CAPABILITIES.printing} /></TabsContent>
-          <TabsContent value="locations"><ResourceManager resourceKey="printing-pickup-locations" columns={RESOURCE_COLUMNS["printing-pickup-locations"]} title={t("printing.locations")} capability={CAPABILITIES.printing} /></TabsContent>
-        </Tabs>
-      </div>
-    </CapabilityGate>
   );
 }

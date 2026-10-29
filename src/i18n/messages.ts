@@ -1,3 +1,5 @@
+import { printingAr, printingEn } from "@/features/printing/printing-messages";
+
 export const ar = {
   "app.name": "لوحة تحكم بانوراما",
   "app.tagline": "إدارة ذكية وآمنة لخدمات الطلبة",
@@ -1797,6 +1799,7 @@ export const ar = {
   "finance.rates.currentLine": "1 دولار = {rate} ليرة سورية جديدة (منذ {date})",
   "finance.rates.none": "لا يوجد سعر صرف ساري. أضف سعرًا لتتمكن التقارير من تحويل الإجماليات بين العملتين.",
   "enum.maintenance": "صيانة وإصلاحات",
+  ...printingAr,
 } as const;
 
 export const en: Record<keyof typeof ar, string> = {
@@ -3598,6 +3601,7 @@ export const en: Record<keyof typeof ar, string> = {
   "finance.rates.currentLine": "1 USD = {rate} new Syrian pounds (since {date})",
   "finance.rates.none": "No exchange rate is in force. Add one so reports can convert totals between the two currencies.",
   "enum.maintenance": "Maintenance and repairs",
+  ...printingEn,
 };
 
 export type MessageKey = keyof typeof ar;
