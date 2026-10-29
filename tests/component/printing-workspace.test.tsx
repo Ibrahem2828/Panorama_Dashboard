@@ -84,13 +84,69 @@ describe("live print queue", () => {
   });
 });
 
+const printer = (over: Record<string, unknown>) => ({ id: 1, name: "HP-Front", station: "Main shop", is_active: true, is_default: true, notes: "", last_seen_at: new Date().toISOString(), last_status: "idle", last_detail: "", online: true, jobs: { queued: 2, printing: 1, failed_24h: 0 }, ...over });
+
 describe("printers tab", () => {
-  it("says plainly that the server has no printer registry and summarises printers from jobs", async () => {
+  const withPrinters = (list: unknown[]) => fetchMock.mockImplementation(async (path: string, init?: { method?: string }) => {
+    if (String(path).includes("/printers/")) return init?.method === "DELETE" ? ok({ success: true, code: "PRINTER_DEACTIVATED", data: {} }) : ok({ data: list });
+    return ok({ data: {} });
+  });
+
+  it("lists registered printers with online state, default badge and job counters", async () => {
+    withPrinters([printer({}), printer({ id: 2, name: "Canon", is_default: false, online: false, is_active: false, last_seen_at: null, last_status: "error", last_detail: "paper jam" })]);
     wrap(<PrintersPanel />);
-    expect(screen.getByText("إدارة الطابعات والمحطات غير متاحة بعد في الخادم")).toBeTruthy();
     expect(await screen.findByText("HP-Front")).toBeTruthy();
-    expect(screen.getByText("Canon")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /إضافة|تعطيل/u })).toBeNull();
+    expect(screen.getByText("متصلة")).toBeTruthy();
+    expect(screen.getByText("غير متصلة")).toBeTruthy();
+    expect(screen.getByText("الافتراضية")).toBeTruthy();
+    expect(screen.getByText(/لم تتصل بعد/u)).toBeTruthy();
+    expect(screen.getByText(/paper jam/u)).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "إضافة طابعة" })).toHaveLength(1);
+  });
+
+  it("explains how the print agent registers itself when there are no printers", async () => {
+    withPrinters([]);
+    wrap(<PrintersPanel />);
+    expect(await screen.findByText("لا توجد طابعات مسجّلة بعد")).toBeTruthy();
+    expect(screen.getByText(/تُسجَّل الطابعة تلقائيًا/u)).toBeTruthy();
+  });
+
+  it("switches a printer off with a PATCH and deletes through a confirmation", async () => {
+    withPrinters([printer({})]);
+    wrap(<PrintersPanel />);
+    await screen.findByText("HP-Front");
+    await userEvent.click(screen.getByRole("switch", { name: /تفعيل الطابعة HP-Front/u }));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([path, init]) => String(path).endsWith("/printers/1/") && (init as { method?: string })?.method === "PATCH" && JSON.stringify((init as { body?: unknown }).body) === JSON.stringify({ is_active: false }))).toBe(true));
+    await userEvent.click(screen.getByRole("button", { name: /حذف الطابعة HP-Front/u }));
+    await userEvent.click(await screen.findByRole("button", { name: "حذف" }));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([path, init]) => String(path).endsWith("/printers/1/") && (init as { method?: string })?.method === "DELETE")).toBe(true));
+  });
+
+  it("creates a printer from the dialog and validates the name", async () => {
+    withPrinters([]);
+    wrap(<PrintersPanel />);
+    await screen.findByText("لا توجد طابعات مسجّلة بعد");
+    await userEvent.click(screen.getByRole("button", { name: "إضافة طابعة" }));
+    await userEvent.click(await screen.findByRole("button", { name: "حفظ" }));
+    expect(await screen.findByText("أدخل اسم الطابعة.")).toBeTruthy();
+    await userEvent.type(screen.getByLabelText("اسم الطابعة"), "Epson");
+    await userEvent.click(screen.getByRole("button", { name: "حفظ" }));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([path, init]) => String(path).endsWith("/printers/") && (init as { method?: string })?.method === "POST" && JSON.stringify((init as { body?: unknown }).body).includes("Epson"))).toBe(true));
+  });
+});
+
+describe("cancelling a print job", () => {
+  it("asks first, sends the reason and shows a distinct cancelled badge without actions", async () => {
+    fetchMock.mockImplementation(async (path: string) => ok({ data: { count: 2, results: String(path).includes("print-jobs") ? [job({ id: 1 }), job({ id: 5, status: "cancelled" })] : [] } }));
+    wrap(<JobQueuePanel status="all" orderFilter="" page={1} pageSize={25} onChange={vi.fn()} />);
+    await screen.findAllByText("lecture.pdf");
+    const rows = screen.getAllByRole("row").slice(1);
+    expect(within(rows[1]!).getByText("ملغى")).toBeTruthy();
+    expect(within(rows[1]!).queryByRole("button")).toBeNull();
+    await userEvent.click(within(rows[0]!).getByRole("button", { name: "إلغاء المهمة" }));
+    await userEvent.type(await screen.findByLabelText(/سبب الإلغاء/u), "wrong file");
+    await userEvent.click(screen.getByRole("button", { name: "تأكيد الإلغاء" }));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([path, init]) => String(path).endsWith("/print-jobs/1/cancel/") && (init as { method?: string })?.method === "POST" && JSON.stringify((init as { body?: unknown }).body) === JSON.stringify({ reason: "wrong file" }))).toBe(true));
   });
 });
 
@@ -119,6 +175,24 @@ describe("counter tab", () => {
     expect((screen.getByLabelText(/عدد الصفحات/u, { selector: "input" }) as HTMLInputElement).value).toBe("20");
     expect(screen.getByLabelText("وصف الملف", { exact: false })).toBeTruthy();
     expect((screen.getByLabelText("وصف الملف", { exact: false }) as HTMLInputElement).value).toBe("book.pdf");
+  });
+
+  it("shows the flip edge only for double-sided lines and counts pages from a range", async () => {
+    wrap(<CounterOrderTab copyFrom={null} />);
+    await screen.findByText(/Ctrl \+ Enter/u);
+    expect(screen.queryByRole("radiogroup", { name: "اتجاه قلب الورقة" })).toBeNull();
+    await userEvent.click(screen.getByRole("radio", { name: /وجهان/u }));
+    expect(screen.getByRole("radiogroup", { name: "اتجاه قلب الورقة" })).toBeTruthy();
+    await userEvent.type(screen.getByLabelText(/نطاق الصفحات/u, { selector: "input" }), "1-5, 8");
+    expect(await screen.findByText("عدد الصفحات المحسوب من النطاق: 6")).toBeTruthy();
+    expect((screen.getByLabelText(/عدد الصفحات/u, { selector: "input" }) as HTMLInputElement).value).toBe("6");
+    await waitFor(() => expect(fetchMock.mock.calls.some(([path, init]) => String(path).includes("counter-orders/quote") && JSON.stringify((init as { body?: unknown }).body ?? "").includes("\"page_range\":\"1-5,8\"") && JSON.stringify((init as { body?: unknown }).body).includes("\"duplex_flip\":\"long\""))).toBe(true));
+  });
+
+  it("flags a descending range inline", async () => {
+    wrap(<CounterOrderTab copyFrom={null} />);
+    await userEvent.type(await screen.findByLabelText(/نطاق الصفحات/u, { selector: "input" }), "8,1-3");
+    expect(await screen.findByText("يجب أن تكون النطاقات تصاعدية وغير متداخلة.")).toBeTruthy();
   });
 
   it("starts empty with a shortcut hint when no order is copied", async () => {
