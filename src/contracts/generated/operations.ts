@@ -1954,6 +1954,15 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/print-jobs/{id}/cancel/",
+    "operationId": "v1_dashboard_printing_print_jobs_cancel_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "GET",
     "path": "/api/v1/dashboard/printing/print-jobs/{id}/file/",
     "operationId": "v1_dashboard_printing_print_jobs_file_retrieve",
@@ -1977,6 +1986,60 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_printing_print_jobs_status_partial_update",
     "tags": [
       "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/printers/",
+    "operationId": "v1_dashboard_printing_printers_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/printers/",
+    "operationId": "v1_dashboard_printing_printers_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/printers/{id}/",
+    "operationId": "v1_dashboard_printing_printers_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/printing/printers/{id}/",
+    "operationId": "v1_dashboard_printing_printers_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/printing/printers/{id}/",
+    "operationId": "v1_dashboard_printing_printers_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/printing/printers/{id}/",
+    "operationId": "v1_dashboard_printing_printers_destroy",
+    "tags": [
+      "v1"
     ],
     "authenticated": true
   },
@@ -3543,6 +3606,15 @@ export const API_OPERATIONS = [
     "operationId": "v1_policies_status_retrieve",
     "tags": [
       "Policies"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/printing/agent/heartbeat/",
+    "operationId": "v1_printing_agent_heartbeat_create",
+    "tags": [
+      "Printing"
     ],
     "authenticated": true
   },
