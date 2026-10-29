@@ -109,9 +109,9 @@ export function FilterBar({ state, fields, segments, sortOptions, searchPlacehol
         </div>
       ) : null}
 
-      <div className={cn("flex gap-2", compact ? "items-center" : "flex-col lg:flex-row lg:flex-wrap lg:items-end")}>
+      <div className={cn("flex gap-2", compact ? "items-center" : "flex-col md:flex-row md:flex-wrap md:items-end")}>
         {searchParam ? (
-          <div className="relative min-w-0 flex-1 lg:min-w-[16rem]">
+          <div className="relative min-w-0 flex-1 md:min-w-[16rem]">
             <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <Input
               type="search"
