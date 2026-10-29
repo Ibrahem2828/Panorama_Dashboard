@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { FilterBar, FilterEmptyState, type FilterSegment } from "@/components/filters/filter-bar";
 import { toQueryString } from "@/components/filters/filter-state";
 import { LOOKUPS, useLookupOptions } from "@/components/filters/use-lookup-options";
+import { EMPTY_LOOKUPS, academicFields, useAcademicLookups } from "@/components/filters/academic-filters";
 import { useFilterState } from "@/components/filters/use-filter-state";
 import { Pagination } from "@/components/data-grid/pagination";
 import { AccessDenied } from "@/components/feedback/access-denied";
@@ -53,23 +54,13 @@ export function StudentsPage() {
   const allowed = canUsers || canVerify;
   const [moreOpened, setMoreOpened] = useState(false);
 
-  // The filter state is read first (lookups depend on the parent selections): its structure (keys, parents) does not
-  // depend on the loaded options, which are passed to the bar separately.
-  const structure = useMemo(() => studentSchema(studentFields({ t, universities: [], faculties: [], majors: [], academicYears: [], semesters: [], groups: [] })), [t]);
+  // The filter state comes first: its structure (keys, parents) does not depend on the loaded options, which are
+  // passed to the bar separately.
+  const structure = useMemo(() => studentSchema(studentFields({ t, academic: academicFields(t, EMPTY_LOOKUPS), groups: [] })), [t]);
   const state = useFilterState(structure);
-  const university = state.values.university;
-  const faculty = state.values.faculty;
-  const universities = useLookupOptions(LOOKUPS.universities, {}, allowed);
-  const faculties = useLookupOptions(LOOKUPS.faculties, { university }, allowed);
-  const majors = useLookupOptions(LOOKUPS.majors, { faculty }, allowed);
-  const years = useLookupOptions(LOOKUPS.academicYears, {}, allowed);
-  const semesters = useLookupOptions(LOOKUPS.semesters, {}, allowed);
+  const academic = useAcademicLookups(allowed);
   const groups = useLookupOptions(LOOKUPS.groups, {}, allowed && (moreOpened || Boolean(state.values.group)));
-
-  const fields = useMemo(() => studentFields({
-    t, universities: universities.options, faculties: faculties.options, majors: majors.options, academicYears: years.options, semesters: semesters.options, groups: groups.options,
-    loading: { faculties: faculties.loading, majors: majors.loading },
-  }), [t, universities.options, faculties.options, majors.options, years.options, semesters.options, groups.options, faculties.loading, majors.loading]);
+  const fields = useMemo(() => studentFields({ t, academic: academicFields(t, academic), groups: groups.options }), [t, academic, groups.options]);
 
   const listParams = state.requestParams;
   const list = useQuery({

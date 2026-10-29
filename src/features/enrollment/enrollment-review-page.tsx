@@ -1,10 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCheck, RotateCw, Search, XCircle, ZoomIn, ZoomOut } from "lucide-react";
+import { CheckCheck, RotateCw, XCircle, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { academicFields, useAcademicLookups } from "@/components/filters/academic-filters";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { useFilterState } from "@/components/filters/use-filter-state";
 import { CapabilityGate } from "@/components/feedback/capability-gate";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { PageHeader } from "@/components/shared/page-header";
@@ -12,10 +15,8 @@ import { StatusPill } from "@/components/shared/status-pill";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useI18n } from "@/i18n/provider";
 import { apiFetch, downloadFromBackend, normalizeCollection, unwrap } from "@/lib/api/browser-client";
 import { UserLink } from "@/features/users/user-link";
@@ -36,9 +37,17 @@ type Pending = { kind: "reject_all" | "approve_selected" | "bulk_reject"; ids?: 
 export function EnrollmentReviewPage() {
   const { t, enumLabel } = useI18n();
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<string>("pending");
-  const [searchDraft, setSearchDraft] = useState("");
-  const search = useDebouncedValue(searchDraft);
+  // Filters live in the URL. No `status` in the URL means the review queue (pending); "all" lifts the status filter.
+  const academic = useAcademicLookups();
+  const fields = useMemo(() => academicFields(t, academic).filter((field) => ["faculty", "academic_year", "semester"].includes(field.key)).map((field) => ({ ...field, placement: "advanced" as const }))
+    .concat([{ kind: "date-range" as const, key: "created", fromKey: "created_after", toKey: "created_before", label: t("filters.createdRange"), placement: "advanced" as const }]), [academic, t]);
+  const filter = useFilterState(useMemo(() => ({ fields, searchParam: "search", segmentParam: "status" }), [fields]));
+  const status = filter.values.status || "pending";
+  const segments = useMemo(() => [
+    { value: "", label: enumLabel("pending") },
+    ...STATUSES.filter((value) => value !== "pending").map((value) => ({ value, label: enumLabel(value) })),
+    { value: "all", label: t("common.all") },
+  ], [enumLabel, t]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const [bulk, setBulk] = useState<Set<number>>(new Set());
@@ -49,12 +58,11 @@ export function EnrollmentReviewPage() {
   const [reason, setReason] = useState("");
 
   const list = useQuery({
-    queryKey: ["enrollment-requests", status, search],
+    queryKey: ["enrollment-requests", filter.requestParams],
     refetchInterval: 20000,
     queryFn: async () => {
-      const params = new URLSearchParams({ page_size: "100", ordering: "-created_at" });
-      if (status !== "all") params.set("status", status);
-      if (search) params.set("search", search);
+      const params = new URLSearchParams({ page_size: "100", ordering: "-created_at", ...filter.requestParams, status });
+      if (status === "all") params.delete("status");
       return normalizeCollection<EnrollmentRow>(await apiFetch(`/api/v1/dashboard/enrollment/requests/?${params}`));
     },
   });
@@ -147,17 +155,15 @@ export function EnrollmentReviewPage() {
       <PageHeader title={t("enrollmentReview.title")} description={t("enrollmentReview.subtitle")} />
       <div className="grid gap-4 lg:grid-cols-[20rem_1fr_22rem]">
         <Card className="flex max-h-[75vh] flex-col gap-2 overflow-hidden p-3">
-          <div className="relative">
-            <Search className="absolute start-3 top-3 size-4 text-muted-foreground" />
-            <Input className="ps-9" placeholder={t("enrollmentReview.search")} value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} />
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {["all", ...STATUSES].map((value) => (
-              <Button key={value} size="sm" variant={status === value ? "default" : "outline"} onClick={() => setStatus(value)}>
-                {value === "all" ? t("common.all") : enumLabel(value)}
-              </Button>
-            ))}
-          </div>
+          <FilterBar
+            compact
+            state={filter}
+            fields={fields}
+            segments={segments}
+            searchPlaceholder={t("enrollmentReview.search")}
+            resultCount={list.data?.count ?? null}
+            loading={list.isFetching && !list.isPending}
+          />
           {status === "pending" && openRows.length > 0 ? (
             <div className="flex flex-wrap gap-1 border-y py-2">
               <Button size="sm" variant="outline" onClick={() => setBulk(bulk.size === openRows.length ? new Set() : new Set(openRows.map((row) => row.id)))}>

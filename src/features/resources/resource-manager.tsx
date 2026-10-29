@@ -7,6 +7,9 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Pagination } from "@/components/data-grid/pagination";
+import { FilterBar, FilterEmptyState, type FilterSegment } from "@/components/filters/filter-bar";
+import type { FilterField, FilterOption, FilterSchema } from "@/components/filters/filter-types";
+import { useFilterState } from "@/components/filters/use-filter-state";
 import { ResourceTable, type ResourceColumn, type RowMenuAction } from "@/components/data-grid/resource-table";
 import { AccessDenied } from "@/components/feedback/access-denied";
 import { ErrorPanel } from "@/components/feedback/error-panel";
@@ -69,6 +72,21 @@ export interface ManagerFilter {
 
 const ALL_FILTER = "__all__";
 
+/** The shared FilterBar for a resource list: replaces the simple search box and `filters` row. */
+export interface ManagerFilterBar {
+  fields: readonly FilterField[];
+  segments?: readonly FilterSegment[];
+  /** Query parameter the segments drive (for example `kind`). */
+  segmentParam?: string;
+  sortOptions?: readonly FilterOption[];
+  defaultSort?: string;
+  searchPlaceholder?: string;
+  /** Called when the "more filters" drawer opens or closes (to load heavy lookups lazily). */
+  onMoreOpenChange?: (open: boolean) => void;
+}
+
+const NO_FILTER_SCHEMA: FilterSchema = { fields: [] };
+
 type FormAction = "create" | "edit";
 
 export function ResourceManager({
@@ -90,6 +108,7 @@ export function ResourceManager({
   rowActions,
   customRowActions,
   filters,
+  filterBar,
   confirmSubmit,
   guardSubmit,
   createLabel,
@@ -115,6 +134,8 @@ export function ResourceManager({
   rowActions?: ManagerRowAction[];
   customRowActions?: ManagerCustomAction[];
   filters?: ManagerFilter[];
+  /** Full filter bar (segments, primary and advanced filters, chips, sort). When set it replaces `filters` and the search box. */
+  filterBar?: ManagerFilterBar;
   confirmSubmit?: (mode: FormAction, payload: Record<string, unknown>, entity: EntityRecord | null) => string | null;
   guardSubmit?: (mode: FormAction, payload: Record<string, unknown>, entity: EntityRecord | null, rows: EntityRecord[]) => { field?: string; message: string } | null;
   createLabel?: string;
@@ -144,11 +165,19 @@ export function ResourceManager({
   const [reasonError, setReasonError] = useState<string | null>(null);
   const page = Math.max(1, Number(searchParams.get("page") ?? 1));
   const pageSize = Math.min(100, Math.max(10, Number(searchParams.get("page_size") ?? 25)));
-  const search = searchParams.get("search") ?? "";
-  const ordering = searchParams.get("ordering") ?? "-created_at";
+  const barSchema = useMemo<FilterSchema>(
+    () => (filterBar
+      ? { fields: filterBar.fields, searchParam: "search", segmentParam: filterBar.segmentParam, sortParam: filterBar.sortOptions ? "ordering" : undefined, defaultSort: filterBar.defaultSort }
+      : NO_FILTER_SCHEMA),
+    [filterBar],
+  );
+  const bar = useFilterState(barSchema);
+  const search = filterBar ? (bar.values.search ?? "") : (searchParams.get("search") ?? "");
+  const ordering = filterBar ? (bar.requestParams.ordering ?? "-created_at") : (searchParams.get("ordering") ?? "-created_at");
+  const barParams = bar.requestParams;
   const activeFilters = useMemo(
-    () => Object.fromEntries((filters ?? []).filter((filter) => !filter.clientSide).map((filter) => [filter.param, searchParams.get(filter.param) ?? ""]).filter(([, value]) => value)) as Record<string, string>,
-    [filters, searchParams],
+    () => filterBar ? Object.fromEntries(Object.entries(barParams).filter(([name]) => name !== "search" && name !== "ordering")) as Record<string, string> : Object.fromEntries((filters ?? []).filter((filter) => !filter.clientSide).map((filter) => [filter.param, searchParams.get(filter.param) ?? ""]).filter(([, value]) => value)) as Record<string, string>,
+    [filters, searchParams, filterBar, barParams],
   );
   const clientFilters = useMemo(
     () => (filters ?? []).filter((filter) => filter.clientSide).map((filter) => [filter.param, searchParams.get(filter.param) ?? ""] as const).filter(([, value]) => value),
@@ -294,6 +323,18 @@ export function ResourceManager({
         }
       />
 
+      {filterBar ? (
+        <FilterBar
+          state={bar}
+          fields={filterBar.fields}
+          segments={filterBar.segments}
+          sortOptions={filterBar.sortOptions}
+          searchPlaceholder={filterBar.searchPlaceholder}
+          resultCount={query.data?.count ?? null}
+          loading={query.isFetching && !query.isPending}
+          onMoreOpenChange={filterBar.onMoreOpenChange}
+        />
+      ) : (
       <div className="glass-panel flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:flex-wrap sm:items-center sm:p-4">
         <form className="relative flex-1 sm:min-w-[14rem]" onSubmit={(event) => { event.preventDefault(); updateUrl({ search: searchDraft, page: 1 }); }}>
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -315,6 +356,7 @@ export function ResourceManager({
         ))}
         <Button variant="outline" className="shrink-0" onClick={() => updateUrl({ search: searchDraft, page: 1 })}><Search />{t("common.search")}</Button>
       </div>
+      )}
 
       {extraContent}
 
@@ -322,6 +364,8 @@ export function ResourceManager({
         <div className="space-y-3"><Skeleton className="h-14 rounded-xl" /><Skeleton className="h-80 rounded-xl" /><Skeleton className="h-10 rounded-xl" /></div>
       ) : query.isError ? (
         <ErrorPanel error={query.error} retry={() => query.refetch()} />
+      ) : filterBar && query.data.results.length === 0 ? (
+        <FilterEmptyState state={bar} />
       ) : (
         <>
           <ResourceTable

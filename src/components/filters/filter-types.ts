@@ -42,6 +42,11 @@ export interface BooleanField extends FieldBase {
   noLabel?: string;
 }
 
+/** One date (YYYY-MM-DD), for example "active since". */
+export interface DateField extends FieldBase {
+  kind: "date";
+}
+
 /** Inclusive date range sent as two YYYY-MM-DD parameters. */
 export interface DateRangeField extends FieldBase {
   kind: "date-range";
@@ -62,7 +67,7 @@ export interface NumberField extends FieldBase {
   unit?: string;
 }
 
-export type FilterField = SelectField | CascadingSelectField | MultiSelectField | BooleanField | DateRangeField | NumberRangeField | NumberField;
+export type FilterField = SelectField | CascadingSelectField | MultiSelectField | BooleanField | DateField | DateRangeField | NumberRangeField | NumberField;
 
 export interface FilterSchema {
   fields: readonly FilterField[];

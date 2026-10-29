@@ -4,7 +4,7 @@ import { ArrowDownUp, Search, SlidersHorizontal, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { FilterFieldControl, isSelectLike } from "@/components/filters/filter-fields";
-import { activeChips, advancedActiveCount } from "@/components/filters/filter-state";
+import { activeChips, activeFieldCount, advancedActiveCount } from "@/components/filters/filter-state";
 import type { FilterField, FilterOption } from "@/components/filters/filter-types";
 import type { FilterState } from "@/components/filters/use-filter-state";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ function dateLabel(value: string, locale: string): string {
  * The shared filter bar: quick segments with counts, search, primary filters, a drawer for advanced filters, removable
  * chips, "clear all", the result count and the sort control. All state lives in the URL (see useFilterState).
  */
-export function FilterBar({ state, fields, segments, sortOptions, searchPlaceholder, resultCount, loading, className, onMoreOpenChange }: {
+export function FilterBar({ state, fields, segments, sortOptions, searchPlaceholder, resultCount, loading, className, onMoreOpenChange, compact = false }: {
   state: FilterState;
   /** Fields with their loaded options. Defaults to the fields the state was created with. */
   fields?: readonly FilterField[];
@@ -42,15 +42,29 @@ export function FilterBar({ state, fields, segments, sortOptions, searchPlacehol
   className?: string;
   /** Lets a page load heavy advanced lookups (for example every group) only once the drawer is opened. */
   onMoreOpenChange?: (open: boolean) => void;
+  /** For narrow panes (the chat list): search and one "Filters" button; every field and the sort control live in the drawer. */
+  compact?: boolean;
 }) {
   const { t, locale } = useI18n();
   const [drawer, setDrawerState] = useState(false);
   const setDrawer = (open: boolean) => { setDrawerState(open); onMoreOpenChange?.(open); };
   const { values } = state;
   const schema = useMemo(() => (fields ? { ...state.schema, fields } : state.schema), [fields, state.schema]);
-  const primary = schema.fields.filter((field) => (field.placement ?? "primary") === "primary");
-  const advanced = schema.fields.filter((field) => field.placement === "advanced");
-  const advancedActive = advancedActiveCount(values, schema);
+  const primary = compact ? [] : schema.fields.filter((field) => (field.placement ?? "primary") === "primary");
+  // The drawer holds the advanced fields, or in compact mode every field.
+  const advanced = compact ? schema.fields : schema.fields.filter((field) => field.placement === "advanced");
+  const advancedActive = compact ? activeFieldCount(values, schema) : advancedActiveCount(values, schema);
+  const sortControl = (variant: "bar" | "drawer") => (sortParam && sortOptions?.length ? (
+    <Select value={state.ordering || undefined} onValueChange={(next) => state.setValue(sortParam, next === schema.defaultSort ? null : next)}>
+      <SelectTrigger className={cn("h-10 shrink-0", variant === "bar" ? "w-full sm:w-48" : "w-full")} aria-label={t("filters.sort")}>
+        <ArrowDownUp className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+        <SelectValue placeholder={t("filters.sort")} />
+      </SelectTrigger>
+      <SelectContent>
+        {sortOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  ) : null);
   const chips = useMemo(
     () => activeChips(values, schema, {
       yes: t("common.yes"), no: t("common.no"), from: t("filters.from"), to: t("filters.to"), min: t("filters.min"), max: t("filters.max"),
@@ -69,7 +83,7 @@ export function FilterBar({ state, fields, segments, sortOptions, searchPlacehol
   );
 
   return (
-    <section aria-label={t("filters.label")} className={cn("glass-panel space-y-3 rounded-2xl border p-3 sm:p-4", className)}>
+    <section aria-label={t("filters.label")} className={cn(compact ? "space-y-2" : "glass-panel space-y-3 rounded-2xl border p-3 sm:p-4", className)}>
       {segmentParam && segments?.length ? (
         <div role="group" aria-label={t("filters.segments")} className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
           {segments.map((segment) => {
@@ -95,7 +109,7 @@ export function FilterBar({ state, fields, segments, sortOptions, searchPlacehol
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-end">
+      <div className={cn("flex gap-2", compact ? "items-center" : "flex-col lg:flex-row lg:flex-wrap lg:items-end")}>
         {searchParam ? (
           <div className="relative min-w-0 flex-1 lg:min-w-[16rem]">
             <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -129,22 +143,12 @@ export function FilterBar({ state, fields, segments, sortOptions, searchPlacehol
         {advanced.length ? (
           <Button type="button" variant="outline" className="h-10 shrink-0" onClick={() => setDrawer(true)} aria-haspopup="dialog">
             <SlidersHorizontal aria-hidden />
-            {t("filters.more")}
+            {compact ? t("common.filters") : t("filters.more")}
             {advancedActive ? <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground" aria-label={t("filters.activeInMore", { count: advancedActive })}>{formatNumber(advancedActive, locale)}</span> : null}
           </Button>
         ) : null}
 
-        {sortParam && sortOptions?.length ? (
-          <Select value={state.ordering || undefined} onValueChange={(next) => state.setValue(sortParam, next === schema.defaultSort ? null : next)}>
-            <SelectTrigger className="h-10 w-full shrink-0 sm:w-48" aria-label={t("filters.sort")}>
-              <ArrowDownUp className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-              <SelectValue placeholder={t("filters.sort")} />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        ) : null}
+        {compact ? null : sortControl("bar")}
       </div>
 
       {chips.length || state.hasFilters || countText ? (
@@ -176,10 +180,16 @@ export function FilterBar({ state, fields, segments, sortOptions, searchPlacehol
         <Sheet open={drawer} onOpenChange={setDrawer}>
           <SheetContent side="end" className="flex w-full flex-col gap-0 overflow-y-auto p-0 sm:max-w-md">
             <SheetHeader className="border-b p-5 pe-12">
-              <SheetTitle>{t("filters.moreTitle")}</SheetTitle>
+              <SheetTitle>{compact ? t("common.filters") : t("filters.moreTitle")}</SheetTitle>
               <SheetDescription>{t("filters.moreHint")}</SheetDescription>
             </SheetHeader>
             <div className="flex-1 space-y-5 p-5">
+              {compact && sortOptions?.length ? (
+                <div className="space-y-2">
+                  <div className="text-sm font-bold">{t("filters.sort")}</div>
+                  {sortControl("drawer")}
+                </div>
+              ) : null}
               {advanced.map((field) => (
                 <div key={field.key} className="space-y-2">
                   <div className="text-sm font-bold">{field.label}</div>

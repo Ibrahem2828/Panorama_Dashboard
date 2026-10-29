@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FilesPage } from "@/features/files/files-page";
 import { GroupMembersDialog } from "@/features/groups/group-members-dialog";
 import { GroupsPage } from "@/features/groups/groups-page";
-import type { ManagerCustomAction, ManagerFilter, ManagerRowAction } from "@/features/resources/resource-manager";
+import type { ManagerCustomAction, ManagerFilterBar, ManagerRowAction } from "@/features/resources/resource-manager";
 import { I18nProvider } from "@/i18n/provider";
 import { apiFetch } from "@/lib/api/browser-client";
 
@@ -15,17 +15,17 @@ import { apiFetch } from "@/lib/api/browser-client";
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
 
 const granted = new Set<string>();
-const captured: { custom: ManagerCustomAction[]; rows: ManagerRowAction[]; filters: ManagerFilter[]; createLabel?: string } = { custom: [], rows: [], filters: [] };
+const captured: { custom: ManagerCustomAction[]; rows: ManagerRowAction[]; filterBar?: ManagerFilterBar; createLabel?: string } = { custom: [], rows: [] };
 
 vi.mock("@/features/session", () => ({
   useCan: (capability?: string) => !capability || granted.has(capability),
   useSession: () => ({ user: { id: 1, role: "admin" } }),
 }));
 vi.mock("@/features/resources/resource-manager", () => ({
-  ResourceManager: (props: { customRowActions?: ManagerCustomAction[]; rowActions?: ManagerRowAction[]; filters?: ManagerFilter[]; createLabel?: string }) => {
+  ResourceManager: (props: { customRowActions?: ManagerCustomAction[]; rowActions?: ManagerRowAction[]; filterBar?: ManagerFilterBar; createLabel?: string }) => {
     captured.custom = props.customRowActions ?? [];
     captured.rows = props.rowActions ?? [];
-    captured.filters = props.filters ?? [];
+    captured.filterBar = props.filterBar;
     captured.createLabel = props.createLabel;
     return null;
   },
@@ -39,7 +39,7 @@ const wrap = (node: React.ReactNode, locale: "en" | "ar" = "en") => (
 
 beforeEach(() => {
   granted.clear();
-  captured.custom = []; captured.rows = []; captured.filters = []; captured.createLabel = undefined;
+  captured.custom = []; captured.rows = []; captured.filterBar = undefined; captured.createLabel = undefined;
   vi.mocked(apiFetch).mockReset();
 });
 afterEach(cleanup);
@@ -79,12 +79,15 @@ describe("groups page wiring", () => {
 });
 
 describe("files page wiring", () => {
-  it("labels the create action as an upload and offers visibility, status and printable filters", () => {
+  it("labels the create action as an upload and offers the library filter bar", () => {
     granted.add("files.manage");
     render(wrap(<FilesPage />));
     expect(captured.createLabel).toBe("Upload file");
-    expect(captured.filters.map((filter) => filter.param)).toEqual(["visibility", "is_active", "is_printable", "processing_status"]);
-    expect(captured.filters[0]?.options.map((option) => option.value)).toEqual(["public", "students_only", "verified_students_only", "major_only", "group_only", "admin_only"]);
+    const fields = captured.filterBar!.fields;
+    expect(fields.map((field) => field.key)).toEqual(["visibility", "processing_status", "subject", "group", "is_active", "is_printable", "created"]);
+    const visibility = fields[0]!;
+    expect(visibility.kind === "select" && visibility.options.map((option) => option.value)).toEqual(["public", "students_only", "verified_students_only", "major_only", "group_only", "admin_only"]);
+    expect(fields.filter((field) => field.placement === "primary").map((field) => field.key)).toEqual(["visibility", "processing_status"]);
   });
 
   it("offers the protected preview only for active files", () => {

@@ -37,6 +37,7 @@ function sanitize(field: FilterField, raw: string): string {
   if (!value) return "";
   switch (field.kind) {
     case "boolean": return value === "true" || value === "false" ? value : "";
+    case "date":
     case "date-range": return DATE.test(value) ? value : "";
     case "number-range":
     case "number": return INTEGER.test(value) ? value : "";
@@ -153,6 +154,8 @@ export function activeChips(values: FilterValues, schema: FilterSchema, labels: 
       text = (values[field.key] ?? "").split(",").map((item) => field.options.find((option) => option.value === item)?.label ?? item).join("، ");
     } else if (field.kind === "boolean") {
       text = values[field.key] === "true" ? (field.yesLabel ?? labels.yes) : (field.noLabel ?? labels.no);
+    } else if (field.kind === "date") {
+      text = labels.date(values[field.key] ?? "");
     } else if (field.kind === "date-range") {
       const parts: string[] = [];
       if (values[field.fromKey] ?? "") parts.push(`${labels.from} ${labels.date(values[field.fromKey] ?? "")}`);

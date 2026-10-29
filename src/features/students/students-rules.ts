@@ -54,13 +54,9 @@ export function isVerificationStatus(value: unknown): value is VerificationStatu
 
 export interface StudentFieldInput {
   t: (key: MessageKey, values?: Record<string, string | number>) => string;
-  universities: readonly FilterOption[];
-  faculties: readonly FilterOption[];
-  majors: readonly FilterOption[];
-  academicYears: readonly FilterOption[];
-  semesters: readonly FilterOption[];
+  /** Faculty, major, year, semester and university (see `academicFields`). */
+  academic: readonly FilterField[];
   groups: readonly FilterOption[];
-  loading?: { faculties?: boolean; majors?: boolean };
 }
 
 /**
@@ -70,11 +66,7 @@ export interface StudentFieldInput {
 export function studentFields(input: StudentFieldInput): FilterField[] {
   const { t } = input;
   return [
-    { kind: "cascading-select", key: "faculty", parent: "university", label: t("students.filter.faculty"), options: input.faculties, loading: input.loading?.faculties, placement: "primary" },
-    { kind: "cascading-select", key: "major", parent: "faculty", label: t("students.filter.major"), options: input.majors, loading: input.loading?.majors, placement: "primary" },
-    { kind: "select", key: "academic_year", label: t("students.filter.year"), options: input.academicYears, placement: "primary" },
-    { kind: "select", key: "semester", label: t("students.filter.semester"), options: input.semesters, placement: "primary" },
-    { kind: "select", key: "university", label: t("students.filter.university"), options: input.universities, placement: "advanced" },
+    ...input.academic,
     { kind: "boolean", key: "is_active", label: t("students.filter.accountStatus"), yesLabel: t("common.active"), noLabel: t("students.disabled"), placement: "advanced" },
     { kind: "boolean", key: "has_pending_enrollment", label: t("students.filter.pendingEnrollment"), placement: "advanced" },
     { kind: "boolean", key: "no_groups", label: t("students.filter.noGroups"), placement: "advanced" },

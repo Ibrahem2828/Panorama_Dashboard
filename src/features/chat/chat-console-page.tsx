@@ -1,21 +1,25 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquareText, Search } from "lucide-react";
+import { MessageSquareText } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
+import { EMPTY_LOOKUPS, academicFields, useAcademicLookups } from "@/components/filters/academic-filters";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { useFilterState } from "@/components/filters/use-filter-state";
+import { LOOKUPS, useLookupOptions } from "@/components/filters/use-lookup-options";
 import { CapabilityGate } from "@/components/feedback/capability-gate";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ATTACHMENT_QUERY, revokeAttachmentUrl } from "@/features/chat/chat-attachment";
 import { SenderAvatar, formatClock } from "@/features/chat/chat-bubbles";
 import { isUnread } from "@/features/chat/chat-logic";
+import { chatFields, chatListParams, chatSchema, chatSortOptions } from "@/features/chat/chat-filters";
 import { ChatThread } from "@/features/chat/chat-thread";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useCan } from "@/features/session";
 import { useI18n } from "@/i18n/provider";
 import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
@@ -68,12 +72,19 @@ export function ChatConsolePage() {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<ChatGroup | null>(null);
-  const [searchDraft, setSearchDraft] = useState("");
-  const [reportedOnly, setReportedOnly] = useState(false);
+  const canList = useCan(CAPABILITIES.groups);
+  const [moreOpened, setMoreOpened] = useState(false);
   const seenRaw = useSyncExternalStore(subscribeSeen, readSeenRaw, () => EMPTY_SEEN);
   const seen = useMemo(() => parseSeen(seenRaw), [seenRaw]);
   const [hidden, setHidden] = useState(false);
-  const search = useDebouncedValue(searchDraft);
+  // Filters live in the URL (shareable). `has_open_reports` doubles as the "reported only" quick toggle.
+  const structure = useMemo(() => chatSchema(chatFields(t, academicFields(t, EMPTY_LOOKUPS), [])), [t]);
+  const filter = useFilterState(structure);
+  const academic = useAcademicLookups(canList);
+  const subjects = useLookupOptions(LOOKUPS.subjects, {}, canList && (moreOpened || Boolean(filter.values.subject)));
+  const fields = useMemo(() => chatFields(t, academicFields(t, academic), subjects.options), [t, academic, subjects.options]);
+  const segments = useMemo(() => [{ value: "", label: t("chatConsole.all") }, { value: "true", label: t("chatConsole.reportedOnly") }], [t]);
+  const sortOptions = useMemo(() => chatSortOptions(t), [t]);
 
   useEffect(() => queryClient.getQueryCache().subscribe((event) => {
     if (event.type === "removed" && event.query.queryKey[0] === ATTACHMENT_QUERY) revokeAttachmentUrl(event.query.state.data);
@@ -85,14 +96,9 @@ export function ChatConsolePage() {
   }, []);
 
   const groups = useQuery({
-    queryKey: ["chat-console-groups", search, reportedOnly],
+    queryKey: ["chat-console-groups", filter.requestParams],
     refetchInterval: hidden ? false : POLL_MS,
-    queryFn: async () => {
-      const params = new URLSearchParams({ page_size: "100" });
-      if (search) params.set("search", search);
-      if (reportedOnly) params.set("reported", "1");
-      return normalizeCollection<ChatGroup>(await apiFetch(`/api/v1/dashboard/chat/groups/?${params}`));
-    },
+    queryFn: async () => normalizeCollection<ChatGroup>(await apiFetch(`/api/v1/dashboard/chat/groups/?${chatListParams(filter.requestParams)}`)),
   });
 
   const markSeen = writeSeen;
@@ -106,19 +112,28 @@ export function ChatConsolePage() {
       <PageHeader title={t("chatConsole.title")} description={t("chatConsole.subtitle")} />
       <Card className="mt-4 grid h-[calc(100dvh-13rem)] min-h-[32rem] grid-cols-1 overflow-hidden lg:grid-cols-[22rem_1fr]">
         <section className={cn("min-h-0 flex-col border-e", current ? "hidden lg:flex" : "flex")} aria-label={t("chatConsole.listLabel")}>
-          <div className="space-y-2 border-b p-3">
-            <div className="relative">
-              <Search className="pointer-events-none absolute start-3 top-3 size-4 text-muted-foreground" />
-              <Input className="ps-9" type="search" aria-label={t("chatConsole.search")} placeholder={t("chatConsole.search")} value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} />
-            </div>
-            <Button type="button" size="sm" className="w-full" variant={reportedOnly ? "default" : "outline"} aria-pressed={reportedOnly} onClick={() => setReportedOnly((value) => !value)}>
-              {t("chatConsole.reportedOnly")}
-            </Button>
+          <div className="border-b p-3">
+            <FilterBar
+              compact
+              state={filter}
+              fields={fields}
+              segments={segments}
+              sortOptions={sortOptions}
+              searchPlaceholder={t("chatConsole.search")}
+              resultCount={groups.data?.count ?? null}
+              loading={groups.isFetching && !groups.isPending}
+              onMoreOpenChange={(open) => { if (open) setMoreOpened(true); }}
+            />
           </div>
           <ul className="min-h-0 flex-1 overflow-y-auto">
             {groups.isPending ? <li className="space-y-2 p-3"><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /></li> : null}
             {groups.isError ? <li className="p-3"><ErrorPanel error={groups.error} retry={() => void groups.refetch()} /></li> : null}
-            {groups.isSuccess && rows.length === 0 ? <li className="p-6 text-center text-sm text-muted-foreground">{search || reportedOnly ? t("common.noSearchResults") : t("chatConsole.noGroups")}</li> : null}
+            {groups.isSuccess && rows.length === 0 ? (
+              <li className="flex flex-col items-center gap-3 p-6 text-center text-sm text-muted-foreground">
+                {filter.hasFilters ? t("filters.noMatches") : t("chatConsole.noGroups")}
+                {filter.hasFilters ? <Button type="button" size="sm" variant="outline" onClick={filter.reset}>{t("filters.clearFilters")}</Button> : null}
+              </li>
+            ) : null}
             {rows.map((group) => {
               const unread = isUnread(group, seen, selected?.id ?? null);
               return (
