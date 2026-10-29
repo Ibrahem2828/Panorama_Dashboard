@@ -10,6 +10,7 @@ export const RESOURCE_COLUMNS: Record<string, ResourceColumn[]> = {
     { key: "id", label: "#" },
     { key: "full_name" },
     { key: "email" },
+    { key: "job_title" },
     { key: "role", render: (value) => <StatusPill value={value} /> },
     { key: "is_active", render: active },
     { key: "last_login" },

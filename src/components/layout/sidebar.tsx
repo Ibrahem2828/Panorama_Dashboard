@@ -93,7 +93,7 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
       <div className="border-t p-3">
         {!collapsed ? (
           <div className="rounded-xl bg-muted/65 p-3">
-            <div className="truncate text-sm font-bold">{user.full_name}</div>
+            <Link href={localizePath(params.locale, "/dashboard/profile")} onClick={onNavigate} className="block truncate rounded text-sm font-bold hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" title={t("nav.profile")}>{user.full_name}</Link>
             <div className="mt-1 truncate text-xs text-muted-foreground">{t(`roles.${user.role}` as "roles.admin")}</div>
             <div className="mt-3 flex items-center justify-between text-[10px] text-muted-foreground">
               <Ltr as="span">API v{CONTRACT_META.version}</Ltr>

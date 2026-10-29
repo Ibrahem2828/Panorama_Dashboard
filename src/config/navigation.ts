@@ -1,12 +1,13 @@
 import { BarChart3,
   Activity,
-  BellRing,
   ArrowLeftRight,
   BookOpenCheck,
   Boxes,
+  CalendarRange,
   Building2,
   ClipboardCheck,
   Inbox,
+  MailCheck,
   ShoppingCart,
   Store,
   ListChecks,
@@ -23,6 +24,7 @@ import { BarChart3,
   Network,
   NotebookTabs,
   Printer,
+  RadioTower,
   Receipt,
   ReceiptText,
   ScrollText,
@@ -32,6 +34,7 @@ import { BarChart3,
   Tags,
   University,
   UserRoundCog,
+  UserRound,
   Users,
   Wallet,
   Wrench,
@@ -97,7 +100,7 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "shop", label: "nav.shop", href: "/dashboard/shop", icon: Store, capability: CAPABILITIES.printing },
       { key: "support", label: "nav.support", href: "/dashboard/support", icon: Headphones, capability: CAPABILITIES.support },
       { key: "feedback", label: "nav.feedback", href: "/dashboard/feedback", icon: MessageSquareText, capability: CAPABILITIES.feedback },
-      { key: "notifications", label: "nav.notifications", href: "/dashboard/notifications", icon: BellRing, capability: CAPABILITIES.product },
+      { key: "notifications", label: "nav.notifications", href: "/dashboard/notifications", icon: RadioTower, capability: CAPABILITIES.product },
     ],
   },
   {
@@ -135,11 +138,19 @@ export const navigationGroups: NavigationGroup[] = [
   {
     key: "system",
     items: [
-      { key: "notificationHealth", label: "nav.notificationHealth", href: "/dashboard/system/notification-health", icon: BellRing, capability: CAPABILITIES.system },
+      { key: "notificationHealth", label: "nav.notificationHealth", href: "/dashboard/system/notification-health", icon: MailCheck, capability: CAPABILITIES.system },
       { key: "health", label: "nav.systemHealth", href: "/dashboard/system/health", icon: Activity, capability: CAPABILITIES.dashboard },
-      { key: "settings", label: "nav.settings", href: "/dashboard/settings", icon: Settings, capability: CAPABILITIES.dashboard },
     ],
   },
+];
+
+/**
+ * Personal pages. They live in the user menu (topbar) and nowhere else: settings and the profile are not sidebar
+ * entries, so each purpose has exactly one door. They stay registered here so route gating and the command palette know them.
+ */
+export const accountNavigation: NavigationItem[] = [
+  { key: "profile", label: "nav.profile", href: "/dashboard/profile", icon: UserRound, capability: CAPABILITIES.dashboard, keywords: ["ملفي", "الاسم", "المسمى", "كلمة المرور", "profile", "password"] },
+  { key: "settings", label: "nav.settings", href: "/dashboard/settings", icon: Settings, capability: CAPABILITIES.dashboard, keywords: ["مظهر", "لغة", "settings", "theme"] },
 ];
 
 export const academicSubNavigation: NavigationItem[] = [
@@ -148,10 +159,11 @@ export const academicSubNavigation: NavigationItem[] = [
   { key: "majors", label: "nav.majors", href: "/dashboard/academic/majors", icon: GraduationCap, capability: CAPABILITIES.academic },
   { key: "academicYears", label: "nav.academicYears", href: "/dashboard/academic/academic-years", icon: NotebookTabs, capability: CAPABILITIES.academic },
   { key: "semesters", label: "nav.semesters", href: "/dashboard/academic/semesters", icon: Tags, capability: CAPABILITIES.academic },
+  { key: "term", label: "nav.term", href: "/dashboard/academic/term", icon: CalendarRange, capability: CAPABILITIES.academic, keywords: ["إنهاء الفصل", "الفصل الحالي", "term", "semester"] },
   { key: "subjects", label: "nav.subjects", href: "/dashboard/academic/subjects", icon: BookOpenCheck, capability: CAPABILITIES.academic },
 ];
 
-export const allNavigationItems = [...navigationGroups.flatMap((group) => group.items), ...academicSubNavigation];
+export const allNavigationItems = [...navigationGroups.flatMap((group) => group.items), ...accountNavigation, ...academicSubNavigation];
 
 /** Maps a canonical (optionally locale-prefixed) dashboard URL to its UI gate. */
 export function capabilityForDashboardPath(pathname: string): string | undefined {

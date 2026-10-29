@@ -1,4 +1,4 @@
-import type { ResourceDefinition } from "@/contracts/types";
+import type { ContractField, ResourceDefinition } from "@/contracts/types";
 import { endAfterStart, resolveFieldSpecs, type CrossRule, type FieldOverride, type FieldSpec, type FormMode } from "@/features/resources/form-schema";
 import { RESOURCE_DEFINITIONS } from "@/contracts/generated/resource-definitions";
 
@@ -17,7 +17,19 @@ export interface ResourceFormPolicy {
   crossRules?: readonly CrossRule[];
   /** DELETE is exposed in the UI (the backend soft-deletes: the record is hidden and deactivated). */
   deletable?: boolean;
+  /**
+   * Writable fields the backend already accepts but the generated contract does not list yet (the contract is synced
+   * by the integrator, never hand-edited). They are appended to the contract fields and dropped by the merge as soon
+   * as the contract carries a field of the same name.
+   */
+  extraFields?: readonly ContractField[];
 }
+
+/** A plain optional text column that is missing from the generated contract (see `extraFields`). */
+export const extraTextField = (name: string, maxLength: number): ContractField => ({
+  name, type: "string", input: "text", format: null, required: false, nullable: false, readOnly: false, writeOnly: false,
+  minLength: null, maxLength, minimum: null, maximum: null, pattern: null, enum: null, defaultValue: "", description: null,
+});
 
 const readOnlyPolicy = (capability: string | null): ResourceFormPolicy => ({
   allowedCreateFields: [],
@@ -37,9 +49,10 @@ interface WritablePolicyOptions {
   fieldOverrides?: Record<string, FieldOverride>;
   crossRules?: readonly CrossRule[];
   deletable?: boolean;
+  extraFields?: readonly ContractField[];
 }
 
-const writablePolicy = ({ capability, create, update = create, fieldOverrides, crossRules, deletable = false }: WritablePolicyOptions): ResourceFormPolicy => ({
+const writablePolicy = ({ capability, create, update = create, fieldOverrides, crossRules, deletable = false, extraFields }: WritablePolicyOptions): ResourceFormPolicy => ({
   allowedCreateFields: create,
   allowedUpdateFields: update,
   readOnlyFields: ["id", "created_at", "updated_at"],
@@ -51,6 +64,7 @@ const writablePolicy = ({ capability, create, update = create, fieldOverrides, c
   fieldOverrides,
   crossRules,
   deletable,
+  extraFields,
 });
 
 /** Backend FileResourceSerializer.validate: group-only files need a group, major-only files a major and an academic year. */
@@ -77,7 +91,13 @@ const SMALL_ORDER: FieldOverride = { min: 0, max: 32767 };
  * automatically. A resource without an entry here stays read-only. Required contract fields must be in `create`.
  */
 export const RESOURCE_FORM_POLICIES: Record<string, ResourceFormPolicy> = {
-  users: writablePolicy({ capability: "users.manage", create: [], update: ["full_name", "role"], fieldOverrides: { role: { options: ROLE_VALUES, required: true } } }),
+  users: writablePolicy({
+    capability: "users.manage",
+    create: [],
+    update: ["full_name", "job_title", "role"],
+    fieldOverrides: { role: { options: ROLE_VALUES, required: true }, job_title: { maxLength: 120, label: "field.job_title" } },
+    extraFields: [extraTextField("job_title", 120)],
+  }),
   universities: writablePolicy({ capability: "academic.manage", create: ["name", "code", "description", "is_active"], deletable: true }),
   faculties: writablePolicy({ capability: "academic.manage", create: ["university", "name", "code", "is_active"], deletable: true }),
   majors: writablePolicy({ capability: "academic.manage", create: ["faculty", "name", "code", "is_active"], deletable: true }),
@@ -298,5 +318,7 @@ export function formSpecsFor(resourceKey: string, mode: FormMode, extra: Record<
   const selected = only?.length ? names.filter((name) => only.includes(name)) : names;
   const overrides: Record<string, FieldOverride> = {};
   for (const name of selected) overrides[name] = { ...policy.fieldOverrides?.[name], ...extra[name] };
-  return resolveFieldSpecs(definition, selected, overrides);
+  const known = new Set(definition.fields.map((field) => field.name));
+  const extras = (policy.extraFields ?? []).filter((field) => !known.has(field.name));
+  return resolveFieldSpecs(extras.length ? { fields: [...definition.fields, ...extras] } : definition, selected, overrides);
 }

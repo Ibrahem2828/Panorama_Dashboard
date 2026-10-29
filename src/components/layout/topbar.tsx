@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Settings, ShieldCheck } from "lucide-react";
+import { LogOut, Settings, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -51,6 +51,7 @@ export function Topbar() {
               <div className="mt-2 flex items-center gap-1.5 text-[10px] font-normal text-muted-foreground"><ShieldCheck className="size-3" />{source === "backend" ? t("session.backendCapabilities") : t("session.compatibilityCapabilities")}</div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild><Link href={localizePath(params.locale, "/dashboard/profile")}><UserRound />{t("nav.profile")}</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link href={localizePath(params.locale, "/dashboard/settings")}><Settings />{t("nav.settings")}</Link></DropdownMenuItem>
             <DropdownMenuItem onClick={() => logout.mutate()} disabled={logout.isPending} className="text-destructive focus:text-destructive"><LogOut />{t("auth.signOut")}</DropdownMenuItem>
           </DropdownMenuContent>
