@@ -3,7 +3,7 @@
 import { useQueries } from "@tanstack/react-query";
 
 import { useLowStockState } from "@/features/finance/low-stock";
-import { JOB_STATUSES, ORDER_STAGES, stageTotals, type JobStatus, type OrderStage } from "@/features/printing/print-queue-rules";
+import { COUNTED_JOB_STATUSES, ORDER_STAGES, stageTotals, type JobStatus, type OrderStage } from "@/features/printing/print-queue-rules";
 import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
 
 const ORDER_STATUSES = Object.values(ORDER_STAGES).flat();
@@ -22,14 +22,14 @@ export function usePrintingCounters() {
     })),
   });
   const jobs = useQueries({
-    queries: JOB_STATUSES.map((status) => ({
+    queries: COUNTED_JOB_STATUSES.map((status) => ({
       queryKey: ["print-jobs", "count", status],
       refetchInterval: 15_000,
       queryFn: () => countOf(`/api/v1/dashboard/printing/print-jobs/?status=${status}&page_size=1`),
     })),
   });
   const orderCounts = Object.fromEntries(ORDER_STATUSES.map((status, index) => [status, orders[index]?.data]));
-  const jobCounts = Object.fromEntries(JOB_STATUSES.map((status, index) => [status, jobs[index]?.data])) as Record<JobStatus, number | undefined>;
+  const jobCounts = Object.fromEntries(COUNTED_JOB_STATUSES.map((status, index) => [status, jobs[index]?.data])) as Partial<Record<JobStatus, number>>;
   const lowStock = useLowStockState();
   return {
     stages: stageTotals(orderCounts) as Record<OrderStage, number>,

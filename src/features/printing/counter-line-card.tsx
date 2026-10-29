@@ -9,9 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatMoney, type FinanceCurrency } from "@/features/finance/finance-rules";
 import {
-  BINDING_NOTE_MAX, COUNTER_BINDINGS, COUNTER_MAX_COPIES, COUNTER_MAX_PAGES, COUNTER_PAPERS, PAGES_PER_SHEET_CHOICES,
-  lineProblems, lineSheets, pageRangeCount, wholeNumber, type CounterLine, type QuoteLine,
+  BINDING_NOTE_MAX, COUNTER_BINDINGS, COUNTER_MAX_COPIES, COUNTER_MAX_PAGES, COUNTER_PAPERS, DUPLEX_FLIPS, PAGES_PER_SHEET_CHOICES, PAGE_RANGE_MAX,
+  linePages, lineProblems, lineSheets, parsePageRange, wholeNumber, type CounterLine, type QuoteLine,
 } from "@/features/printing/counter-order-rules";
+import { displayServerMessage } from "@/features/printing/server-errors";
 import { PrintOrderPreview } from "@/features/printing/print-order-preview";
 import { countLabel, type Binding } from "@/features/printing/print-order-rules";
 import { Field, Segmented, type SegmentedOption } from "@/features/printing/segmented";
@@ -59,44 +60,45 @@ export function useShopCatalog(currency: FinanceCurrency) {
 }
 
 const RANGE_MESSAGE = {
-  format: "counter.range.format", order: "counter.range.order", beyond: "counter.range.beyond", empty: "counter.range.emptyRange", docPages: "counter.range.docPagesProblem",
+  format: "counter.range.format", order: "counter.range.order", ascending: "counter.range.ascending", tooLong: "counter.range.tooLong", tooMany: "counter.range.tooMany",
 } as const;
 
-/** Works out the pages of one copy from the document's page count and a range such as "1-5, 8". */
-function PageRangeHelper({ id, line, onChange }: { id: string; line: CounterLine; onChange: (patch: Partial<CounterLine>) => void }) {
+/**
+ * The pages to print from the customer's document, like "1-5, 8". It is checked as it is typed (same rules as the server) and the
+ * page count worked out from it replaces the typed page count, so the quote and the request always agree.
+ */
+function PageRangeField({ id, line, serverMessage, onChange }: { id: string; line: CounterLine; serverMessage: string | null; onChange: (patch: Partial<CounterLine>) => void }) {
   const { t } = useI18n();
-  const total = wholeNumber(line.docPages, COUNTER_MAX_PAGES);
-  const result = total === null ? null : pageRangeCount(line.pageRange, total);
-  const count = result && "count" in result ? result.count : null;
-  const message = result && "error" in result ? t(RANGE_MESSAGE[result.error], { pages: total ?? 0 }) : null;
+  const range = parsePageRange(line.pageRange);
+  const problem = "error" in range ? t(RANGE_MESSAGE[range.error], { max: COUNTER_MAX_PAGES }) : null;
+  const count = !("error" in range) && range.count > 0 ? range.count : null;
+  const error = problem ?? serverMessage;
   return (
-    <details className="rounded-xl border bg-muted/20 px-3 py-2 text-sm">
-      <summary className="cursor-pointer font-semibold">{t("counter.range.title")}</summary>
-      <div className="mt-3 grid gap-4 sm:grid-cols-2">
-        <Field label={t("counter.range.docPages")} htmlFor={`${id}-docpages`}>
-          <Input id={`${id}-docpages`} className="h-11 text-center font-bold tabular-nums" dir="ltr" inputMode="numeric" value={line.docPages} onChange={(event) => onChange({ docPages: event.target.value.replace(/\D/gu, "").slice(0, 6) })} placeholder="0" />
-        </Field>
-        <Field label={t("counter.range.range")} htmlFor={`${id}-range`} hint={t("counter.range.hint")}>
-          <Input id={`${id}-range`} className="h-11" dir="ltr" value={line.pageRange} maxLength={255} onChange={(event) => onChange({ pageRange: event.target.value.replace(/[^\d\s,;،\-–—]/gu, "") })} placeholder="1-5, 8" />
-        </Field>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-3">
-        {message ? <p role="alert" className="text-xs font-medium text-destructive">{message}</p> : count !== null ? <p className="text-xs text-muted-foreground">{t("counter.range.result", { pages: count })}</p> : <p className="text-xs text-muted-foreground">{t("counter.range.empty")}</p>}
-        <Button type="button" size="sm" variant="outline" disabled={count === null} onClick={() => count !== null && onChange({ pages: String(count) })}>{t("counter.range.apply")}</Button>
-      </div>
-    </details>
+    <Field label={t("counter.range.label")} htmlFor={`${id}-range`} optional={t("counter.optional")} error={error} hint={count !== null ? t("counter.range.result", { pages: count }) : t("counter.range.hint")}>
+      <Input id={`${id}-range`} className={cn("h-11", error && "border-destructive focus-visible:ring-destructive")} dir="ltr" value={line.pageRange} maxLength={PAGE_RANGE_MAX} aria-invalid={Boolean(error)}
+        onChange={(event) => onChange({ pageRange: event.target.value.replace(/[^\d\s,;،\-–—]/gu, "") })} placeholder="1-5, 8" />
+    </Field>
   );
 }
 
-export function LineCard({ line, index, canRemove, quoteLine, currency, showErrors, onChange, onRemove, autoFocusPages }: {
+export function LineCard({ line, index, canRemove, quoteLine, currency, showErrors, onChange, onRemove, autoFocusPages, serverErrors }: {
   line: CounterLine; index: number; canRemove: boolean; quoteLine?: QuoteLine; currency: FinanceCurrency; showErrors: boolean;
+  /** Messages the server sent for this line (field name to sentence), shown next to the field they belong to. */
+  serverErrors?: Record<string, string>;
   onChange: (patch: Partial<CounterLine>) => void; onRemove?: () => void; autoFocusPages?: boolean;
 }) {
   const { t, enumLabel, locale } = useI18n();
   const problems = lineProblems(line);
+  const rangeServerMessage = displayServerMessage(serverErrors?.page_range ?? null, locale, t("counter.range.serverRejected"));
+  const pagesServerMessage = displayServerMessage(serverErrors?.pages_count ?? null, locale, t("counter.range.serverRejected"));
+  const flipServerMessage = displayServerMessage(serverErrors?.duplex_flip ?? null, locale, t("counter.flip.serverRejected"));
   const sheets = lineSheets(line);
+  const pages = linePages(line);
+  const fromRange = parsePageRange(line.pageRange);
+  const rangeDrivesPages = !("error" in fromRange) && fromRange.count > 0;
   const colorOptions: SegmentedOption<CounterLine["colorMode"]>[] = (["black_white", "color"] as const).map((value) => ({ value, label: enumLabel(value) }));
   const sideOptions: SegmentedOption<CounterLine["sides"]>[] = (["one_sided", "double_sided"] as const).map((value) => ({ value, label: enumLabel(value) }));
+  const flipOptions: SegmentedOption<CounterLine["duplexFlip"]>[] = DUPLEX_FLIPS.map((value) => ({ value, label: t(value === "long" ? "counter.flip.long" : "counter.flip.short") }));
   const paperOptions: SegmentedOption<CounterLine["paperSize"]>[] = COUNTER_PAPERS.map((value) => ({ value, label: value }));
   const bindingOptions: SegmentedOption<Binding>[] = COUNTER_BINDINGS.map((value) => ({ value, label: enumLabel(value), icon: BINDING_ICON[value] }));
   const id = `counter-${line.key}`;
@@ -146,16 +148,22 @@ export function LineCard({ line, index, canRemove, quoteLine, currency, showErro
             <Input id={`${id}-title`} value={line.title} maxLength={255} onChange={(event) => onChange({ title: event.target.value })} placeholder={t("counter.itemTitlePlaceholder")} className="h-11" />
           </Field>
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label={t("counter.pages")} htmlFor={`${id}-pages`} hint={t("counter.pagesHint")} error={showErrors && problems.pages ? t("counter.pagesProblem", { max: COUNTER_MAX_PAGES }) : null}>
-              <Input id={`${id}-pages`} autoFocus={autoFocusPages} inputMode="numeric" dir="ltr" value={line.pages} onChange={(event) => onChange({ pages: event.target.value.replace(/\D/gu, "").slice(0, 6) })} aria-invalid={showErrors && Boolean(problems.pages)} className={cn("h-11 text-center text-base font-bold tabular-nums", showErrors && problems.pages && "border-destructive focus-visible:ring-destructive")} placeholder="0" />
+            <Field label={t("counter.pages")} htmlFor={`${id}-pages`} hint={rangeDrivesPages ? t("counter.range.derived") : t("counter.pagesHint")} error={showErrors && problems.pages ? t("counter.pagesProblem", { max: COUNTER_MAX_PAGES }) : pagesServerMessage}>
+              <Input id={`${id}-pages`} autoFocus={autoFocusPages} inputMode="numeric" dir="ltr" readOnly={rangeDrivesPages} value={rangeDrivesPages ? String(pages ?? "") : line.pages} onChange={(event) => onChange({ pages: event.target.value.replace(/\D/gu, "").slice(0, 6) })} aria-invalid={showErrors && Boolean(problems.pages)} className={cn("h-11 text-center text-base font-bold tabular-nums", showErrors && problems.pages && "border-destructive focus-visible:ring-destructive")} placeholder="0" />
             </Field>
             <Field label={t("counter.copies")} htmlFor={`${id}-copies`} error={showErrors && problems.copies ? t("counter.copiesProblem", { max: COUNTER_MAX_COPIES }) : null}>
               <Stepper id={`${id}-copies`} value={line.copies} onChange={(copies) => onChange({ copies })} max={COUNTER_MAX_COPIES} invalid={showErrors && Boolean(problems.copies)} label={t("counter.copies")} />
             </Field>
           </div>
-          <PageRangeHelper id={id} line={line} onChange={onChange} />
+          <PageRangeField id={id} line={line} serverMessage={rangeServerMessage} onChange={onChange} />
           <Segmented label={t("counter.color")} value={line.colorMode} options={colorOptions} onChange={(colorMode) => onChange({ colorMode })} />
           <Segmented label={t("counter.sides")} value={line.sides} options={sideOptions} onChange={(sides) => onChange({ sides })} />
+          {line.sides === "double_sided" ? (
+            <div className="space-y-1">
+              <Segmented label={t("counter.flip.label")} value={line.duplexFlip} options={flipOptions} onChange={(duplexFlip) => onChange({ duplexFlip })} minItemRem={9} />
+              <p className={cn("text-xs", flipServerMessage ? "font-medium text-destructive" : "text-muted-foreground")} role={flipServerMessage ? "alert" : undefined}>{flipServerMessage ?? t("counter.flip.hint")}</p>
+            </div>
+          ) : null}
           <Segmented label={t("counter.paper")} value={line.paperSize} options={paperOptions} onChange={(paperSize) => onChange({ paperSize })} minItemRem={5} />
           <div className="space-y-1">
             <Segmented label={t("counter.perSheet")} value={String(line.pagesPerSheet)} options={perSheetOptions} onChange={(value) => onChange({ pagesPerSheet: Number(value) })} minItemRem={3.5} />
@@ -182,7 +190,7 @@ export function LineCard({ line, index, canRemove, quoteLine, currency, showErro
           {quoteLine?.unavailable ? <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs leading-5 text-amber-800 dark:text-amber-200">{quoteLine.unavailable === "binding" ? t("counter.lineUnpricedBinding") : t("counter.lineUnpricedPricing")}</p> : null}
         </div>
         <div className="md:order-last">
-          <PrintOrderPreview item={{ paperSize: line.paperSize, colorMode: line.colorMode, sides: line.sides, binding: line.binding, copies: wholeNumber(line.copies, COUNTER_MAX_COPIES) ?? 1 }} pages={wholeNumber(line.pages, COUNTER_MAX_PAGES)} />
+          <PrintOrderPreview item={{ paperSize: line.paperSize, colorMode: line.colorMode, sides: line.sides, binding: line.binding, copies: wholeNumber(line.copies, COUNTER_MAX_COPIES) ?? 1 }} pages={pages} />
           {line.binding === "other" && line.bindingNote.trim() ? <p className="mt-2 break-words rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground" dir="auto">{line.bindingNote.trim()}</p> : null}
         </div>
       </CardContent>

@@ -1,18 +1,19 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, ExternalLink, RefreshCw, RotateCcw, XCircle } from "lucide-react";
+import { Ban, CheckCircle2, ExternalLink, RefreshCw, RotateCcw, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Pagination } from "@/components/data-grid/pagination";
 import { ErrorPanel } from "@/components/feedback/error-panel";
-import { StatusPill } from "@/components/shared/status-pill";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CancelJobDialog } from "@/features/printing/cancel-job-dialog";
+import { JobStatusPill } from "@/features/printing/job-status-pill";
 import { openJobPdf } from "@/features/printing/print-job-api";
 import { JOB_PATHS, JOB_STATUSES, jobActions, type QueueJob } from "@/features/printing/print-queue-rules";
 import { useI18n } from "@/i18n/provider";
@@ -40,6 +41,7 @@ export function JobQueuePanel({ status, orderFilter, page, pageSize, onChange }:
   const { t, enumLabel, locale } = useI18n();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<number | null>(null);
+  const [cancelling, setCancelling] = useState<QueueJob | null>(null);
   const orderId = /^\d+$/u.test(orderFilter.trim()) ? orderFilter.trim() : "";
 
   const query = useQuery({
@@ -135,7 +137,7 @@ export function JobQueuePanel({ status, orderFilter, page, pageSize, onChange }:
                         <Link className="font-semibold text-primary underline-offset-4 hover:underline" href={`/${locale}/dashboard/printing?tab=orders&order=${job.order_id}`}>#{job.order_id}</Link>
                       </td>
                       <td className="p-3">
-                        <StatusPill value={job.status} />
+                        <JobStatusPill value={job.status} />
                         {job.error ? <p className="mt-1 max-w-[16rem] break-words text-xs text-destructive">{job.error}</p> : null}
                       </td>
                       <td className="p-3">{job.printer_name || <span className="text-muted-foreground">{t("queue.noPrinter")}</span>}</td>
@@ -145,6 +147,7 @@ export function JobQueuePanel({ status, orderFilter, page, pageSize, onChange }:
                           {actions.open ? <Button size="sm" disabled={working} onClick={() => void open(job)}><ExternalLink />{t("printing.job.open")}</Button> : null}
                           {actions.markDone ? <Button size="sm" variant="outline" disabled={working} onClick={() => setStatus.mutate({ job, status: "done" })}><CheckCircle2 />{t("printing.job.markDone")}</Button> : null}
                           {actions.markFailed ? <Button size="sm" variant="outline" disabled={working} onClick={() => setStatus.mutate({ job, status: "failed", error: t("printing.job.failedDefault") })}><XCircle />{t("printing.job.markFailed")}</Button> : null}
+                          {actions.cancel ? <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" disabled={working} onClick={() => setCancelling(job)}><Ban />{t("queue.cancel")}</Button> : null}
                           {actions.retry ? <Button size="sm" variant="outline" disabled={working} onClick={() => retry.mutate(job)}><RotateCcw />{job.status === "done" ? t("printing.job.printAgain") : t("printing.job.retry")}</Button> : null}
                         </div>
                       </td>
@@ -157,6 +160,7 @@ export function JobQueuePanel({ status, orderFilter, page, pageSize, onChange }:
           {!jobs.length ? <div className="p-10 text-center text-muted-foreground">{t("queue.empty")}</div> : null}
         </div>
       )}
+      {cancelling ? <CancelJobDialog key={cancelling.id} job={cancelling} onClose={() => setCancelling(null)} onDone={refresh} /> : null}
       {query.data ? <Pagination page={page} pageSize={pageSize} count={query.data.count} onPage={(next) => onChange({ page: next })} onPageSize={(next) => onChange({ page_size: next, page: 1 })} /> : null}
     </div>
   );

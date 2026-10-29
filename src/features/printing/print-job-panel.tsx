@@ -5,7 +5,7 @@ import { CheckCircle2, ExternalLink, Printer, RotateCcw, XCircle } from "lucide-
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { StatusPill } from "@/components/shared/status-pill";
+import { JobStatusPill } from "@/features/printing/job-status-pill";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ interface PrintJob {
   order_id: number;
   item: number;
   item_name: string;
-  status: "queued" | "printing" | "done" | "failed";
+  status: "queued" | "printing" | "done" | "failed" | "cancelled";
   printer_name: string;
   sides_printed: number;
   sheets: number;
@@ -114,16 +114,16 @@ export function PrintJobPanel({ orderId, status, source, items: rawItems }: { or
                     </div>
                     {job ? (
                       <div className="flex flex-wrap items-center gap-2 text-sm">
-                        <StatusPill value={job.status} />
+                        <JobStatusPill value={job.status} />
                         <span className="text-xs text-muted-foreground">{t("printing.job.faces", { faces: job.sides_printed, sheets: job.sheets })}</span>
                         {job.error ? <span className="text-xs text-destructive">{job.error}</span> : null}
                       </div>
                     ) : null}
                     <div className="flex flex-wrap gap-2">
-                      {!job || job.status === "done" ? (
+                      {!job || job.status === "done" || job.status === "cancelled" ? (
                         <Button size="sm" variant={job ? "outline" : "default"} onClick={() => queue.mutate([Number(item.id)])} isLoading={queue.isPending}>{job ? t("printing.job.printAgain") : t("printing.job.prepare")}</Button>
                       ) : null}
-                      {job && job.status !== "done" ? <Button size="sm" onClick={() => void openFile(job)}><ExternalLink />{t("printing.job.open")}</Button> : null}
+                      {job && job.status !== "done" && job.status !== "cancelled" ? <Button size="sm" onClick={() => void openFile(job)}><ExternalLink />{t("printing.job.open")}</Button> : null}
                       {job && (job.status === "queued" || job.status === "printing") ? <Button size="sm" variant="outline" onClick={() => setStatus.mutate({ id: job.id, status: "done" })}><CheckCircle2 />{t("printing.job.markDone")}</Button> : null}
                       {job && (job.status === "queued" || job.status === "printing") ? (
                         <span className="flex items-center gap-1">

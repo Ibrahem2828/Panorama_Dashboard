@@ -1,7 +1,9 @@
-/** Rules of the print-job queue, the printers view and the operations strip (pure functions, no React). */
+/** Rules of the print-job queue and the operations strip (pure functions, no React). */
 
-export const JOB_STATUSES = ["queued", "printing", "done", "failed"] as const;
+export const JOB_STATUSES = ["queued", "printing", "done", "failed", "cancelled"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
+/** Statuses the operations strip counts. A cancelled job is neither waiting nor a failure, so it is left out (and never added to "failed"). */
+export const COUNTED_JOB_STATUSES = ["queued", "printing", "done", "failed"] as const;
 
 export interface QueueJob {
   id: number;
@@ -22,6 +24,7 @@ export interface QueueJob {
 export const JOB_PATHS = {
   list: "/api/v1/dashboard/printing/print-jobs/",
   status: (id: number) => `/api/v1/dashboard/printing/print-jobs/${id}/status/`,
+  cancel: (id: number) => `/api/v1/dashboard/printing/print-jobs/${id}/cancel/`,
   retry: (id: number) => `/api/v1/dashboard/printing/print-jobs/${id}/retry/`,
   file: (id: number) => `/api/v1/dashboard/printing/print-jobs/${id}/file/`,
 } as const;
@@ -30,10 +33,13 @@ export function isJobStatus(value: unknown): value is JobStatus {
   return typeof value === "string" && (JOB_STATUSES as readonly string[]).includes(value);
 }
 
-/** Which actions the cashier is offered for a job in a given status. */
-export function jobActions(status: JobStatus): { open: boolean; markDone: boolean; markFailed: boolean; retry: boolean } {
+/**
+ * Which actions the cashier is offered for a job in a given status. A cancelled job is final on the server (it cannot be queued
+ * again, the agent cannot pick it up), so it gets no open/retry: staff print the order again to get a new job.
+ */
+export function jobActions(status: JobStatus): { open: boolean; markDone: boolean; markFailed: boolean; retry: boolean; cancel: boolean } {
   const active = status === "queued" || status === "printing";
-  return { open: status !== "done", markDone: active, markFailed: active, retry: status === "failed" || status === "done" };
+  return { open: status !== "done" && status !== "cancelled", markDone: active, markFailed: active, retry: status === "failed" || status === "done", cancel: active };
 }
 
 // ---- orders by stage, for the operations strip -------------------------------------------------------------------------------------
@@ -50,55 +56,4 @@ export type OrderStage = keyof typeof ORDER_STAGES;
 export function stageTotals(counts: Readonly<Record<string, number | undefined>>): Record<OrderStage, number> {
   const sum = (statuses: readonly string[]) => statuses.reduce((total, status) => total + (counts[status] ?? 0), 0);
   return { new: sum(ORDER_STAGES.new), inProgress: sum(ORDER_STAGES.inProgress), ready: sum(ORDER_STAGES.ready) };
-}
-
-// ---- printers, derived from job history ----------------------------------------------------------------------------------------------
-
-export interface PrinterSummary {
-  /** The printer name as the agent reported it; "" for jobs that were never assigned a printer. */
-  name: string;
-  jobs: number;
-  done: number;
-  failed: number;
-  active: number;
-  sheets: number;
-  lastActivityAt: string | null;
-  lastStatus: JobStatus;
-  lastError: string;
-  /** The latest three jobs all failed: the printer (or its agent) needs a look. */
-  needsAttention: boolean;
-}
-
-function stamp(job: QueueJob): string {
-  return job.finished_at || job.started_at || job.created_at;
-}
-
-/** Groups jobs by printer name. The server has no printer registry, so this is all that can be known: what each printer did lately. */
-export function summarizePrinters(jobs: readonly QueueJob[]): PrinterSummary[] {
-  const groups = new Map<string, QueueJob[]>();
-  for (const job of jobs) {
-    const key = (job.printer_name ?? "").trim();
-    groups.set(key, [...(groups.get(key) ?? []), job]);
-  }
-  const summaries: PrinterSummary[] = [];
-  for (const [name, list] of groups) {
-    const newestFirst = [...list].sort((a, b) => stamp(b).localeCompare(stamp(a)) || b.id - a.id);
-    const latest = newestFirst[0]!;
-    const lastFailure = newestFirst.find((job) => job.status === "failed");
-    const recent = newestFirst.slice(0, 3);
-    summaries.push({
-      name,
-      jobs: list.length,
-      done: list.filter((job) => job.status === "done").length,
-      failed: list.filter((job) => job.status === "failed").length,
-      active: list.filter((job) => job.status === "queued" || job.status === "printing").length,
-      sheets: list.filter((job) => job.status === "done").reduce((total, job) => total + (job.sheets || 0), 0),
-      lastActivityAt: stamp(latest) || null,
-      lastStatus: latest.status,
-      lastError: lastFailure?.error ?? "",
-      needsAttention: recent.length === 3 && recent.every((job) => job.status === "failed"),
-    });
-  }
-  // Named printers first, most recently used on top; the "no printer" bucket last.
-  return summaries.sort((a, b) => Number(a.name === "") - Number(b.name === "") || (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? ""));
 }

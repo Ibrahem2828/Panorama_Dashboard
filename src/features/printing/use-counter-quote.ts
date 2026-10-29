@@ -25,5 +25,6 @@ export function useCounterQuote(lines: readonly CounterLine[], currency: Finance
     quote: allValid ? query.data ?? null : null,
     calculating: allValid && (settledKey !== liveKey || query.isFetching),
     isError: allValid && query.isError,
+    error: allValid && query.isError ? query.error : null,
   };
 }

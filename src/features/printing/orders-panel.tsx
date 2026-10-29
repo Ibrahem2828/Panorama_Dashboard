@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FINANCE_PATHS, PAYMENT_METHODS, formatMoney, paymentAmountProblem, paymentBody, paymentState, type PaymentMethod, type PaymentState } from "@/features/finance/finance-rules";
 import { nextStatus, signedRounding } from "@/features/printing/counter-order-rules";
 import { CustomerLink } from "@/features/printing/customer-link";
+import { cleanDate, dateRangeParams, dateRangeProblem } from "@/features/printing/order-filters";
 import { OrderItemsPanel } from "@/features/printing/order-items-panel";
 import { PrintJobPanel } from "@/features/printing/print-job-panel";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
@@ -268,6 +269,9 @@ export function PrintOrdersPanel() {
   const status = searchParams.get("status") ?? "all";
   const source = searchParams.get("source") ?? "all";
   const assignee = searchParams.get("assigned_to") ?? "all";
+  const createdFrom = cleanDate(searchParams.get("created_after"));
+  const createdTo = cleanDate(searchParams.get("created_before"));
+  const rangeProblem = dateRangeProblem(createdFrom, createdTo);
   const openId = /^\d+$/u.test(searchParams.get("order") ?? "") ? Number(searchParams.get("order")) : null;
   const page = Math.max(1, Number(searchParams.get("page") ?? 1));
   const pageSize = Math.min(100, Math.max(10, Number(searchParams.get("page_size") ?? 25)));
@@ -289,13 +293,14 @@ export function PrintOrdersPanel() {
   }, [debouncedSearch, search, updateUrl]);
 
   const query = useQuery({
-    queryKey: ["printing-orders", page, pageSize, search, status, source, assignee],
+    queryKey: ["printing-orders", page, pageSize, search, status, source, assignee, createdFrom, createdTo],
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), page_size: String(pageSize), ordering: "-created_at" });
       if (search) params.set("search", search);
       if (status !== "all") params.set("status", status);
       if (source !== "all") params.set("source", source);
       if (assignee !== "all") params.set("assigned_to", assignee);
+      for (const [key, value] of Object.entries(dateRangeParams(createdFrom, createdTo))) params.set(key, value);
       return normalizeCollection<PrintOrder>(await apiFetch(`/api/v1/dashboard/printing/orders/?${params}`));
     },
   });
@@ -308,7 +313,7 @@ export function PrintOrdersPanel() {
     queryFn: async () => (await unwrap<PrintOrder>(apiFetch(`/api/v1/dashboard/printing/orders/${openId}/`))) as PrintOrder,
   });
   const selected = inList ?? (openId === null ? null : single.data ?? null);
-  const filtered = status !== "all" || source !== "all" || assignee !== "all" || search !== "";
+  const filtered = status !== "all" || source !== "all" || assignee !== "all" || search !== "" || createdFrom !== "" || createdTo !== "";
 
   return (
     <div className="space-y-4">
@@ -321,8 +326,21 @@ export function PrintOrdersPanel() {
         <Select value={source} onValueChange={(value) => updateUrl({ source: value === "all" ? null : value, page: 1 })}><SelectTrigger aria-label={t("printing.source")}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("printing.allSources")}</SelectItem>{SOURCES.map((value) => <SelectItem key={value} value={value}>{value === "counter" ? t("printing.sourceCounter") : t("printing.sourceApp")}</SelectItem>)}</SelectContent></Select>
         <Select value={assignee} onValueChange={(value) => updateUrl({ assigned_to: value === "all" ? null : value, page: 1 })}><SelectTrigger aria-label={t("support.assign")}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("printing.allAssignees")}</SelectItem>{assignees.options.map((user) => <SelectItem key={user.id} value={String(user.id)}>{user.name}</SelectItem>)}</SelectContent></Select>
         <div className="flex gap-2">
-          {filtered ? <Button variant="ghost" onClick={() => { setSearchDraft(""); updateUrl({ search: null, status: null, source: null, assigned_to: null, page: 1 }); }}>{t("printing.clearFilters")}</Button> : null}
+          {filtered ? <Button variant="ghost" onClick={() => { setSearchDraft(""); updateUrl({ search: null, status: null, source: null, assigned_to: null, created_after: null, created_before: null, page: 1 }); }}>{t("printing.clearFilters")}</Button> : null}
           <Button variant="outline" onClick={() => query.refetch()}><RefreshCw className={query.isFetching ? "animate-spin" : ""} />{t("common.refresh")}</Button>
+        </div>
+        <div className="flex flex-wrap items-end gap-3 md:col-span-full">
+          <div className="space-y-1">
+            <Label htmlFor="orders-created-after" className="text-xs text-muted-foreground">{t("printing.dateFrom")}</Label>
+            <Input id="orders-created-after" type="date" dir="ltr" className="h-9 w-44" value={createdFrom} max={createdTo || undefined} aria-invalid={rangeProblem !== null}
+              onChange={(event) => updateUrl({ created_after: cleanDate(event.target.value) || null, page: 1 })} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="orders-created-before" className="text-xs text-muted-foreground">{t("printing.dateTo")}</Label>
+            <Input id="orders-created-before" type="date" dir="ltr" className="h-9 w-44" value={createdTo} min={createdFrom || undefined} aria-invalid={rangeProblem !== null}
+              onChange={(event) => updateUrl({ created_before: cleanDate(event.target.value) || null, page: 1 })} />
+          </div>
+          {rangeProblem ? <p role="alert" className="pb-2 text-xs font-medium text-destructive">{t("printing.dateRangeOrder")}</p> : null}
         </div>
       </div>
 
