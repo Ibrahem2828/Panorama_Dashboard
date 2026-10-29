@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Locale } from "@/config/constants";
-import { INBOX_CATEGORIES, safeDashboardPath, useInboxList, useInboxMutations, useInboxSummary, type InboxNotification } from "@/features/notifications/inbox";
+import { safeDashboardPath, useInboxList, useInboxMutations, useInboxSummary, visibleInboxCategories, type InboxNotification } from "@/features/notifications/inbox";
 import { useI18n } from "@/i18n/provider";
 import { localizePath } from "@/i18n/routing";
 import { cn, formatDate, formatNumber } from "@/lib/utils";
@@ -34,7 +34,7 @@ export function InboxPage() {
   };
   const tabs: { key: string | null; label: string; count: number }[] = [
     { key: null, label: t("common.all"), count: summary.data?.unread ?? 0 },
-    ...INBOX_CATEGORIES.map((key) => ({ key, label: t(`inbox.category.${key}` as "inbox.category.general"), count: byCategory[key] ?? 0 })),
+    ...visibleInboxCategories(summary.data?.by_category).map((key) => ({ key, label: t(`inbox.category.${key}` as "inbox.category.general"), count: byCategory[key] ?? 0 })),
   ];
 
   return (

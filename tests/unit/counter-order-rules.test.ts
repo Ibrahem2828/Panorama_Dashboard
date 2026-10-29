@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  amountProblem, createBody, defaultPaid, itemBody, lineIsValid, lineProblems, lineSheets, newLine, nextStatus, orderIsReady, paidProblem, parseCounterQuote,
+  amountProblem, createBody, defaultPaid, itemBody, lineIsValid, lineProblems, lineSheets, linesFromOrderItems, newLine, nextStatus, orderIsReady, pageRangeCount, paidProblem, parseCounterQuote,
   quoteBody, signedRounding, wholeNumber, type CounterLine, type CounterOrderInput,
 } from "@/features/printing/counter-order-rules";
 
@@ -53,7 +53,7 @@ describe("parseCounterQuote", () => {
       complete: true, exact_total: "224", suggested_total: 230, rounding_adjustment: "6.00",
       items: [{ pages_count: 10, sheets_count: 20, subtotal: "224.00", unavailable: null }],
     });
-    expect(quote).toEqual({ complete: true, exactTotal: "224.00", suggestedTotal: "230.00", rounding: "6.00", lines: [{ pages: 10, sheets: 20, subtotal: "224.00", unavailable: null }] });
+    expect(quote).toEqual({ complete: true, exactTotal: "224.00", suggestedTotal: "230.00", rounding: "6.00", lines: [{ pages: 10, sheets: 20, subtotal: "224.00", unitPrice: null, bindingPrice: null, unavailable: null }] });
   });
   it("keeps an unpriced line unpriced instead of turning it into zero", () => {
     const quote = parseCounterQuote({
@@ -133,5 +133,68 @@ describe("the whole order", () => {
     expect(nextStatus("ready")).toBe("delivered");
     expect(nextStatus("delivered")).toBeNull();
     expect(nextStatus("cancelled")).toBeNull();
+  });
+});
+
+describe("pages per sheet (N-up) and cover", () => {
+  it("counts fewer sheets when several pages share a face", () => {
+    expect(lineSheets(line({ pages: "10", copies: "1", pagesPerSheet: 4 }))).toBe(3);
+    expect(lineSheets(line({ pages: "10", copies: "2", pagesPerSheet: 4, sides: "double_sided" }))).toBe(4);
+    expect(lineSheets(line({ pages: "1", copies: "1", pagesPerSheet: 16 }))).toBe(1);
+  });
+  it("ignores a pages-per-sheet value the server does not accept", () => {
+    expect(lineSheets(line({ pages: "10", copies: "1", pagesPerSheet: 5 }))).toBe(10);
+    expect(itemBody(line({ pagesPerSheet: 5 }))).not.toHaveProperty("pages_per_sheet");
+  });
+  it("sends pages_per_sheet and cover only when chosen", () => {
+    expect(itemBody(line())).not.toHaveProperty("pages_per_sheet");
+    expect(itemBody(line())).not.toHaveProperty("cover");
+    expect(itemBody(line({ pagesPerSheet: 6, cover: "blue" }))).toMatchObject({ pages_per_sheet: 6, cover: "blue" });
+    expect(itemBody(line({ docPages: "50", pageRange: "1-5" }))).not.toHaveProperty("page_range");
+  });
+});
+
+describe("pageRangeCount", () => {
+  it("counts the whole document for an empty range", () => {
+    expect(pageRangeCount("", 40)).toEqual({ count: 40 });
+    expect(pageRangeCount("   ", 40)).toEqual({ count: 40 });
+  });
+  it("counts ranges and single pages once each, accepting Arabic commas and dashes", () => {
+    expect(pageRangeCount("1-5, 8", 20)).toEqual({ count: 6 });
+    expect(pageRangeCount("1-5، 3-7", 20)).toEqual({ count: 7 });
+    expect(pageRangeCount("2–4;9", 20)).toEqual({ count: 4 });
+  });
+  it("explains what is wrong", () => {
+    expect(pageRangeCount("a-b", 20)).toEqual({ error: "format" });
+    expect(pageRangeCount("5-2", 20)).toEqual({ error: "order" });
+    expect(pageRangeCount("0-2", 20)).toEqual({ error: "order" });
+    expect(pageRangeCount("1-21", 20)).toEqual({ error: "beyond" });
+    expect(pageRangeCount(",", 20)).toEqual({ error: "empty" });
+    expect(pageRangeCount("1-2", 0)).toEqual({ error: "docPages" });
+  });
+});
+
+describe("linesFromOrderItems (copy an order into the counter)", () => {
+  it("carries over the printed pages and every option the counter supports", () => {
+    const [first] = linesFromOrderItems([{
+      original_file_name: "notes.pdf", pages_count: 100, selected_pages: 40, copies: 3, color_mode: "color", paper_size: "A3", sides: "double_sided",
+      binding: "spiral", binding_note: "", pages_per_sheet: 4, cover: "blue",
+    }]);
+    expect(first).toMatchObject({ title: "notes.pdf", pages: "40", copies: "3", colorMode: "color", paperSize: "A3", sides: "double_sided", binding: "spiral", pagesPerSheet: 4, cover: "blue", productId: null });
+  });
+  it("falls back to the page count, and to safe defaults for odd data", () => {
+    const [first] = linesFromOrderItems([{ pages_count: "12", copies: 500, paper_size: "B5", binding: "bad code!", pages_per_sheet: 7 }]);
+    expect(first).toMatchObject({ pages: "12", copies: "99", paperSize: "A4", binding: "none", pagesPerSheet: 1, colorMode: "black_white", sides: "one_sided" });
+  });
+  it("turns a ready product into a product line", () => {
+    const [first] = linesFromOrderItems([{ product: 7, original_file_name: "Notebook", copies: 2 }]);
+    expect(first).toMatchObject({ productId: 7, productName: "Notebook", copies: "2" });
+  });
+  it("gives every line its own key, caps the lines and ignores junk", () => {
+    const many = Array.from({ length: 30 }, () => ({ pages_count: 1, copies: 1 }));
+    const lines = linesFromOrderItems([null, "x", ...many]);
+    expect(lines).toHaveLength(20);
+    expect(new Set(lines.map((entry) => entry.key)).size).toBe(20);
+    expect(linesFromOrderItems("nope")).toEqual([]);
   });
 });

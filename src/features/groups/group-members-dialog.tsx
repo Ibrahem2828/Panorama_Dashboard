@@ -21,6 +21,7 @@ import {
   type MembershipAction,
 } from "@/features/groups/group-rules";
 import { useCan } from "@/features/session";
+import { UserLink } from "@/features/users/user-link";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { useI18n } from "@/i18n/provider";
@@ -150,7 +151,7 @@ export function GroupMembersDialog({ group, onOpenChange }: { group: { id: numbe
                     const actions = canManage ? availableMembershipActions(row.status) : [];
                     return (
                       <TableRow key={row.id} data-testid={`membership-${row.id}`}>
-                        <TableCell className="font-medium">{row.user_name}</TableCell>
+                        <TableCell className="font-medium"><UserLink userId={row.user} name={row.user_name} /></TableCell>
                         <TableCell>
                           {actions.includes("role") ? (
                             <Select value={row.role} onValueChange={(next) => { if (next !== row.role) run({ action: "role", row, role: next }); }} disabled={mutation.isPending}>

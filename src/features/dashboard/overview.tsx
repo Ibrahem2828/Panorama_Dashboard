@@ -1,26 +1,19 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ArrowUpRight, Boxes, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { Activity, Boxes, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 
 import { Ltr } from "@/components/shared/ltr";
 import { ErrorPanel } from "@/components/feedback/error-panel";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusPill } from "@/components/shared/status-pill";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Locale } from "@/config/constants";
-import { allNavigationItems } from "@/config/navigation";
 import { CONTRACT_META } from "@/contracts/generated/contract-meta";
 import { QuickAccessPanel } from "@/features/quick-access/quick-access-panel";
 import { useSession } from "@/features/session";
 import { useI18n } from "@/i18n/provider";
-import { localizePath } from "@/i18n/routing";
 import { apiFetch, unwrap } from "@/lib/api/browser-client";
-import { hasCapability } from "@/lib/auth/capabilities";
 import { formatNumber } from "@/lib/utils";
 import type { ApiEnvelope } from "@/types/api";
 
@@ -36,7 +29,6 @@ function numericMetrics(value: unknown, prefix = ""): { key: string; value: numb
 export function DashboardOverview() {
   const { user, capabilities, source } = useSession();
   const { t, tOr, locale } = useI18n();
-  const params = useParams<{ locale: Locale }>();
   const stats = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => unwrap(await apiFetch<ApiEnvelope<Record<string, unknown>>>("/api/v1/dashboard/stats/")),
@@ -55,7 +47,6 @@ export function DashboardOverview() {
     refetchInterval: 60_000,
   });
   const metrics = numericMetrics(stats.data);
-  const visibleActions = allNavigationItems.filter((item) => item.href !== "/dashboard" && hasCapability(capabilities, item.capability)).slice(0, 8);
 
   return (
     <div className="space-y-7">
@@ -63,7 +54,7 @@ export function DashboardOverview() {
         title={t("dashboard.welcome", { name: user.full_name.split(" ")[0] ?? user.full_name })}
         description={t("dashboard.subtitle")}
         eyebrow={t("dashboard.title")}
-        actions={<Button asChild variant="outline"><Link href={localizePath(params.locale, "/dashboard/settings")}><ShieldCheck />{t(`roles.${user.role}` as "roles.admin")}</Link></Button>}
+        actions={<span className="inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold"><ShieldCheck className="size-4 text-primary" aria-hidden="true" />{t(`roles.${user.role}` as "roles.admin")}</span>}
       />
 
       <div className="grid gap-4 xl:grid-cols-[1.55fr_.75fr]">
@@ -97,18 +88,6 @@ export function DashboardOverview() {
             ))}
           </div>
         )}
-      </section>
-
-      <section>
-        <h2 className="mb-4 text-lg font-black">{t("dashboard.quickActions")}</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visibleActions.map((item) => { const Icon = item.icon; return (
-            <Link key={item.key} href={localizePath(params.locale, item.href)} className="group flex items-center gap-4 rounded-2xl border bg-card p-4 transition hover:border-primary/30 hover:shadow-lg">
-              <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary transition group-hover:brand-gradient group-hover:text-white"><Icon className="size-5" /></span>
-              <span className="font-bold">{t(item.label)}</span><ArrowUpRight className="ms-auto size-4 text-muted-foreground transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary rtl:group-hover:-translate-x-0.5 rtl:rotate-[-90deg]" />
-            </Link>
-          ); })}
-        </div>
       </section>
     </div>
   );

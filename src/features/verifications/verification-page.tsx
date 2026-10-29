@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { RESOURCE_DEFINITIONS } from "@/contracts/generated/resource-definitions";
 import { listResource, type EntityRecord } from "@/features/resources/resource-api";
+import { UserLink } from "@/features/users/user-link";
 import { useI18n } from "@/i18n/provider";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { payloadSignature } from "@/lib/api/idempotency";
@@ -92,7 +93,7 @@ export function VerificationPage() {
       )}
 
       <Dialog open={Boolean(selected && !action)} onOpenChange={(open) => { if (!open) setSelected(null); }}>
-        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto"><DialogHeader><DialogTitle>{selected?.user_name as string}</DialogTitle><DialogDescription>{selected?.student_number ? <Ltr as="span">{String(selected.student_number)}</Ltr> : null}</DialogDescription></DialogHeader>
+        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto"><DialogHeader><DialogTitle><UserLink userId={typeof selected?.user === "number" ? selected.user : null} name={String(selected?.user_name ?? "")} /></DialogTitle><DialogDescription>{selected?.student_number ? <Ltr as="span">{String(selected.student_number)}</Ltr> : null}</DialogDescription></DialogHeader>
           {selected ? <VerificationSummary row={selected} cardUrl={inlineCard} cardLoading={card.isPending && !inlineCard} onOpenFull={() => inlineCard && setPreview(inlineCard)} /> : null}
           <DialogFooter className="flex-wrap gap-2"><Button variant="outline" onClick={() => inlineCard && setPreview(inlineCard)} disabled={!inlineCard}><Eye />{t("verifications.cardPreview")}</Button><Button variant="outline" onClick={() => setAction("needs-update")}><RotateCcw />{t("verifications.needsUpdate")}</Button><Button variant="destructive" onClick={() => setAction("reject")}><XCircle />{t("verifications.reject")}</Button><Button onClick={() => setAction("approve")}><CheckCircle2 />{t("verifications.approve")}</Button></DialogFooter>
         </DialogContent>

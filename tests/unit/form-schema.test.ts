@@ -30,7 +30,7 @@ describe("resource form policies (contract coverage)", () => {
 
   it.each(WRITABLE)("%s: allowlisted fields exist in the contract and are writable", (key) => {
     const policy = RESOURCE_FORM_POLICIES[key];
-    const fields = new Map(definitionOf(key).fields.map((field) => [field.name, field]));
+    const fields = new Map([...definitionOf(key).fields, ...(policy.extraFields ?? [])].map((field) => [field.name, field]));
     for (const name of [...policy.allowedCreateFields, ...policy.allowedUpdateFields]) {
       expect(fields.has(name), `${key}.${name} missing from the contract`).toBe(true);
       expect(fields.get(name)?.readOnly, `${key}.${name} is read-only`).toBe(false);

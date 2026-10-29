@@ -12,6 +12,8 @@ export const COUNTER_MAX_LINES = 20;
 export const COUNTER_MAX_PAGES = 100_000;
 export const COUNTER_MAX_COPIES = 99;
 export const BINDING_NOTE_MAX = 120;
+/** Pages-per-sheet values the server accepts (apps/printing/options.py PAGES_PER_SHEET_CHOICES). */
+export const PAGES_PER_SHEET_CHOICES: readonly number[] = [1, 2, 4, 6, 9, 16];
 
 export const COUNTER_PATHS = {
   quote: "/api/v1/dashboard/printing/counter-orders/quote/",
@@ -29,6 +31,13 @@ export interface CounterLine {
   sides: Sides;
   binding: Binding;
   bindingNote: string;
+  /** Pages printed on one face of a sheet (N-up): 1, 2, 4, 6, 9 or 16. */
+  pagesPerSheet: number;
+  /** Code of the cover option from the shop catalog, "" for none. */
+  cover: string;
+  /** Helper only (never sent): pages of the whole document and the range to print, to work out the pages of one copy. */
+  docPages: string;
+  pageRange: string;
   /** A ready-made product: its specification and fixed price are used and the options above are ignored. */
   productId: number | null;
   productName: string;
@@ -37,7 +46,7 @@ export interface CounterLine {
 let counter = 0;
 export function newLine(): CounterLine {
   counter += 1;
-  return { key: `line-${Date.now().toString(36)}-${counter}`, title: "", pages: "", copies: "1", colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", bindingNote: "", productId: null, productName: "" };
+  return { key: `line-${Date.now().toString(36)}-${counter}`, title: "", pages: "", copies: "1", colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", bindingNote: "", pagesPerSheet: 1, cover: "", docPages: "", pageRange: "", productId: null, productName: "" };
 }
 
 /** A positive whole number within bounds, or null. */
@@ -69,7 +78,33 @@ export function lineSheets(line: CounterLine): number | null {
   const pages = wholeNumber(line.pages, COUNTER_MAX_PAGES);
   const copies = wholeNumber(line.copies, COUNTER_MAX_COPIES);
   if (pages === null || copies === null) return null;
-  return (line.sides === "double_sided" ? Math.ceil(pages / 2) : pages) * copies;
+  const faces = Math.max(Math.ceil(pages / pagesPerSheetOf(line)), 1);
+  return (line.sides === "double_sided" ? Math.ceil(faces / 2) : faces) * copies;
+}
+
+function pagesPerSheetOf(line: CounterLine): number {
+  return PAGES_PER_SHEET_CHOICES.includes(line.pagesPerSheet) ? line.pagesPerSheet : 1;
+}
+
+export type PageRangeResult = { count: number } | { error: "empty" | "format" | "order" | "beyond" | "docPages" };
+
+/** Pages selected by a range like "1-5, 8" in a document of `total` pages (same rules as the server's parse_page_range). */
+export function pageRangeCount(range: string, total: number): PageRangeResult {
+  if (!Number.isInteger(total) || total < 1) return { error: "docPages" };
+  const cleaned = range.trim();
+  if (!cleaned) return { count: total };
+  const seen = new Set<number>();
+  for (const part of cleaned.replace(/،/gu, ",").replace(/;/gu, ",").split(",")) {
+    if (!part.trim()) continue;
+    const match = /^\s*(\d+)\s*(?:[-–—]\s*(\d+))?\s*$/u.exec(part);
+    if (!match) return { error: "format" };
+    const first = Number(match[1]);
+    const last = Number(match[2] ?? match[1]);
+    if (first < 1 || last < first) return { error: "order" };
+    if (last > total) return { error: "beyond" };
+    for (let page = first; page <= last; page += 1) seen.add(page);
+  }
+  return seen.size ? { count: seen.size } : { error: "empty" };
 }
 
 export function itemBody(line: CounterLine): Record<string, unknown> {
@@ -83,6 +118,8 @@ export function itemBody(line: CounterLine): Record<string, unknown> {
     binding: line.binding,
   };
   if (line.title.trim()) body.title = line.title.trim();
+  if (pagesPerSheetOf(line) !== 1) body.pages_per_sheet = pagesPerSheetOf(line);
+  if (line.cover) body.cover = line.cover;
   if (line.binding === "other") body.binding_note = line.bindingNote.trim().slice(0, BINDING_NOTE_MAX);
   return body;
 }
@@ -93,7 +130,7 @@ export function quoteBody(lines: readonly CounterLine[], currency: FinanceCurren
 
 // ---- the quote ---------------------------------------------------------------------------------------------------------------
 
-export interface QuoteLine { pages: number; sheets: number; subtotal: string | null; unavailable: "pricing" | "binding" | null }
+export interface QuoteLine { pages: number; sheets: number; subtotal: string | null; unitPrice: string | null; bindingPrice: string | null; unavailable: "pricing" | "binding" | null }
 
 export interface CounterQuote {
   /** Every line has a price in the list, so the total below is complete. */
@@ -123,7 +160,7 @@ export function parseCounterQuote(raw: unknown): CounterQuote | null {
     lines: data.items.map((entry): QuoteLine => {
       const item = (typeof entry === "object" && entry !== null ? entry : {}) as Record<string, unknown>;
       const unavailable = item.unavailable === "binding" || item.unavailable === "pricing" ? item.unavailable : null;
-      return { pages: Number(item.pages_count) || 0, sheets: Number(item.sheets_count) || 0, subtotal: amountText(item.subtotal), unavailable };
+      return { pages: Number(item.pages_count) || 0, sheets: Number(item.sheets_count) || 0, subtotal: amountText(item.subtotal), unitPrice: amountText(item.unit_price), bindingPrice: amountText(item.binding_price), unavailable };
     }),
   };
 }
@@ -199,4 +236,50 @@ export function signedRounding(value: string | null): string | null {
 const NEXT_STATUS: Record<string, string> = { submitted: "under_review", under_review: "accepted", accepted: "printing", printing: "ready", ready: "delivered" };
 export function nextStatus(status: string): string | null {
   return NEXT_STATUS[status] ?? null;
+}
+
+// ---- copy an existing order into the counter form ---------------------------------------------------------------------------------
+
+function positive(value: unknown): number | null {
+  const number = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
+  return Number.isFinite(number) && number >= 1 ? Math.floor(number) : null;
+}
+
+/**
+ * The counter lines that reproduce an existing order's items (reprint / duplicate). Pages are the pages that were printed
+ * (page range applied); only options the counter form supports are carried over. Capped at the form's line limit.
+ */
+export function linesFromOrderItems(raw: unknown): CounterLine[] {
+  if (!Array.isArray(raw)) return [];
+  const lines: CounterLine[] = [];
+  for (const entry of raw) {
+    if (lines.length >= COUNTER_MAX_LINES) break;
+    if (typeof entry !== "object" || entry === null) continue;
+    const item = entry as Record<string, unknown>;
+    const base = newLine();
+    const copies = String(Math.min(COUNTER_MAX_COPIES, positive(item.copies) ?? 1));
+    const name = typeof item.original_file_name === "string" ? item.original_file_name.trim() : "";
+    const productId = positive(item.product);
+    if (productId !== null) {
+      lines.push({ ...base, copies, productId, productName: name, title: name });
+      continue;
+    }
+    const pages = positive(item.selected_pages) ?? positive(item.pages_count);
+    const perSheet = positive(item.pages_per_sheet) ?? 1;
+    const binding = typeof item.binding === "string" && /^[a-z0-9_-]{1,32}$/iu.test(item.binding) ? item.binding : "none";
+    lines.push({
+      ...base,
+      title: name.slice(0, 255),
+      pages: pages === null ? "" : String(Math.min(COUNTER_MAX_PAGES, pages)),
+      copies,
+      colorMode: item.color_mode === "color" ? "color" : "black_white",
+      paperSize: (COUNTER_PAPERS as readonly string[]).includes(String(item.paper_size)) ? (item.paper_size as PaperSize) : "A4",
+      sides: item.sides === "double_sided" ? "double_sided" : "one_sided",
+      binding,
+      bindingNote: typeof item.binding_note === "string" ? item.binding_note.trim().slice(0, BINDING_NOTE_MAX) : "",
+      pagesPerSheet: PAGES_PER_SHEET_CHOICES.includes(perSheet) ? perSheet : 1,
+      cover: typeof item.cover === "string" ? item.cover : "",
+    });
+  }
+  return lines;
 }
