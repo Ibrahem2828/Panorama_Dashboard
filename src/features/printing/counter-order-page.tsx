@@ -21,6 +21,7 @@ import {
   type CounterLine, type CounterStatus,
 } from "@/features/printing/counter-order-rules";
 import { Field, Segmented } from "@/features/printing/segmented";
+import { itemFieldErrors } from "@/features/printing/server-errors";
 import { useCounterQuote } from "@/features/printing/use-counter-quote";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { useI18n } from "@/i18n/provider";
@@ -56,7 +57,7 @@ export function CounterOrderForm({ initialLines }: { initialLines?: CounterLine[
   const [showErrors, setShowErrors] = useState(false);
   const [done, setDone] = useState<DoneOrder | null>(null);
 
-  const { allValid, quote, calculating, isError: quoteFailed } = useCounterQuote(lines, currency);
+  const { allValid, quote, calculating, isError: quoteFailed, error: quoteError } = useCounterQuote(lines, currency);
 
   // The price and the amount received follow the list price until the cashier types their own.
   const suggested = quote?.suggestedTotal ?? "";
@@ -87,10 +88,13 @@ export function CounterOrderForm({ initialLines }: { initialLines?: CounterLine[
     onError: mutateError,
   });
 
+  // What the server rejected, per line and field (a 400 of the quote or of the save), shown next to the field it is about.
+  const serverItemErrors = itemFieldErrors(create.error ?? quoteError);
   const money = (value: string) => formatMoney(value, currency, locale);
   const priceMessage = (problem: ReturnType<typeof amountProblem>) => (problem === "required" ? t("counter.problemRequired") : problem === "tooMany" ? t("counter.problemTooMany") : problem ? t("counter.problemInvalid") : null);
 
   function updateLine(key: string, patch: Partial<CounterLine>) {
+    create.reset(); // an old rejection no longer applies to what was just edited
     setLines((current) => current.map((line) => (line.key === key ? { ...line, ...patch } : line)));
   }
   function reset() {
@@ -143,7 +147,7 @@ export function CounterOrderForm({ initialLines }: { initialLines?: CounterLine[
           <p className="text-sm text-muted-foreground">{t("counter.itemsHint")}</p>
         </div>
         {lines.map((line, index) => (
-          <LineCard key={line.key} autoFocusPages={index > 0 && !line.pages} line={line} index={index} canRemove={lines.length > 1} quoteLine={quote?.lines[index]} currency={currency} showErrors={showErrors}
+          <LineCard key={line.key} autoFocusPages={index > 0 && !line.pages} line={line} index={index} canRemove={lines.length > 1} quoteLine={quote?.lines[index]} currency={currency} showErrors={showErrors} serverErrors={serverItemErrors[index]}
             onChange={(patch) => updateLine(line.key, patch)} onRemove={() => setLines((current) => current.filter((item) => item.key !== line.key))} />
         ))}
         <div className="space-y-2">

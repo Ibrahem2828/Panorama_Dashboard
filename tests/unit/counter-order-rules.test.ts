@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  amountProblem, createBody, defaultPaid, itemBody, lineIsValid, lineProblems, lineSheets, linesFromOrderItems, newLine, nextStatus, orderIsReady, pageRangeCount, paidProblem, parseCounterQuote,
+  amountProblem, createBody, defaultPaid, itemBody, lineIsValid, lineProblems, lineSheets, linesFromOrderItems, newLine, nextStatus, orderIsReady, paidProblem, parseCounterQuote, parsePageRange, linePages,
   quoteBody, signedRounding, wholeNumber, type CounterLine, type CounterOrderInput,
 } from "@/features/printing/counter-order-rules";
 
@@ -39,7 +39,7 @@ describe("lines", () => {
   });
   it("builds the request items with only what the server needs", () => {
     expect(itemBody(line({ title: " lecture ", binding: "spiral" }))).toEqual({
-      pages_count: 10, copies: 2, color_mode: "black_white", paper_size: "A4", sides: "one_sided", binding: "spiral", title: "lecture",
+      pages_count: 10, copies: 2, color_mode: "black_white", paper_size: "A4", sides: "one_sided", binding: "spiral", title: "lecture", duplex_flip: "",
     });
     expect(itemBody(line({ binding: "other", bindingNote: " clip " }))).toMatchObject({ binding: "other", binding_note: "clip" });
     expect(itemBody(line({ binding: "spiral", bindingNote: "ignored" }))).not.toHaveProperty("binding_note");
@@ -150,27 +150,58 @@ describe("pages per sheet (N-up) and cover", () => {
     expect(itemBody(line())).not.toHaveProperty("pages_per_sheet");
     expect(itemBody(line())).not.toHaveProperty("cover");
     expect(itemBody(line({ pagesPerSheet: 6, cover: "blue" }))).toMatchObject({ pages_per_sheet: 6, cover: "blue" });
-    expect(itemBody(line({ docPages: "50", pageRange: "1-5" }))).not.toHaveProperty("page_range");
   });
 });
 
-describe("pageRangeCount", () => {
-  it("counts the whole document for an empty range", () => {
-    expect(pageRangeCount("", 40)).toEqual({ count: 40 });
-    expect(pageRangeCount("   ", 40)).toEqual({ count: 40 });
+describe("parsePageRange (same rules as the server)", () => {
+  it("treats an empty range as no range", () => {
+    expect(parsePageRange("")).toEqual({ text: "", count: 0 });
+    expect(parsePageRange("   ")).toEqual({ text: "", count: 0 });
   });
-  it("counts ranges and single pages once each, accepting Arabic commas and dashes", () => {
-    expect(pageRangeCount("1-5, 8", 20)).toEqual({ count: 6 });
-    expect(pageRangeCount("1-5، 3-7", 20)).toEqual({ count: 7 });
-    expect(pageRangeCount("2–4;9", 20)).toEqual({ count: 4 });
+  it("counts ranges and normalises Arabic commas, semicolons, long dashes and spaces", () => {
+    expect(parsePageRange("1-5, 8")).toEqual({ text: "1-5,8", count: 6 });
+    expect(parsePageRange("2–4;9")).toEqual({ text: "2-4,9", count: 4 });
+    expect(parsePageRange("1،3")).toEqual({ text: "1,3", count: 2 });
   });
-  it("explains what is wrong", () => {
-    expect(pageRangeCount("a-b", 20)).toEqual({ error: "format" });
-    expect(pageRangeCount("5-2", 20)).toEqual({ error: "order" });
-    expect(pageRangeCount("0-2", 20)).toEqual({ error: "order" });
-    expect(pageRangeCount("1-21", 20)).toEqual({ error: "beyond" });
-    expect(pageRangeCount(",", 20)).toEqual({ error: "empty" });
-    expect(pageRangeCount("1-2", 0)).toEqual({ error: "docPages" });
+  it("rejects bad format, reversed, zero-based, descending and overlapping ranges", () => {
+    expect(parsePageRange("a-b")).toEqual({ error: "format" });
+    expect(parsePageRange(",")).toEqual({ error: "format" });
+    expect(parsePageRange("5-2")).toEqual({ error: "order" });
+    expect(parsePageRange("0-2")).toEqual({ error: "order" });
+    expect(parsePageRange("8,1-3")).toEqual({ error: "ascending" });
+    expect(parsePageRange("3-6,5")).toEqual({ error: "ascending" });
+    expect(parsePageRange("1".repeat(201))).toEqual({ error: "tooLong" });
+  });
+});
+
+describe("page range and duplex flip on a line", () => {
+  it("derives the pages from the range and sends both consistently", () => {
+    const l = line({ pages: "99", pageRange: "1-5, 8" });
+    expect(linePages(l)).toBe(6);
+    expect(itemBody(l)).toMatchObject({ pages_count: 6, page_range: "1-5,8" });
+    expect(lineProblems(l)).toEqual({});
+    expect(lineSheets(line({ pageRange: "1-5, 8", copies: "2" }))).toBe(12);
+  });
+  it("sends no page_range without one, and flags an invalid or oversized range", () => {
+    expect(itemBody(line())).not.toHaveProperty("page_range");
+    expect(lineProblems(line({ pageRange: "8,1" }))).toEqual({ pageRange: "ascending" });
+    expect(lineProblems(line({ pageRange: "1-999999" }))).toEqual({ pageRange: "tooMany" });
+    expect(lineIsValid(line({ pageRange: "1-3", pages: "" }))).toBe(true);
+  });
+  it("sends the flip edge for double-sided lines only (empty otherwise)", () => {
+    expect(itemBody(line({ sides: "one_sided", duplexFlip: "short" }))).toMatchObject({ duplex_flip: "" });
+    expect(itemBody(line({ sides: "double_sided" }))).toMatchObject({ duplex_flip: "long" });
+    expect(itemBody(line({ sides: "double_sided", duplexFlip: "short" }))).toMatchObject({ duplex_flip: "short" });
+  });
+  it("never sends a range or flip for a ready product", () => {
+    const body = itemBody(line({ productId: 4, pageRange: "1-3", sides: "double_sided" }));
+    expect(body).toEqual({ product: 4, copies: 2 });
+  });
+  it("copy-from-order carries the flip edge and page range", () => {
+    const [first] = linesFromOrderItems([{ pages_count: 100, selected_pages: 6, copies: 1, sides: "double_sided", duplex_flip: "short_edge", page_range: "1-5, 8" }]);
+    expect(first).toMatchObject({ duplexFlip: "short", pageRange: "1-5,8", pages: "6" });
+    const [plain] = linesFromOrderItems([{ pages_count: 10, copies: 1, page_range: "9-1" }]);
+    expect(plain).toMatchObject({ duplexFlip: "long", pageRange: "", pages: "10" });
   });
 });
 

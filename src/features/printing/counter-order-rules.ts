@@ -12,8 +12,13 @@ export const COUNTER_MAX_LINES = 20;
 export const COUNTER_MAX_PAGES = 100_000;
 export const COUNTER_MAX_COPIES = 99;
 export const BINDING_NOTE_MAX = 120;
+/** Longest page-range text the server accepts for a counter line (MAX_COUNTER_PAGE_RANGE_LENGTH). */
+export const PAGE_RANGE_MAX = 200;
 /** Pages-per-sheet values the server accepts (apps/printing/options.py PAGES_PER_SHEET_CHOICES). */
 export const PAGES_PER_SHEET_CHOICES: readonly number[] = [1, 2, 4, 6, 9, 16];
+
+export type DuplexFlipChoice = "long" | "short";
+export const DUPLEX_FLIPS: readonly DuplexFlipChoice[] = ["long", "short"];
 
 export const COUNTER_PATHS = {
   quote: "/api/v1/dashboard/printing/counter-orders/quote/",
@@ -35,8 +40,9 @@ export interface CounterLine {
   pagesPerSheet: number;
   /** Code of the cover option from the shop catalog, "" for none. */
   cover: string;
-  /** Helper only (never sent): pages of the whole document and the range to print, to work out the pages of one copy. */
-  docPages: string;
+  /** Edge a double-sided sheet turns on; only meaningful (and only sent) for a double-sided line. */
+  duplexFlip: DuplexFlipChoice;
+  /** Pages of the customer's document to print, like "1-5, 8". When filled, the pages of one copy come from it. */
   pageRange: string;
   /** A ready-made product: its specification and fixed price are used and the options above are ignored. */
   productId: number | null;
@@ -46,7 +52,7 @@ export interface CounterLine {
 let counter = 0;
 export function newLine(): CounterLine {
   counter += 1;
-  return { key: `line-${Date.now().toString(36)}-${counter}`, title: "", pages: "", copies: "1", colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", bindingNote: "", pagesPerSheet: 1, cover: "", docPages: "", pageRange: "", productId: null, productName: "" };
+  return { key: `line-${Date.now().toString(36)}-${counter}`, title: "", pages: "", copies: "1", colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", bindingNote: "", pagesPerSheet: 1, cover: "", duplexFlip: "long", pageRange: "", productId: null, productName: "" };
 }
 
 /** A positive whole number within bounds, or null. */
@@ -57,13 +63,16 @@ export function wholeNumber(text: string, max: number): number | null {
   return value >= 1 && value <= max ? value : null;
 }
 
-export interface LineProblems { pages?: boolean; copies?: boolean; bindingNote?: boolean }
+export interface LineProblems { pages?: boolean; copies?: boolean; bindingNote?: boolean; pageRange?: PageRangeError }
 
 export function lineProblems(line: CounterLine): LineProblems {
   const problems: LineProblems = {};
   if (wholeNumber(line.copies, COUNTER_MAX_COPIES) === null) problems.copies = true;
   if (line.productId !== null) return problems;
-  if (wholeNumber(line.pages, COUNTER_MAX_PAGES) === null) problems.pages = true;
+  const range = parsePageRange(line.pageRange);
+  if ("error" in range) problems.pageRange = range.error;
+  else if (range.count > COUNTER_MAX_PAGES) problems.pageRange = "tooMany";
+  else if (range.count === 0 && wholeNumber(line.pages, COUNTER_MAX_PAGES) === null) problems.pages = true;
   if (line.binding === "other" && !line.bindingNote.trim()) problems.bindingNote = true;
   return problems;
 }
@@ -72,10 +81,18 @@ export function lineIsValid(line: CounterLine): boolean {
   return Object.keys(lineProblems(line)).length === 0;
 }
 
+/** Pages of ONE copy: counted from the page range when one is typed, otherwise the typed number. Null when it cannot be worked out. */
+export function linePages(line: CounterLine): number | null {
+  const range = parsePageRange(line.pageRange);
+  if ("error" in range) return null;
+  if (range.count > 0) return range.count <= COUNTER_MAX_PAGES ? range.count : null;
+  return wholeNumber(line.pages, COUNTER_MAX_PAGES);
+}
+
 /** Physical sheets for all copies: a double-sided sheet carries two pages. */
 export function lineSheets(line: CounterLine): number | null {
   if (line.productId !== null) return null; // the sheets of a product come from its specification, on the server
-  const pages = wholeNumber(line.pages, COUNTER_MAX_PAGES);
+  const pages = linePages(line);
   const copies = wholeNumber(line.copies, COUNTER_MAX_COPIES);
   if (pages === null || copies === null) return null;
   const faces = Math.max(Math.ceil(pages / pagesPerSheetOf(line)), 1);
@@ -86,31 +103,38 @@ function pagesPerSheetOf(line: CounterLine): number {
   return PAGES_PER_SHEET_CHOICES.includes(line.pagesPerSheet) ? line.pagesPerSheet : 1;
 }
 
-export type PageRangeResult = { count: number } | { error: "empty" | "format" | "order" | "beyond" | "docPages" };
+export type PageRangeError = "format" | "order" | "ascending" | "tooLong" | "tooMany";
+export type PageRangeResult = { text: string; count: number } | { error: PageRangeError };
 
-/** Pages selected by a range like "1-5, 8" in a document of `total` pages (same rules as the server's parse_page_range). */
-export function pageRangeCount(range: string, total: number): PageRangeResult {
-  if (!Number.isInteger(total) || total < 1) return { error: "docPages" };
-  const cleaned = range.trim();
-  if (!cleaned) return { count: total };
-  const seen = new Set<number>();
-  for (const part of cleaned.replace(/،/gu, ",").replace(/;/gu, ",").split(",")) {
-    if (!part.trim()) continue;
-    const match = /^\s*(\d+)\s*(?:[-–—]\s*(\d+))?\s*$/u.exec(part);
-    if (!match) return { error: "format" };
-    const first = Number(match[1]);
-    const last = Number(match[2] ?? match[1]);
+/**
+ * Validates a typed page range the way the server does (digits, commas and hyphens; each part ascending and the parts ascending and
+ * not overlapping) and counts the pages. Arabic commas, semicolons and long dashes are accepted and normalised. An empty text is
+ * fine and means "no range" (count 0). Pages beyond the document cannot be checked: a counter line has no file.
+ */
+export function parsePageRange(range: string): PageRangeResult {
+  const cleaned = range.replace(/\s+/gu, "").replace(/[،;]/gu, ",").replace(/[–—]/gu, "-").replace(/,{2,}/gu, ",").replace(/^,|,$/gu, "");
+  if (!cleaned) return range.trim() ? { error: "format" } : { text: "", count: 0 };
+  if (cleaned.length > PAGE_RANGE_MAX) return { error: "tooLong" };
+  if (!/^\d+(?:-\d+)?(?:,\d+(?:-\d+)?)*$/u.test(cleaned)) return { error: "format" };
+  let count = 0;
+  let previousEnd = 0;
+  for (const part of cleaned.split(",")) {
+    const [firstText = "", lastText] = part.split("-");
+    const first = Number(firstText);
+    const last = lastText === undefined ? first : Number(lastText);
     if (first < 1 || last < first) return { error: "order" };
-    if (last > total) return { error: "beyond" };
-    for (let page = first; page <= last; page += 1) seen.add(page);
+    if (first <= previousEnd) return { error: "ascending" };
+    count += last - first + 1;
+    previousEnd = last;
   }
-  return seen.size ? { count: seen.size } : { error: "empty" };
+  return { text: cleaned, count };
 }
 
 export function itemBody(line: CounterLine): Record<string, unknown> {
   if (line.productId !== null) return { product: line.productId, copies: Number(line.copies) };
+  const range = parsePageRange(line.pageRange);
   const body: Record<string, unknown> = {
-    pages_count: Number(line.pages),
+    pages_count: linePages(line) ?? Number(line.pages),
     copies: Number(line.copies),
     color_mode: line.colorMode,
     paper_size: line.paperSize,
@@ -118,6 +142,10 @@ export function itemBody(line: CounterLine): Record<string, unknown> {
     binding: line.binding,
   };
   if (line.title.trim()) body.title = line.title.trim();
+  // The range and the page count are sent together and always agree (the server answers 400 when they differ).
+  if ("text" in range && range.text) body.page_range = range.text;
+  // Only a double-sided sheet has a flip edge; every other line sends an empty value.
+  body.duplex_flip = line.sides === "double_sided" ? line.duplexFlip : "";
   if (pagesPerSheetOf(line) !== 1) body.pages_per_sheet = pagesPerSheetOf(line);
   if (line.cover) body.cover = line.cover;
   if (line.binding === "other") body.binding_note = line.bindingNote.trim().slice(0, BINDING_NOTE_MAX);
@@ -264,7 +292,9 @@ export function linesFromOrderItems(raw: unknown): CounterLine[] {
       lines.push({ ...base, copies, productId, productName: name, title: name });
       continue;
     }
-    const pages = positive(item.selected_pages) ?? positive(item.pages_count);
+    const range = typeof item.page_range === "string" ? parsePageRange(item.page_range) : null;
+    const pageRange = range && "text" in range ? range.text : "";
+    const pages = pageRange ? range && "count" in range ? range.count : null : positive(item.selected_pages) ?? positive(item.pages_count);
     const perSheet = positive(item.pages_per_sheet) ?? 1;
     const binding = typeof item.binding === "string" && /^[a-z0-9_-]{1,32}$/iu.test(item.binding) ? item.binding : "none";
     lines.push({
@@ -278,6 +308,8 @@ export function linesFromOrderItems(raw: unknown): CounterLine[] {
       binding,
       bindingNote: typeof item.binding_note === "string" ? item.binding_note.trim().slice(0, BINDING_NOTE_MAX) : "",
       pagesPerSheet: PAGES_PER_SHEET_CHOICES.includes(perSheet) ? perSheet : 1,
+      duplexFlip: item.duplex_flip === "short" || item.duplex_flip === "short_edge" ? "short" : "long",
+      pageRange,
       cover: typeof item.cover === "string" ? item.cover : "",
     });
   }
