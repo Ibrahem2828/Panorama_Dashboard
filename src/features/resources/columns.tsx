@@ -1,5 +1,6 @@
 import type { ResourceColumn } from "@/components/data-grid/resource-table";
 import { StatusPill } from "@/components/shared/status-pill";
+import { UserLink } from "@/features/users/user-link";
 
 const active = (value: unknown) => <StatusPill value={value ? "active" : "inactive"} />;
 const enabled = (value: unknown) => <StatusPill value={value ? "enabled" : "disabled"} />;
@@ -8,9 +9,9 @@ const enabled = (value: unknown) => <StatusPill value={value ? "enabled" : "disa
 export const RESOURCE_COLUMNS: Record<string, ResourceColumn[]> = {
   users: [
     { key: "id", label: "#" },
-    { key: "full_name" },
+    { key: "full_name", render: (value, row) => <UserLink userId={row.id as number} name={String(value ?? "")} className="font-semibold" /> },
     { key: "email" },
-    { key: "job_title" },
+    { key: "job_title", render: (value) => (value ? String(value) : "—") },
     { key: "role", render: (value) => <StatusPill value={value} /> },
     { key: "is_active", render: active },
     { key: "last_login" },

@@ -18,12 +18,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useI18n } from "@/i18n/provider";
 import { apiFetch, downloadFromBackend, normalizeCollection, unwrap } from "@/lib/api/browser-client";
+import { UserLink } from "@/features/users/user-link";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import type { ApiEnvelope } from "@/types/api";
 
 interface Item { id: number; status: string; reason: string; subject: { id: number; name: string; code: string } }
 interface EnrollmentRow {
-  id: number; status: string; items: Item[]; user_name: string; user_email: string; student_number: string;
+  id: number; user?: number; status: string; items: Item[]; user_name: string; user_email: string; student_number: string;
   faculty_name: string; academic_year_name: string | null; semester_name: string | null; created_at: string; review_note: string;
   screenshot_ticket_endpoint: string;
 }
@@ -217,7 +218,7 @@ export function EnrollmentReviewPage() {
           {selected ? (
             <>
               <div className="space-y-1 text-sm">
-                <div className="text-base font-semibold">{selected.user_name}</div>
+                <div className="text-base font-semibold"><UserLink userId={selected.user} name={selected.user_name} /></div>
                 <div className="text-muted-foreground" dir="ltr">{selected.user_email}</div>
                 <div>{t("enrollmentReview.studentNumber")}: <span dir="ltr">{selected.student_number}</span></div>
                 <div>{selected.faculty_name}</div>
