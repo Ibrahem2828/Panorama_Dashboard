@@ -2,12 +2,23 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { livePollInterval } from "@/features/notifications/live";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
 import type { ApiEnvelope } from "@/types/api";
 
-export type InboxCategory = "enrollment" | "verification" | "reports" | "support" | "printing" | "purchases" | "groups" | "chat" | "general";
+export type InboxCategory = "enrollment" | "verification" | "reports" | "support" | "printing" | "purchases" | "groups" | "chat" | "student_registration" | "join_request" | "general";
 
-export const INBOX_CATEGORIES: InboxCategory[] = ["enrollment", "verification", "reports", "support", "printing", "purchases", "groups", "general"];
+/** Tabs that are always offered (an empty tab is still a valid answer: "nothing here"). */
+export const INBOX_CATEGORIES: InboxCategory[] = ["enrollment", "verification", "reports", "support", "printing", "purchases", "groups", "chat", "general"];
+/** Newer kinds: their tab appears once the backend has reported at least one notification of that category. */
+export const OPTIONAL_INBOX_CATEGORIES: InboxCategory[] = ["student_registration", "join_request"];
+
+/** The tabs to draw: the fixed ones plus any newer category present in the summary, in a stable order. */
+export function visibleInboxCategories(byCategory: Record<string, number> | undefined): InboxCategory[] {
+  const present = (key: string) => byCategory !== undefined && Object.prototype.hasOwnProperty.call(byCategory, key);
+  const optional = OPTIONAL_INBOX_CATEGORIES.filter(present);
+  return [...INBOX_CATEGORIES.slice(0, -1), ...optional, "general"];
+}
 
 export interface InboxNotification {
   id: number;
@@ -32,6 +43,10 @@ export interface QuickAccessCounts {
   support_open?: number;
   purchase_reminders_due?: number;
   notifications_unread?: number;
+  /** Group join requests waiting for a decision (only sent to holders of `groups.manage`). */
+  join_requests_pending?: number;
+  /** Students who registered and have not been looked at yet (only sent to holders of `verification.review`). */
+  registrations_new?: number;
 }
 
 /**
@@ -48,7 +63,8 @@ export function useInboxSummary() {
   return useQuery({
     queryKey: ["inbox-summary"],
     queryFn: async () => unwrap(await apiFetch<ApiEnvelope<InboxSummary>>("/api/v1/notifications/summary/")),
-    refetchInterval: 30_000,
+    refetchInterval: livePollInterval,
+    refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
   });
 }
@@ -60,7 +76,8 @@ export function useQuickAccessCounts() {
       const data = await unwrap(await apiFetch<ApiEnvelope<{ counts: QuickAccessCounts }>>("/api/v1/dashboard/quick-access/"));
       return data.counts;
     },
-    refetchInterval: 30_000,
+    refetchInterval: livePollInterval,
+    refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
   });
 }
@@ -73,7 +90,8 @@ export function useInboxList(category: string | null, page = 1, pageSize = 20) {
       if (category) params.set("category", category);
       return normalizeCollection<InboxNotification>(await apiFetch(`/api/v1/notifications/?${params}`));
     },
-    refetchInterval: 30_000,
+    refetchInterval: livePollInterval,
+    refetchIntervalInBackground: true,
   });
 }
 

@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Locale } from "@/config/constants";
 import { useQuickAccessCounts } from "@/features/notifications/inbox";
-import { ATTENTION_ACTIONS, CREATE_ACTIONS, type QuickAction } from "@/features/quick-access/quick-actions";
+import { useCurrentTerm } from "@/features/academic-term/api";
+import { ATTENTION_ACTIONS, CREATE_ACTIONS, TERM_ACTION, termNeedsAttention, visibleAttention, type QuickAction } from "@/features/quick-access/quick-actions";
 import { useSession } from "@/features/session";
 import { useI18n } from "@/i18n/provider";
 import { localizePath } from "@/i18n/routing";
@@ -44,7 +45,10 @@ export function QuickAccessPanel() {
   const { t } = useI18n();
   const { capabilities } = useSession();
   const counts = useQuickAccessCounts();
-  const attention = ATTENTION_ACTIONS.filter((action) => hasCapability(capabilities, action.capability));
+  const canManageTerm = hasCapability(capabilities, TERM_ACTION.capability);
+  const term = useCurrentTerm(canManageTerm);
+  const termDue = canManageTerm && termNeedsAttention(term.data?.term_started_at);
+  const attention = [...visibleAttention(ATTENTION_ACTIONS, counts.data), ...(termDue ? [TERM_ACTION] : [])].filter((action) => hasCapability(capabilities, action.capability));
   const create = CREATE_ACTIONS.filter((action) => hasCapability(capabilities, action.capability));
   if (!attention.length && !create.length) return null;
   return (
