@@ -9,13 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { Locale } from "@/config/constants";
-import { allNavigationItems } from "@/config/navigation";
+import { allNavigationItems, navigationItemAllowed } from "@/config/navigation";
 import { useQuickAccessCounts } from "@/features/notifications/inbox";
 import { CREATE_ACTIONS, ATTENTION_ACTIONS } from "@/features/quick-access/quick-actions";
 import { useSession } from "@/features/session";
 import { useI18n } from "@/i18n/provider";
 import { localizePath } from "@/i18n/routing";
-import { hasCapability } from "@/lib/auth/capabilities";
 import { cn, formatNumber } from "@/lib/utils";
 
 interface Entry {
@@ -94,7 +93,7 @@ export function CommandPalette() {
   }, [open, toggle]);
 
   const entries = useMemo<Entry[]>(() => {
-    const allowed = <T extends { capability?: string }>(item: T) => hasCapability(capabilities, item.capability);
+    const allowed = <T extends { capability?: string; anyCapability?: string[] }>(item: T) => navigationItemAllowed(item, capabilities);
     const pages: Entry[] = allNavigationItems.filter(allowed).map((item) => ({
       id: `page:${item.key}`,
       section: "pages",
