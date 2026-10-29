@@ -19,6 +19,15 @@ export const API_OPERATIONS = [
     "authenticated": false
   },
   {
+    "method": "GET",
+    "path": "/api/v1/academic/current-term/",
+    "operationId": "v1_academic_current_term_retrieve",
+    "tags": [
+      "Academic"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "POST",
     "path": "/api/v1/account/deletion/cancel/",
     "operationId": "v1_account_deletion_cancel_create",
@@ -267,6 +276,69 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_academic_years_destroy",
     "tags": [
       "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/academic/current-term/",
+    "operationId": "v1_dashboard_academic_current_term_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/academic/current-term/",
+    "operationId": "v1_dashboard_academic_current_term_update",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/academic/end-term/",
+    "operationId": "v1_dashboard_academic_end_term_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/academic/end-term/",
+    "operationId": "v1_dashboard_academic_end_term_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/academic/end-term/{rollover_id}/undo/",
+    "operationId": "v1_dashboard_academic_end_term_undo_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/academic/end-term/{rollover_id}/whatsapp-list/",
+    "operationId": "v1_dashboard_academic_end_term_whatsapp_list_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/academic/end-term/preview/",
+    "operationId": "v1_dashboard_academic_end_term_preview_create",
+    "tags": [
+      "Dashboard"
     ],
     "authenticated": true
   },
@@ -1203,6 +1275,15 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_groups_destroy",
     "tags": [
       "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/groups/{id}/members-export/",
+    "operationId": "v1_dashboard_groups_members_export_retrieve",
+    "tags": [
+      "Dashboard"
     ],
     "authenticated": true
   },
@@ -2584,6 +2665,15 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "GET",
+    "path": "/api/v1/dashboard/users/{user_id}/student-detail/",
+    "operationId": "v1_dashboard_users_student_detail_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "POST",
     "path": "/api/v1/dashboard/users/invite/",
     "operationId": "v1_dashboard_users_invite_create",
@@ -3640,6 +3730,15 @@ export const API_OPERATIONS = [
     "method": "PATCH",
     "path": "/api/v1/students/me/profile/",
     "operationId": "v1_students_me_profile_partial_update",
+    "tags": [
+      "Students"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/students/me/term-confirmation/",
+    "operationId": "v1_students_me_term_confirmation_create",
     "tags": [
       "Students"
     ],
