@@ -9,11 +9,12 @@ import { StatusPill } from "@/components/shared/status-pill";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { openJobPdf } from "@/features/printing/print-job-api";
 import { parseItemOptions, printerSettings } from "@/features/printing/print-options";
 import { parseOrderItems } from "@/features/printing/print-order-rules";
 import { SheetSimulation } from "@/features/printing/sheet-simulation";
 import { useI18n } from "@/i18n/provider";
-import { apiFetch, downloadFromBackend, normalizeCollection } from "@/lib/api/browser-client";
+import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
 
 interface PrintJob {
   id: number;
@@ -71,19 +72,10 @@ export function PrintJobPanel({ orderId, status, source, items: rawItems }: { or
     onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: jobsKey }); },
   });
 
-  /** Fetches the print-ready PDF and shows it in a new tab, where the browser's print dialog (Ctrl+P) takes over. */
+  /** Shows the print-ready PDF in a new tab, where the browser's print dialog (Ctrl+P) takes over. */
   async function openFile(job: PrintJob) {
-    const tab = window.open("", "_blank");
-    try {
-      const response = await downloadFromBackend(`/api/v1/dashboard/printing/print-jobs/${job.id}/file/`);
-      const url = URL.createObjectURL(new Blob([await response.arrayBuffer()], { type: "application/pdf" }));
-      if (tab) tab.location.href = url; else window.open(url, "_blank");
-      window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000);
-      if (job.status === "queued") setStatus.mutate({ id: job.id, status: "printing" });
-    } catch {
-      tab?.close();
-      toast.error(t("printing.job.openFailed"));
-    }
+    if (!(await openJobPdf(job.id))) { toast.error(t("printing.job.openFailed")); return; }
+    if (job.status === "queued") setStatus.mutate({ id: job.id, status: "printing" });
   }
 
   if (!canPrint) return null;

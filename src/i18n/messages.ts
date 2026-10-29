@@ -1,3 +1,5 @@
+import { printingAr, printingEn } from "@/features/printing/printing-messages";
+
 export const ar = {
   "app.name": "لوحة تحكم بانوراما",
   "app.tagline": "إدارة ذكية وآمنة لخدمات الطلبة",
@@ -1986,6 +1988,7 @@ export const ar = {
   "term.copied": "تم نسخ القائمة.",
   "term.copyFailed": "تعذّر النسخ. حدّد القائمة يدويًا.",
   "term.downloadCsv": "تنزيل CSV",
+  ...printingAr,
 } as const;
 
 export const en: Record<keyof typeof ar, string> = {
@@ -3976,6 +3979,7 @@ export const en: Record<keyof typeof ar, string> = {
   "term.copied": "List copied.",
   "term.copyFailed": "Copying failed. Select the list by hand.",
   "term.downloadCsv": "Download CSV",
+  ...printingEn,
 };
 
 export type MessageKey = keyof typeof ar;
