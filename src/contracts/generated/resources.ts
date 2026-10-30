@@ -5015,6 +5015,8 @@ export const OPERATION_PATHS = {
   "v1_dashboard_shop_sales_create_create": "/api/v1/dashboard/shop/sales/create/",
   "v1_dashboard_shop_sales_report_retrieve": "/api/v1/dashboard/shop/sales/report/",
   "v1_dashboard_stats_retrieve": "/api/v1/dashboard/stats/",
+  "v1_dashboard_students_list": "/api/v1/dashboard/students/",
+  "v1_dashboard_students_summary_retrieve": "/api/v1/dashboard/students/summary/",
   "v1_dashboard_subjects_list": "/api/v1/dashboard/subjects/",
   "v1_dashboard_subjects_create": "/api/v1/dashboard/subjects/",
   "v1_dashboard_subjects_retrieve": "/api/v1/dashboard/subjects/{id}/",

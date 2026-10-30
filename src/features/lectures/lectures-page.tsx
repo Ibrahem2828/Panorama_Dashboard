@@ -2,11 +2,13 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EyeOff, Globe, RefreshCw, RotateCcw, Upload } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { fetchAllPages, relationLabel } from "@/components/forms/contract-field";
+import { FilterBar, FilterEmptyState } from "@/components/filters/filter-bar";
+import type { FilterField } from "@/components/filters/filter-types";
+import { useFilterState } from "@/components/filters/use-filter-state";
 import { Pagination } from "@/components/data-grid/pagination";
 import { ResourceTable, type ResourceColumn, type RowMenuAction } from "@/components/data-grid/resource-table";
 import { AccessDenied } from "@/components/feedback/access-denied";
@@ -14,7 +16,6 @@ import { ErrorPanel } from "@/components/feedback/error-panel";
 import { PageHeader } from "@/components/shared/page-header";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RESOURCE_DEFINITIONS } from "@/contracts/generated/resource-definitions";
 import type { ResourceDefinition } from "@/contracts/types";
@@ -22,7 +23,7 @@ import { LectureDetailsDialog } from "@/features/lectures/lecture-details-dialog
 import { LectureEditDialog } from "@/features/lectures/lecture-edit-dialog";
 import { lectureErrorText } from "@/features/lectures/lecture-errors";
 import {
-  isGeneralLecture, LECTURE_STATUSES, lectureActions, lectureQueryFilters, parseLectureParams, pollInterval,
+  isGeneralLecture, LECTURE_STATUSES, lectureActions, pollInterval,
   type LectureRow,
 } from "@/features/lectures/lecture-rules";
 import { LectureStatusBadge, useLectureStatusLabel } from "@/features/lectures/lecture-status-badge";
@@ -38,7 +39,6 @@ import { payloadSignature } from "@/lib/api/idempotency";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { formatDate, formatNumber } from "@/lib/utils";
 
-const ALL = "__all__";
 const definition = RESOURCE_DEFINITIONS.lectures as ResourceDefinition;
 
 type ActionKind = "publish" | "unpublish" | "retry" | "delete";
@@ -58,13 +58,21 @@ function useDocumentHidden(): boolean {
 export function LecturesPage() {
   const { t, locale } = useI18n();
   const statusLabel = useLectureStatusLabel();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const canManage = useCan(CAPABILITIES.lectures);
   const hidden = useDocumentHidden();
-  const params = useMemo(() => parseLectureParams(searchParams), [searchParams]);
-  const filters = useMemo(() => lectureQueryFilters(params), [params]);
+
+  const subjects = useQuery({ queryKey: ["reference-options", SUBJECTS_ENDPOINT], queryFn: () => fetchAllPages(SUBJECTS_ENDPOINT), enabled: canManage, staleTime: 60_000 });
+  const fields = useMemo<FilterField[]>(() => [
+    { kind: "select", key: "subject", label: t("lectures.filter.subject"), options: (subjects.data ?? []).map((item) => ({ value: String(item.id), label: relationLabel(item) })), placement: "primary" },
+    { kind: "select", key: "scope", label: t("lectures.filter.scope"), options: [{ value: "subject", label: t("lectures.scope.subject") }, { value: "general", label: t("lectures.scope.general") }], placement: "primary" },
+    { kind: "select", key: "status", label: t("lectures.filter.status"), options: LECTURE_STATUSES.map((value) => ({ value, label: statusLabel(value) })), placement: "primary" },
+    { kind: "boolean", key: "is_published", label: t("lectures.filter.published"), yesLabel: t("lectures.published"), noLabel: t("lectures.unpublished"), placement: "advanced" },
+    { kind: "date-range", key: "created", fromKey: "created_after", toKey: "created_before", label: t("filters.createdRange"), placement: "advanced" },
+  ], [subjects.data, statusLabel, t]);
+  const state = useFilterState(useMemo(() => ({ fields }), [fields]));
+  const params = { page: state.page, pageSize: state.pageSize };
+  const filters = state.requestParams;
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [details, setDetails] = useState<LectureRow | null>(null);
@@ -87,7 +95,6 @@ export function LecturesPage() {
   const now = Math.max(tick, list.dataUpdatedAt);
   const polling = pollInterval({ rows, hidden: false }) !== false;
 
-  const subjects = useQuery({ queryKey: ["reference-options", SUBJECTS_ENDPOINT], queryFn: () => fetchAllPages(SUBJECTS_ENDPOINT), enabled: canManage, staleTime: 60_000 });
 
   // "Stalled" is relative to the clock: re-evaluate every minute and whenever fresh data arrives.
   useEffect(() => {
@@ -103,15 +110,6 @@ export function LecturesPage() {
     if (changed.length) setAnnouncement(changed.map((row) => t("lectures.live.changed", { title: row.title, status: statusLabel(row.status) })).join(". "));
     previous.current = new Map(rows.map((row) => [row.id, row.status]));
   }, [rows, list.data, statusLabel, t]);
-
-  const updateUrl = useCallback((changes: Record<string, string | number | null>) => {
-    const next = new URLSearchParams(searchParams.toString());
-    for (const [name, value] of Object.entries(changes)) {
-      if (value === null || value === "") next.delete(name);
-      else next.set(name, String(value));
-    }
-    router.replace(`?${next.toString()}`, { scroll: false });
-  }, [router, searchParams]);
 
   const refreshList = () => { void queryClient.invalidateQueries({ queryKey: ["lectures"] }); };
 
@@ -167,8 +165,6 @@ export function LecturesPage() {
 
   if (!canManage) return <AccessDenied />;
 
-  const statusOptions = LECTURE_STATUSES.map((value) => ({ value, label: statusLabel(value) }));
-  const filtered = Boolean(params.subject || params.scope || params.status || params.isPublished);
   const confirmText = pending ? {
     publish: { title: t("lectures.confirm.publishTitle"), body: t("lectures.confirm.publishBody", { title: pending.row.title }), label: t("lectures.action.publish") },
     unpublish: { title: t("lectures.confirm.unpublishTitle"), body: t("lectures.confirm.unpublishBody", { title: pending.row.title }), label: t("lectures.action.unpublish") },
@@ -189,40 +185,7 @@ export function LecturesPage() {
         }
       />
 
-      <div className="glass-panel flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:flex-wrap sm:items-center sm:p-4" role="group" aria-label={t("common.filters")}>
-        <Select value={params.subject || ALL} onValueChange={(next) => updateUrl({ subject: next === ALL ? null : next, page: 1 })}>
-          <SelectTrigger className="h-11 sm:w-64" aria-label={t("lectures.filter.subject")}><SelectValue placeholder={t("lectures.filter.subject")} /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t("lectures.filter.subject")}: {t("common.all")}</SelectItem>
-            {(subjects.data ?? []).map((item) => <SelectItem key={String(item.id)} value={String(item.id)}>{relationLabel(item)}</SelectItem>)}
-            {params.subject && !(subjects.data ?? []).some((item) => String(item.id) === params.subject) ? <SelectItem value={params.subject}>{t("lectures.col.subject")} {formatNumber(params.subject, locale)}</SelectItem> : null}
-          </SelectContent>
-        </Select>
-        <Select value={params.scope || ALL} onValueChange={(next) => updateUrl({ scope: next === ALL ? null : next, page: 1 })}>
-          <SelectTrigger className="h-11 sm:w-52" aria-label={t("lectures.filter.scope")}><SelectValue placeholder={t("lectures.filter.scope")} /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t("lectures.filter.scope")}: {t("common.all")}</SelectItem>
-            <SelectItem value="subject">{t("lectures.scope.subject")}</SelectItem>
-            <SelectItem value="general">{t("lectures.scope.general")}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={params.status || ALL} onValueChange={(next) => updateUrl({ status: next === ALL ? null : next, page: 1 })}>
-          <SelectTrigger className="h-11 sm:w-52" aria-label={t("lectures.filter.status")}><SelectValue placeholder={t("lectures.filter.status")} /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t("lectures.filter.status")}: {t("common.all")}</SelectItem>
-            {statusOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={params.isPublished || ALL} onValueChange={(next) => updateUrl({ is_published: next === ALL ? null : next, page: 1 })}>
-          <SelectTrigger className="h-11 sm:w-52" aria-label={t("lectures.filter.published")}><SelectValue placeholder={t("lectures.filter.published")} /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t("lectures.filter.published")}: {t("common.all")}</SelectItem>
-            <SelectItem value="true">{t("lectures.published")}</SelectItem>
-            <SelectItem value="false">{t("lectures.unpublished")}</SelectItem>
-          </SelectContent>
-        </Select>
-        {filtered ? <Button variant="ghost" onClick={() => updateUrl({ subject: null, scope: null, status: null, is_published: null, page: 1 })}>{t("common.reset")}</Button> : null}
-      </div>
+      <FilterBar state={state} fields={fields} resultCount={list.data?.count ?? null} loading={list.isFetching && !list.isPending} />
 
       {polling ? <p className="text-xs text-muted-foreground" data-testid="lectures-auto-refresh">{t("lectures.autoRefresh")}</p> : null}
       <div role="status" aria-live="polite" className="sr-only" data-testid="lectures-live">{announcement}</div>
@@ -231,6 +194,8 @@ export function LecturesPage() {
         <div className="space-y-3"><Skeleton className="h-14 rounded-xl" /><Skeleton className="h-80 rounded-xl" /><Skeleton className="h-10 rounded-xl" /></div>
       ) : list.isError && !list.data ? (
         <ErrorPanel error={list.error} retry={() => void list.refetch()} />
+      ) : state.hasFilters && rows.length === 0 ? (
+        <FilterEmptyState state={state} message={t("lectures.empty")} />
       ) : (
         <>
           {list.isError ? <ErrorPanel error={list.error} retry={() => void list.refetch()} /> : null}
@@ -243,13 +208,13 @@ export function LecturesPage() {
             onView={(row) => setDetails(row as unknown as LectureRow)}
             onEdit={(row) => setEditing(row as unknown as LectureRow)}
             onDelete={(row) => openAction("delete", row as unknown as LectureRow)}
-            emptyMessage={filtered ? t("lectures.emptyFiltered") : t("lectures.empty")}
+            emptyMessage={t("lectures.empty")}
           />
-          <Pagination page={params.page} pageSize={params.pageSize} count={list.data?.count ?? 0} onPage={(next) => updateUrl({ page: next })} onPageSize={(next) => updateUrl({ page_size: next, page: 1 })} />
+          <Pagination page={params.page} pageSize={params.pageSize} count={list.data?.count ?? 0} onPage={state.setPage} onPageSize={state.setPageSize} />
         </>
       )}
 
-      {uploadOpen ? <LectureUploadDialog onOpenChange={setUploadOpen} onUploaded={() => { updateUrl({ page: 1 }); refreshList(); }} /> : null}
+      {uploadOpen ? <LectureUploadDialog onOpenChange={setUploadOpen} onUploaded={() => { state.setPage(1); refreshList(); }} /> : null}
       {editing ? <LectureEditDialog key={editing.id} lecture={editing} onOpenChange={(open) => { if (!open) setEditing(null); }} onSaved={refreshList} /> : null}
       <LectureDetailsDialog lecture={details} now={now} onOpenChange={(open) => { if (!open) setDetails(null); }} />
 

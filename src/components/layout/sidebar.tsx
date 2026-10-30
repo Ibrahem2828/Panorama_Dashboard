@@ -9,14 +9,13 @@ import { BrandLockup } from "@/components/brand/brand-lockup";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Locale } from "@/config/constants";
-import { navigationGroups } from "@/config/navigation";
+import { navigationGroups, navigationItemAllowed } from "@/config/navigation";
 import { CONTRACT_META } from "@/contracts/generated/contract-meta";
 import { useLowStockCount } from "@/features/finance/low-stock";
 import { usePreferences } from "@/features/preferences";
 import { useSession } from "@/features/session";
 import { useI18n } from "@/i18n/provider";
 import { localizePath } from "@/i18n/routing";
-import { hasCapability } from "@/lib/auth/capabilities";
 import { cn } from "@/lib/utils";
 
 export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: () => void; mobile?: boolean }) {
@@ -38,7 +37,7 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label={t("nav.primary")}>
         {navigationGroups.map((group) => {
-          const items = group.items.filter((item) => hasCapability(capabilities, item.capability));
+          const items = group.items.filter((item) => navigationItemAllowed(item, capabilities));
           if (!items.length) return null;
           return (
             <div key={group.key} className="mb-5">

@@ -35,13 +35,14 @@ import { BarChart3,
   University,
   UserRoundCog,
   UserRound,
+  UserSearch,
   Users,
   Wallet,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
 
-import { CAPABILITIES } from "@/lib/auth/capabilities";
+import { CAPABILITIES, hasCapability } from "@/lib/auth/capabilities";
 import type { MessageKey } from "@/i18n/messages";
 
 export interface NavigationItem {
@@ -50,6 +51,8 @@ export interface NavigationItem {
   href: string;
   icon: LucideIcon;
   capability?: string;
+  /** Pages several capabilities open (any one is enough): `capability` stays empty so the shell does not demand a single one; the page gates on the same list. */
+  anyCapability?: string[];
   keywords?: string[];
   /** Small badge shown next to the label (for screens that are not live yet). */
   badge?: MessageKey;
@@ -73,6 +76,7 @@ export const navigationGroups: NavigationGroup[] = [
     key: "administration",
     label: "nav.administration",
     items: [
+      { key: "students", label: "nav.students", href: "/dashboard/students", icon: UserSearch, anyCapability: [CAPABILITIES.users, CAPABILITIES.verification], keywords: ["طلاب", "طالب", "توثيق", "students", "verified"] },
       { key: "users", label: "nav.users", href: "/dashboard/users", icon: Users, capability: CAPABILITIES.users },
       { key: "rbac", label: "nav.rbac", href: "/dashboard/rbac", icon: ShieldCheck, capability: CAPABILITIES.users },
       { key: "academic", label: "nav.academic", href: "/dashboard/academic", icon: GraduationCap, capability: CAPABILITIES.academic },
@@ -164,6 +168,12 @@ export const academicSubNavigation: NavigationItem[] = [
 ];
 
 export const allNavigationItems = [...navigationGroups.flatMap((group) => group.items), ...accountNavigation, ...academicSubNavigation];
+
+/** Whether the signed-in capabilities open a navigation item (a single `capability` or any of `anyCapability`). */
+export function navigationItemAllowed(item: Pick<NavigationItem, "capability" | "anyCapability">, capabilities: readonly string[] | undefined): boolean {
+  if (item.anyCapability?.length) return item.anyCapability.some((capability) => hasCapability(capabilities, capability));
+  return hasCapability(capabilities, item.capability);
+}
 
 /** Maps a canonical (optionally locale-prefixed) dashboard URL to its UI gate. */
 export function capabilityForDashboardPath(pathname: string): string | undefined {

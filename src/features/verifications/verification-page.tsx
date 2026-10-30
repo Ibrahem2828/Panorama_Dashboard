@@ -3,9 +3,13 @@
 import Image from "next/image";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Eye, RefreshCw, RotateCcw, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { FilterBar, FilterEmptyState } from "@/components/filters/filter-bar";
+import type { FilterField } from "@/components/filters/filter-types";
+import { LOOKUPS, useLookupOptions } from "@/components/filters/use-lookup-options";
+import { useFilterState } from "@/components/filters/use-filter-state";
 import { Pagination } from "@/components/data-grid/pagination";
 import { ResourceTable } from "@/components/data-grid/resource-table";
 import { ErrorPanel } from "@/components/feedback/error-panel";
@@ -14,10 +18,8 @@ import { StatusPill } from "@/components/shared/status-pill";
 import { Ltr } from "@/components/shared/ltr";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { RESOURCE_DEFINITIONS } from "@/contracts/generated/resource-definitions";
@@ -32,9 +34,14 @@ import type { ApiEnvelope } from "@/types/api";
 export function VerificationPage() {
   const { t, enumLabel } = useI18n();
   const queryClient = useQueryClient();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
-  const [status, setStatus] = useState("all");
+  const semesters = useLookupOptions(LOOKUPS.semesters);
+  const fields = useMemo<FilterField[]>(() => [
+    { kind: "select", key: "semester", label: t("filters.semester"), options: semesters.options, placement: "primary" },
+    { kind: "date-range", key: "submitted", fromKey: "created_after", toKey: "created_before", label: t("verifications.filter.submitted"), placement: "primary" },
+  ], [semesters.options, t]);
+  const state = useFilterState(useMemo(() => ({ fields, segmentParam: "status", sortParam: undefined }), [fields]));
+  const segments = useMemo(() => [{ value: "", label: t("common.all") }, ...["pending", "approved", "needs_update", "rejected"].map((value) => ({ value, label: enumLabel(value) }))], [t, enumLabel]);
+  const { page, pageSize } = state;
   const [selected, setSelected] = useState<EntityRecord | null>(null);
   const [action, setAction] = useState<"approve" | "reject" | "needs-update" | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -44,8 +51,8 @@ export function VerificationPage() {
   const [inlineCard, setInlineCard] = useState<string | null>(null);
   const definition = RESOURCE_DEFINITIONS.verifications;
   const query = useQuery({
-    queryKey: ["verifications", page, pageSize, status],
-    queryFn: () => listResource(definition, { page, pageSize, ordering: "-created_at", filters: status === "all" ? {} : { status } }),
+    queryKey: ["verifications", page, pageSize, state.requestParams],
+    queryFn: () => listResource(definition, { page, pageSize, ordering: "-created_at", filters: state.requestParams }),
   });
   const reviewKey = useIdempotencyKey();
   const reviewError = useMutationError(reviewKey);
@@ -75,8 +82,8 @@ export function VerificationPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("verifications.title")} description={t("verifications.subtitle")} eyebrow={t("eyebrow.identityReview")} actions={<Button variant="outline" onClick={() => query.refetch()}><RefreshCw />{t("common.refresh")}</Button>} />
-      <Card><CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"><Label>{t("common.status")}</Label><Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}><SelectTrigger className="w-full sm:w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{t("common.all")}</SelectItem>{["pending","approved","rejected","needs_update"].map((value)=><SelectItem key={value} value={value}>{enumLabel(value)}</SelectItem>)}</SelectContent></Select></CardContent></Card>
-      {query.isPending ? <Skeleton className="h-96 rounded-2xl" /> : query.isError ? <ErrorPanel error={query.error} retry={() => query.refetch()} /> : (
+      <FilterBar state={state} fields={fields} segments={segments} resultCount={query.data?.count ?? null} loading={query.isFetching && !query.isPending} />
+      {query.isPending ? <Skeleton className="h-96 rounded-2xl" /> : query.isError ? <ErrorPanel error={query.error} retry={() => query.refetch()} /> : query.data.results.length === 0 ? <FilterEmptyState state={state} /> : (
         <>
           <ResourceTable
             rows={query.data.results}
@@ -88,7 +95,7 @@ export function VerificationPage() {
             onEdit={() => undefined}
             onDelete={() => undefined}
           />
-          <Pagination page={page} pageSize={pageSize} count={query.data.count} onPage={setPage} onPageSize={(size) => { setPageSize(size); setPage(1); }} />
+          <Pagination page={page} pageSize={pageSize} count={query.data.count} onPage={state.setPage} onPageSize={state.setPageSize} />
         </>
       )}
 

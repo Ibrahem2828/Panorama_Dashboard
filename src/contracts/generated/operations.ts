@@ -2387,6 +2387,24 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/students/",
+    "operationId": "v1_dashboard_students_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/students/summary/",
+    "operationId": "v1_dashboard_students_summary_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/subjects/",
     "operationId": "v1_dashboard_subjects_list",
     "tags": [

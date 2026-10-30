@@ -3,7 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, Layers, RotateCw, UploadCloud } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
+
+import type { FilterField } from "@/components/filters/filter-types";
+import { LOOKUPS, useLookupOptions } from "@/components/filters/use-lookup-options";
 import { toast } from "sonner";
 
 import type { ResourceColumn } from "@/components/data-grid/resource-table";
@@ -17,11 +21,13 @@ import { FilePreviewDialog, type PreviewTarget } from "@/features/files/file-pre
 import { protectedSources } from "@/features/files/protected-preview";
 import type { FieldOverride } from "@/features/resources/form-schema";
 import type { EntityRecord } from "@/features/resources/resource-api";
-import { ResourceManager, type ManagerCustomAction, type ManagerFilter, type ManagerRowAction } from "@/features/resources/resource-manager";
+import { ResourceManager, type ManagerCustomAction, type ManagerFilterBar, type ManagerRowAction } from "@/features/resources/resource-manager";
 import { useI18n } from "@/i18n/provider";
 import { apiFetch, unwrap } from "@/lib/api/browser-client";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
 import { formatFileSize } from "@/lib/utils";
+import type { MessageKey } from "@/i18n/messages";
+import type { FilterOption } from "@/components/filters/filter-types";
 
 export const PROCESSING_STATUSES = ["pending", "queued", "scanning", "converting", "extracting", "rendering", "ready", "failed", "quarantined"] as const;
 const REPROCESSABLE = new Set(["pending", "failed", "queued"]);
@@ -66,6 +72,25 @@ function ProcessingSummary() {
       </span>
     </Card>
   );
+}
+
+/** Library filters: visibility and processing state inline; the rest (and the long subject/group lists) in the drawer. */
+export function fileFields({ t, tOr, enumLabel, subjects, groups }: {
+  t: (key: MessageKey) => string;
+  tOr: (key: string, fallback: string) => string;
+  enumLabel: (value: unknown) => string;
+  subjects: readonly FilterOption[];
+  groups: readonly FilterOption[];
+}): FilterField[] {
+  return [
+    { kind: "select", key: "visibility", label: t("field.visibility"), options: FILE_VISIBILITIES.map((value) => ({ value, label: tOr(`enum.${value}`, value) })), placement: "primary" },
+    { kind: "select", key: "processing_status", label: t("filesProcessing.status"), options: PROCESSING_STATUSES.map((value) => ({ value, label: enumLabel(value) })), placement: "primary" },
+    { kind: "select", key: "subject", label: t("filters.subject"), options: subjects, placement: "advanced" },
+    { kind: "select", key: "group", label: t("filters.group"), options: groups, placement: "advanced" },
+    { kind: "boolean", key: "is_active", label: t("common.status"), yesLabel: t("common.active"), noLabel: t("common.inactive"), placement: "advanced" },
+    { kind: "boolean", key: "is_printable", label: t("field.is_printable"), placement: "advanced" },
+    { kind: "date-range", key: "created", fromKey: "created_after", toKey: "created_before", label: t("filters.createdRange"), placement: "advanced" },
+  ];
 }
 
 export const FILE_VISIBILITIES = ["public", "students_only", "verified_students_only", "major_only", "group_only", "admin_only"] as const;
@@ -114,12 +139,16 @@ export function FilesPage() {
     },
   ], [t]);
 
-  const filters = useMemo<ManagerFilter[]>(() => [
-    { param: "visibility", label: t("field.visibility"), options: FILE_VISIBILITIES.map((value) => ({ value, label: tOr(`enum.${value}`, value) })) },
-    { param: "is_active", label: t("common.status"), options: [{ value: "true", label: t("common.active") }, { value: "false", label: t("common.inactive") }] },
-    { param: "is_printable", label: t("field.is_printable"), options: [{ value: "true", label: t("common.yes") }, { value: "false", label: t("common.no") }] },
-    { param: "processing_status", label: t("filesProcessing.status"), options: PROCESSING_STATUSES.map((value) => ({ value, label: enumLabel(value) })) },
-  ], [t, tOr, enumLabel]);
+  // Subjects and groups are long lists: they load only when the advanced drawer opens (or a link already filters by them).
+  const searchParams = useSearchParams();
+  const [moreOpened, setMoreOpened] = useState(false);
+  const subjects = useLookupOptions(LOOKUPS.subjects, {}, moreOpened || Boolean(searchParams?.get("subject")));
+  const groups = useLookupOptions(LOOKUPS.groups, {}, moreOpened || Boolean(searchParams?.get("group")));
+  const filterBar = useMemo<ManagerFilterBar>(() => ({
+    fields: fileFields({ t, tOr, enumLabel, subjects: subjects.options, groups: groups.options }),
+    searchPlaceholder: t("files.searchPlaceholder"),
+    onMoreOpenChange: (open) => { if (open) setMoreOpened(true); },
+  }), [t, tOr, enumLabel, subjects.options, groups.options]);
 
   return (
     <>
@@ -136,7 +165,7 @@ export function FilesPage() {
           <Button asChild variant="outline"><Link href={`/${locale}/dashboard/files/templates`}><Layers className="size-4" />{t("files.templates.title")}</Link></Button>
           <Button variant="outline" onClick={() => setBulk(true)}><UploadCloud className="size-4" />{t("files.bulk.title")}</Button>
         </>}
-        filters={filters}
+        filterBar={filterBar}
         createLabel={t("files.upload")}
         formOverrides={(mode): Record<string, FieldOverride> => (mode === "edit" ? { file: { hint: "files.replaceHint", required: false } } : {})}
       />
