@@ -3,6 +3,18 @@ import { StatusPill } from "@/components/shared/status-pill";
 import { UserLink } from "@/features/users/user-link";
 
 const active = (value: unknown) => <StatusPill value={value ? "active" : "inactive"} />;
+/** Audit rows: the actor's name (profile link) when the backend sends `actor_detail`, else the bare id; same for the target. */
+export const auditActor = (value: unknown, row: Record<string, unknown>) => {
+  const detail = row.actor_detail as { id?: number; full_name?: string; email?: string } | null | undefined;
+  if (!detail || detail.id === undefined || detail.id === null) return value === null || value === undefined || value === "" ? "—" : String(value);
+  return <UserLink userId={detail.id} name={detail.full_name || detail.email || `#${detail.id}`} className="font-semibold" />;
+};
+export const auditTarget = (value: unknown, row: Record<string, unknown>) => {
+  const label = typeof row.target_label === "string" ? row.target_label : "";
+  const id = value === null || value === undefined || value === "" ? "" : String(value);
+  if (!label) return id || "—";
+  return <span>{label}{id ? <span className="ms-1.5 font-mono text-xs text-muted-foreground" dir="ltr">#{id}</span> : null}</span>;
+};
 const enabled = (value: unknown) => <StatusPill value={value ? "enabled" : "disabled"} />;
 
 /** Table columns per resource; resources without an entry fall back to columns inferred from the first record. */
@@ -74,6 +86,6 @@ export const RESOURCE_COLUMNS: Record<string, ResourceColumn[]> = {
     { key: "id", label: "#" }, { key: "version" }, { key: "is_active", render: active }, { key: "requires_reacceptance" }, { key: "published_at" }, { key: "content_url" },
   ],
   "audit-logs": [
-    { key: "id", label: "#" }, { key: "actor" }, { key: "action" }, { key: "target_type" }, { key: "target_id" }, { key: "created_at" },
+    { key: "id", label: "#" }, { key: "actor", render: auditActor }, { key: "action" }, { key: "target_type" }, { key: "target_id", render: auditTarget }, { key: "created_at" },
   ],
 };
