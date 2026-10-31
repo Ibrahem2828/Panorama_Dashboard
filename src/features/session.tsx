@@ -9,9 +9,9 @@ import { AccessDenied } from "@/components/feedback/access-denied";
 import { PageLoader } from "@/components/feedback/page-loader";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/config/constants";
+import { loginErrorText } from "@/features/auth/login-errors";
 import { useI18n } from "@/i18n/provider";
 import { bffFetch, onSessionExpired, unwrap } from "@/lib/api/browser-client";
-import { apiErrorText } from "@/lib/api/error-message";
 import { AppApiError } from "@/lib/api/errors";
 import { hasCapability } from "@/lib/auth/capabilities";
 import type { ApiEnvelope } from "@/types/api";
@@ -52,7 +52,7 @@ function sessionStatus(query: ReturnType<typeof useSessionQuery>): DashboardSess
 }
 
 export function useLogin() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const params = useParams<{ locale: Locale }>();
   const searchParams = useSearchParams();
@@ -72,7 +72,7 @@ export function useLogin() {
       router.refresh();
     },
     onError(error: Error) {
-      toast.error(apiErrorText(error, t));
+      toast.error(loginErrorText(error, t, locale));
     },
   });
 }
