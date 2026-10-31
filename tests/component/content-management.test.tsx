@@ -105,20 +105,18 @@ describe("members panel", () => {
   const listing = (results: object[]) => ({ data: { count: results.length, next: null, previous: null, results } });
   const ok = () => ({ json: async () => ({ success: true }), headers: new Headers() }) as unknown as Response;
 
-  it("approves a pending request without a confirmation, with an idempotency key", async () => {
+  it("no longer reviews join requests inside the dialog: the requests tab points to the dedicated screen", async () => {
     granted.add("groups.manage");
-    vi.mocked(apiFetch).mockImplementation(async (path: string, init?: { method?: string }) => {
-      if (init?.method === "POST") return ok();
-      return listing([request]) as never;
-    });
+    vi.mocked(apiFetch).mockImplementation(async () => listing([approved]) as never);
     render(wrap(<GroupMembersDialog group={{ id: 5, name: "CS" }} onOpenChange={() => undefined} />));
-    const row = await screen.findByTestId("membership-31");
-    expect(within(row).getByText("Pending")).toBeTruthy();
-    await userEvent.click(within(row).getByRole("button", { name: "Approve" }));
-    await waitFor(() => expect(vi.mocked(apiFetch).mock.calls.some(([path, init]) => path === "/api/v1/dashboard/group-memberships/31/approve/" && init?.method === "POST")).toBe(true));
-    const call = vi.mocked(apiFetch).mock.calls.find(([path]) => String(path).includes("/approve/"))!;
-    expect(String((call[1] as { idempotencyKey?: string }).idempotencyKey).length).toBeGreaterThan(8);
-    expect(vi.mocked(apiFetch).mock.calls[0]?.[0]).toContain("/api/v1/dashboard/groups/5/join-requests/");
+    const row = await screen.findByTestId("membership-32");
+    expect(within(row).getByText("Approved")).toBeTruthy();
+    expect(String(vi.mocked(apiFetch).mock.calls[0]?.[0])).toContain("/api/v1/dashboard/groups/5/memberships/");
+    await userEvent.click(screen.getByRole("tab", { name: "Join requests" }));
+    const link = await screen.findByRole("link", { name: /Open join requests for this group/u });
+    expect(link.getAttribute("href")).toContain("/dashboard/groups/requests?group=5");
+    expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
+    expect(vi.mocked(apiFetch).mock.calls.some(([path]) => String(path).includes("/join-requests/"))).toBe(false);
   });
 
   it("asks before removing a member and only then calls reject", async () => {

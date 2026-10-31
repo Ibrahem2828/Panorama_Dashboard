@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ban, Check, RefreshCw, Search, ShieldOff, UserMinus, X } from "lucide-react";
+import { Ban, Check, ExternalLink, RefreshCw, Search, ShieldOff, UserMinus, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -20,11 +21,13 @@ import {
   availableMembershipActions, CONFIRMED_ACTIONS, MEMBERSHIP_ROLES, MEMBERSHIP_STATUSES, membershipRequest, membersListPath,
   type MembershipAction,
 } from "@/features/groups/group-rules";
+import { joinRequestsHref } from "@/features/groups/join-requests-rules";
 import { useCan } from "@/features/session";
 import { UserLink } from "@/features/users/user-link";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useIdempotencyKey, useMutationError } from "@/hooks/use-idempotency-key";
 import { useI18n } from "@/i18n/provider";
+import { localizePath } from "@/i18n/routing";
 import { apiFetch, normalizeCollection } from "@/lib/api/browser-client";
 import { payloadSignature } from "@/lib/api/idempotency";
 import { CAPABILITIES } from "@/lib/auth/capabilities";
@@ -45,12 +48,15 @@ interface PendingChange { action: MembershipAction; row: MembershipRow; role?: s
 
 const PAGE_SIZE = 10;
 
-/** Members and join requests of one group, with moderation actions (all of them go through the BFF to the dashboard membership endpoints). */
+/**
+ * Members of one group with moderation actions (all of them go through the BFF to the dashboard membership endpoints).
+ * Join requests have their own screen: the "requests" tab only points there, filtered to this group.
+ */
 export function GroupMembersDialog({ group, onOpenChange }: { group: { id: number; name: string } | null; onOpenChange: (open: boolean) => void }) {
   const { t, locale, tOr } = useI18n();
   const queryClient = useQueryClient();
   const canManage = useCan(CAPABILITIES.groups);
-  const [tab, setTab] = useState<"requests" | "members">("requests");
+  const [tab, setTab] = useState<"requests" | "members">("members");
   const [status, setStatus] = useState("approved");
   const [page, setPage] = useState(1);
   const [searchDraft, setSearchDraft] = useState("");
@@ -60,7 +66,7 @@ export function GroupMembersDialog({ group, onOpenChange }: { group: { id: numbe
 
   const query = useQuery({
     queryKey: ["group-members", groupId, tab, status, search, page],
-    enabled: groupId !== undefined && canManage,
+    enabled: groupId !== undefined && canManage && tab === "members",
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), page_size: String(PAGE_SIZE), ordering: "-created_at" });
       if (search) params.set("search", search);
@@ -117,10 +123,10 @@ export function GroupMembersDialog({ group, onOpenChange }: { group: { id: numbe
               <TabsTrigger value="members">{t("groups.members.tabMembers")}</TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="relative flex-1">
+          {tab === "members" ? <div className="relative flex-1">
             <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={searchDraft} onChange={(event) => { setSearchDraft(event.target.value); setPage(1); }} placeholder={t("groups.members.searchPlaceholder")} aria-label={t("common.search")} className="ps-10" />
-          </div>
+          </div> : <div className="flex-1" />}
           {tab === "members" ? (
             <Select value={status} onValueChange={(next) => { setStatus(next); setPage(1); }}>
               <SelectTrigger className="sm:w-48" aria-label={t("common.status")}><SelectValue /></SelectTrigger>
@@ -130,10 +136,19 @@ export function GroupMembersDialog({ group, onOpenChange }: { group: { id: numbe
               </SelectContent>
             </Select>
           ) : null}
-          <Button variant="outline" onClick={() => query.refetch()} disabled={query.isFetching} aria-label={t("common.refresh")}><RefreshCw className={query.isFetching ? "animate-spin" : ""} /></Button>
+          {tab === "members" ? <Button variant="outline" onClick={() => query.refetch()} disabled={query.isFetching} aria-label={t("common.refresh")}><RefreshCw className={query.isFetching ? "animate-spin" : ""} /></Button> : null}
         </div>
 
-        {query.isPending ? <Skeleton className="h-56 rounded-xl" /> : query.isError ? <ErrorPanel error={query.error} retry={() => query.refetch()} /> : (
+        {tab === "requests" ? (
+          <div data-testid="requests-pointer" className="flex flex-col gap-3 rounded-xl border border-dashed p-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm leading-7">{t("groups.members.requestsMoved")}</p>
+            {group ? (
+              <Button asChild variant="outline" className="shrink-0">
+                <Link href={localizePath(locale, joinRequestsHref(group.id))}>{t("groups.members.requestsLink")}<ExternalLink className="directional-icon" aria-hidden /></Link>
+              </Button>
+            ) : null}
+          </div>
+        ) : query.isPending ? <Skeleton className="h-56 rounded-xl" /> : query.isError ? <ErrorPanel error={query.error} retry={() => query.refetch()} /> : (
           <>
             <div className="overflow-x-auto rounded-xl border bg-card">
               <Table>
@@ -174,7 +189,7 @@ export function GroupMembersDialog({ group, onOpenChange }: { group: { id: numbe
                       </TableRow>
                     );
                   })}
-                  {!rows.length ? <TableRow><TableCell colSpan={5} className="h-28 text-center text-muted-foreground">{tab === "requests" ? t("groups.members.emptyRequests") : t("groups.members.empty")}</TableCell></TableRow> : null}
+                  {!rows.length ? <TableRow><TableCell colSpan={5} className="h-28 text-center text-muted-foreground">{t("groups.members.empty")}</TableCell></TableRow> : null}
                 </TableBody>
               </Table>
             </div>
