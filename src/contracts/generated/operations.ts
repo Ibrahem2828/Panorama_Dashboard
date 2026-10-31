@@ -1180,6 +1180,33 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "GET",
+    "path": "/api/v1/dashboard/group-join-requests/",
+    "operationId": "v1_dashboard_group_join_requests_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/group-join-requests/bulk-decision/",
+    "operationId": "v1_dashboard_group_join_requests_bulk_decision_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/group-join-requests/summary/",
+    "operationId": "v1_dashboard_group_join_requests_summary_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "POST",
     "path": "/api/v1/dashboard/group-memberships/{id}/approve/",
     "operationId": "v1_dashboard_group_memberships_approve_create",
@@ -3876,6 +3903,24 @@ export const API_OPERATIONS = [
     "operationId": "v1_students_student_number_parse_retrieve",
     "tags": [
       "Student Number Parsing"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subjects/",
+    "operationId": "v1_subjects_list",
+    "tags": [
+      "Subjects"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subjects/{id}/",
+    "operationId": "v1_subjects_retrieve",
+    "tags": [
+      "Subjects"
     ],
     "authenticated": true
   },
