@@ -4,6 +4,7 @@ import { LogOut, Settings, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+import { AutoRefreshControl } from "@/components/layout/auto-refresh-control";
 import { ConnectivityIndicator } from "@/components/layout/connectivity-indicator";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { CommandPalette } from "@/components/navigation/command-palette";
@@ -30,6 +31,7 @@ export function Topbar() {
       <MobileSidebar />
       <CommandPalette />
       <div className="ms-auto flex items-center gap-1 sm:gap-2">
+        <AutoRefreshControl />
         <ConnectivityIndicator />
         <LanguageSwitcher />
         <ThemeSwitcher />

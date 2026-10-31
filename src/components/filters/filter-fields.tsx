@@ -127,6 +127,8 @@ export function FilterFieldControl({ field, values, onChange, variant }: { field
       return <PairInputs idBase={`filter-${field.key}`} label={field.label} first={{ key: field.fromKey, label: t("filters.from") }} second={{ key: field.toKey, label: t("filters.to") }} values={values} onChange={onChange} type="date" />;
     case "number-range":
       return <PairInputs idBase={`filter-${field.key}`} label={field.label} first={{ key: field.minKey, label: t("filters.min") }} second={{ key: field.maxKey, label: t("filters.max") }} values={values} onChange={onChange} type="number" />;
+    case "text":
+      return <DraftInput id={`filter-${field.key}`} type="text" dir="ltr" maxLength={120} aria-label={field.label} placeholder={field.placeholder} value={values[field.key] ?? ""} onCommit={(next) => onChange({ [field.key]: next.trim() || null })} className="h-10" />;
     case "date":
       return <Input id={`filter-${field.key}`} type="date" aria-label={field.label} value={values[field.key] ?? ""} onChange={(event) => onChange({ [field.key]: event.target.value || null })} className="h-10" />;
     case "number":

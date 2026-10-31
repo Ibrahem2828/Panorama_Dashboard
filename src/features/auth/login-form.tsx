@@ -8,6 +8,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { loginErrorText } from "@/features/auth/login-errors";
 import { useLogin } from "@/features/session";
 import { useI18n } from "@/i18n/provider";
 
@@ -18,7 +19,7 @@ export function LoginForm() {
   const [touched, setTouched] = useState(false);
   const login = useLogin();
   const params = useParams<{ locale: string }>();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const valid = identifier.trim().length >= 3 && password.length >= 8;
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -48,6 +49,7 @@ export function LoginForm() {
         </div>
         {touched && password.length < 8 ? <p className="text-xs text-destructive">{t("auth.passwordMinimum")}</p> : null}
       </div>
+      {login.isError ? <p role="alert" data-testid="login-error" className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-xs leading-6 text-destructive">{loginErrorText(login.error, t, locale)}</p> : null}
       <div className="-mt-2 text-end"><Link href={`/${params.locale}/forgot-password`} className="text-xs font-semibold text-primary underline-offset-4 hover:underline">{t("auth.forgotPassword")}</Link></div>
       <Button type="submit" className="h-12 w-full rounded-xl brand-gradient text-white shadow-lg shadow-primary/15" isLoading={login.isPending} disabled={login.isPending}>
         {login.isPending ? t("auth.signingIn") : t("auth.signIn")}

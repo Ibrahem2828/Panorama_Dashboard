@@ -218,6 +218,15 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/chat/preferences/",
+    "operationId": "v1_chat_preferences_list",
+    "tags": [
+      "Chat"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/chat/unread/",
     "operationId": "v1_chat_unread_retrieve",
     "tags": [
@@ -2508,6 +2517,33 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_support_tickets_status_partial_update",
     "tags": [
       "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/system-activity/",
+    "operationId": "v1_dashboard_system_activity_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/system-activity/summary/",
+    "operationId": "v1_dashboard_system_activity_summary_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/system-activity/users/",
+    "operationId": "v1_dashboard_system_activity_users_list",
+    "tags": [
+      "Dashboard"
     ],
     "authenticated": true
   },
