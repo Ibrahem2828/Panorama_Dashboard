@@ -67,7 +67,13 @@ export interface NumberField extends FieldBase {
   unit?: string;
 }
 
-export type FilterField = SelectField | CascadingSelectField | MultiSelectField | BooleanField | DateField | DateRangeField | NumberRangeField | NumberField;
+/** Free text (for example a URL path); sent as typed after trimming. */
+export interface TextField extends FieldBase {
+  kind: "text";
+  placeholder?: string;
+}
+
+export type FilterField = TextField | SelectField | CascadingSelectField | MultiSelectField | BooleanField | DateField | DateRangeField | NumberRangeField | NumberField;
 
 export interface FilterSchema {
   fields: readonly FilterField[];
