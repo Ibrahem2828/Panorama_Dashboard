@@ -37,6 +37,7 @@ import { BarChart3,
   UserRoundCog,
   UserRound,
   UserSearch,
+  UserPlus,
   Users,
   Wallet,
   Wrench,
@@ -92,6 +93,7 @@ export const navigationGroups: NavigationGroup[] = [
       { key: "lectures", label: "nav.lectures", href: "/dashboard/lectures", icon: BookOpenCheck, capability: CAPABILITIES.lectures },
       { key: "files", label: "nav.files", href: "/dashboard/files", icon: FileStack, capability: CAPABILITIES.files },
       { key: "groups", label: "nav.groups", href: "/dashboard/groups", icon: Network, capability: CAPABILITIES.groups },
+      { key: "groupJoinRequests", label: "nav.groupJoinRequests", href: "/dashboard/groups/requests", icon: UserPlus, capability: CAPABILITIES.groups, keywords: ["انضمام", "طلبات المجموعات", "join requests", "group requests"] },
       { key: "announcements", label: "nav.announcements", href: "/dashboard/announcements", icon: Megaphone, capability: CAPABILITIES.announcements },
       { key: "chatConsole", label: "nav.chatConsole", href: "/dashboard/chat-console", icon: MessageSquareText, capability: CAPABILITIES.groups },
       { key: "chatReports", label: "nav.chatReports", href: "/dashboard/chat-reports", icon: MessageSquareWarning, capability: CAPABILITIES.groups },
@@ -175,6 +177,17 @@ export const allNavigationItems = [...navigationGroups.flatMap((group) => group.
 export function navigationItemAllowed(item: Pick<NavigationItem, "capability" | "anyCapability">, capabilities: readonly string[] | undefined): boolean {
   if (item.anyCapability?.length) return item.anyCapability.some((capability) => hasCapability(capabilities, capability));
   return hasCapability(capabilities, item.capability);
+}
+
+/**
+ * The sidebar entry that owns a path: the longest matching href among the sidebar items, so `/dashboard/groups/requests`
+ * lights up its own entry and not "Groups" as well.
+ */
+export function activeNavigationHref(pathname: string): string | undefined {
+  const withoutLocale = pathname.replace(/^\/(?:ar|en)(?=\/|$)/u, "");
+  const normalized = withoutLocale.length > 1 ? withoutLocale.replace(/\/+$/u, "") : withoutLocale;
+  return navigationGroups.flatMap((group) => group.items).map((item) => item.href).sort((left, right) => right.length - left.length)
+    .find((href) => normalized === href || (href !== "/dashboard" && normalized.startsWith(`${href}/`)));
 }
 
 /** Maps a canonical (optionally locale-prefixed) dashboard URL to its UI gate. */

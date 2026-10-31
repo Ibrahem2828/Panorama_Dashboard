@@ -29,7 +29,7 @@ export const ATTENTION_ACTIONS: QuickAction[] = [
   { key: "support", label: "quick.support", hint: "quick.supportHint", icon: Headphones, href: "/dashboard/support", capability: CAPABILITIES.support, count: "support_open", keywords: ["دعم", "تذكرة", "support"] },
   { key: "lowStock", label: "quick.lowStock", hint: "quick.lowStockHint", icon: Boxes, href: "/dashboard/finance/stock", capability: CAPABILITIES.printing, count: "low_stock", keywords: ["مخزون", "نفاد", "stock"] },
   { key: "reminders", label: "quick.reminders", hint: "quick.remindersHint", icon: Wallet, href: "/dashboard/finance/purchases", capability: CAPABILITIES.finance, count: "purchase_reminders_due", keywords: ["تذكير", "شراء", "حبر", "reminder"] },
-  { key: "joinRequests", label: "quick.joinRequests", hint: "quick.joinRequestsHint", icon: Users, href: "/dashboard/groups", capability: CAPABILITIES.groups, count: "join_requests_pending", onlyWhenCounted: true, keywords: ["انضمام", "مجموعة", "join"] },
+  { key: "joinRequests", label: "quick.joinRequests", hint: "quick.joinRequestsHint", icon: Users, href: "/dashboard/groups/requests", capability: CAPABILITIES.groups, count: "join_requests_pending", onlyWhenCounted: true, keywords: ["انضمام", "مجموعة", "join"] },
   { key: "registrations", label: "quick.registrations", hint: "quick.registrationsHint", icon: UserCheck, href: "/dashboard/verifications", capability: CAPABILITIES.verification, count: "registrations_new", onlyWhenCounted: true, keywords: ["تسجيل جديد", "طالب جديد", "registration"] },
   // The inbox has no tile: it is reached from the bell and the sidebar, never from a second place.
 ];

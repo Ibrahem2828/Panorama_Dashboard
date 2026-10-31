@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { joinRequestNotificationLink } from "@/features/groups/join-requests-rules";
 import { livePollInterval } from "@/features/notifications/live";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
 import type { ApiEnvelope } from "@/types/api";
@@ -57,6 +58,11 @@ export function safeDashboardPath(link: string | null | undefined): string {
   const value = (link ?? "").trim();
   if (!/^\/dashboard(\/[A-Za-z0-9_\-./]*)?(\?[A-Za-z0-9_\-=&.%]*)?$/u.test(value) || value.includes("..")) return "/dashboard/inbox";
   return value;
+}
+
+/** Where a notification opens: its own `deep_link`, with the legacy join-request target moved to the dedicated screen. */
+export function notificationTarget(item: Pick<InboxNotification, "deep_link" | "category">): string {
+  return safeDashboardPath(joinRequestNotificationLink(item.deep_link, item.category));
 }
 
 export function useInboxSummary() {

@@ -9,7 +9,7 @@ import { BrandLockup } from "@/components/brand/brand-lockup";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Locale } from "@/config/constants";
-import { navigationGroups, navigationItemAllowed } from "@/config/navigation";
+import { activeNavigationHref, navigationGroups, navigationItemAllowed } from "@/config/navigation";
 import { CONTRACT_META } from "@/contracts/generated/contract-meta";
 import { useLowStockCount } from "@/features/finance/low-stock";
 import { usePreferences } from "@/features/preferences";
@@ -26,6 +26,7 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
   const collapsed = usePreferences((state) => state.sidebarCollapsed) && !mobile;
   const toggle = usePreferences((state) => state.toggleSidebar);
   const lowStock = useLowStockCount();
+  const activeHref = activeNavigationHref(pathname);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -47,7 +48,7 @@ export function SidebarContent({ onNavigate, mobile = false }: { onNavigate?: ()
               <div className="space-y-1">
                 {items.map((item) => {
                   const href = localizePath(params.locale, item.href);
-                  const active = pathname === href || (item.href !== "/dashboard" && pathname.startsWith(`${href}/`));
+                  const active = item.href === activeHref;
                   const Icon = item.icon;
                   const link = (
                     <Link
