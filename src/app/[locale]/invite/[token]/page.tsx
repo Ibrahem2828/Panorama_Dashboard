@@ -1,6 +1,6 @@
-import { AcceptInvitationForm } from "@/features/auth/public-auth";
+import { AcceptInvitation } from "@/features/auth/accept-invitation";
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  return <AcceptInvitationForm token={token} />;
+  return <AcceptInvitation token={token} />;
 }

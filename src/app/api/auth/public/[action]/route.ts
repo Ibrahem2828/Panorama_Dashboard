@@ -58,7 +58,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ac
     const envelope = (backend.data ?? {}) as { success?: boolean; data?: unknown; message?: string; errors?: Record<string, unknown> };
     if (!backend.ok) {
       // Field errors (for example a weak password) are shown to the person typing them; nothing else leaks through.
-      const response = jsonError(backend.status, "UPSTREAM_REJECTED", typeof envelope.message === "string" ? envelope.message : "The request was rejected.", id, envelope.errors ?? null);
+      // A stable machine code (for example INVITATION_EXPIRED) tells the page which state to show; nothing else is forwarded.
+      const upstreamCode = typeof (envelope as { code?: unknown }).code === "string" && /^[A-Z][A-Z0-9_]{2,63}$/u.test((envelope as { code: string }).code) ? (envelope as { code: string }).code : "UPSTREAM_REJECTED";
+      const response = jsonError(backend.status, upstreamCode, typeof envelope.message === "string" ? envelope.message : "The request was rejected.", id, envelope.errors ?? null);
       const retry = backend.response.headers.get("retry-after");
       if (retry) response.headers.set("retry-after", retry);
       return response;

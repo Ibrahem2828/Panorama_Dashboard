@@ -4,6 +4,7 @@ import Image from "next/image";
 import { LanguageSwitcher } from "@/components/navigation/language-switcher";
 import { ThemeSwitcher } from "@/components/navigation/theme-switcher";
 import type { Locale } from "@/config/constants";
+import { safeLoginEmail } from "@/features/auth/invitation-rules";
 import { LoginForm } from "@/features/auth/login-form";
 import { getServerTranslator } from "@/i18n/server";
 
@@ -12,8 +13,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
   return { title: getServerTranslator(locale)("login.metaTitle") };
 }
 
-export default async function LoginPage({ params }: { params: Promise<{ locale: Locale }> }) {
+export default async function LoginPage({ params, searchParams }: { params: Promise<{ locale: Locale }>; searchParams: Promise<{ email?: string | string[] }> }) {
   const { locale } = await params;
+  const { email } = await searchParams;
   const t = getServerTranslator(locale);
   return (
     <main className="relative min-h-screen overflow-hidden">
@@ -47,7 +49,7 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
             <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">{t("app.name")}</p>
             <h2 className="mt-3 text-3xl font-black tracking-tight">{t("auth.welcome")}</h2>
             <p className="mt-3 text-sm leading-7 text-muted-foreground">{t("auth.subtitle")}</p>
-            <div className="mt-8"><LoginForm /></div>
+            <div className="mt-8"><LoginForm initialIdentifier={safeLoginEmail(Array.isArray(email) ? email[0] : email)} /></div>
           </div>
         </section>
       </div>
