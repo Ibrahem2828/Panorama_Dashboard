@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Locale } from "@/config/constants";
-import { safeDashboardPath, useInboxList, useInboxMutations, useInboxSummary, visibleInboxCategories, type InboxNotification } from "@/features/notifications/inbox";
+import { notificationTarget, useInboxList, useInboxMutations, useInboxSummary, visibleInboxCategories, type InboxNotification } from "@/features/notifications/inbox";
 import { useI18n } from "@/i18n/provider";
 import { localizePath } from "@/i18n/routing";
 import { cn, formatDate, formatNumber } from "@/lib/utils";
@@ -30,7 +30,7 @@ export function InboxPage() {
 
   const open = (item: InboxNotification) => {
     if (!item.is_read) markRead.mutate(item.id);
-    router.push(localizePath(params.locale, safeDashboardPath(item.deep_link)));
+    router.push(localizePath(params.locale, notificationTarget(item)));
   };
   const tabs: { key: string | null; label: string; count: number }[] = [
     { key: null, label: t("common.all"), count: summary.data?.unread ?? 0 },

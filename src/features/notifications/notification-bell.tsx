@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Locale } from "@/config/constants";
-import { safeDashboardPath, useInboxList, useInboxMutations, useInboxSummary, type InboxNotification } from "@/features/notifications/inbox";
+import { notificationTarget, useInboxList, useInboxMutations, useInboxSummary, type InboxNotification } from "@/features/notifications/inbox";
 import { playChime, useArrivalWatcher, useBrowserNotifications, useSoundPreference, useTitleBadge } from "@/features/notifications/live";
 import { useI18n } from "@/i18n/provider";
 import { localizePath } from "@/i18n/routing";
@@ -32,7 +32,7 @@ export function NotificationBell() {
   // Something new arrived while the dashboard was open: a toast (with a jump to the work), a soft chime, and an OS
   // notification only when the tab is in the background (the toast covers the visible case).
   useArrivalWatcher(list.data?.results, (item, batch) => {
-    const link = localizePath(params.locale, safeDashboardPath(item.deep_link));
+    const link = localizePath(params.locale, notificationTarget(item));
     toast(item.title, { description: item.body || undefined, action: { label: t("inbox.open"), onClick: () => router.push(link) } });
     if (item === batch[batch.length - 1] && soundOn) playChime();
     if (document.visibilityState === "hidden" && browser.permission === "granted") {
@@ -42,7 +42,7 @@ export function NotificationBell() {
 
   const open = (item: InboxNotification) => {
     if (!item.is_read) markRead.mutate(item.id);
-    router.push(localizePath(params.locale, safeDashboardPath(item.deep_link)));
+    router.push(localizePath(params.locale, notificationTarget(item)));
   };
 
   return (
