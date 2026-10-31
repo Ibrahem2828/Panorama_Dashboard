@@ -20,6 +20,11 @@ export function waitText(retryAfterSeconds: number, locale: string, t: Translate
   return t(MINUTE_KEYS[category] ?? "auth.minutes.other", { count: number });
 }
 
+/** True when the failure is the generic wrong-credentials outcome (the one that gets the extra new-account hint). */
+export function isInvalidCredentials(error: unknown): boolean {
+  return error instanceof AppApiError && (error.status === 400 || error.status === 401);
+}
+
 /**
  * Message for a failed sign-in. The backend answers HTTP 400 (`errors.identifier`) for wrong credentials, a staff
  * account that never set its password, an inactive or unverified account: deliberately one generic outcome so the

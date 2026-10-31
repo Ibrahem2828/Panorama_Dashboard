@@ -14,10 +14,10 @@ import { useI18n } from "@/i18n/provider";
 import { bffFetch } from "@/lib/api/browser-client";
 import { apiErrorText } from "@/lib/api/error-message";
 
-const MIN_PASSWORD = 10;
+export const MIN_PASSWORD = 10;
 
 /** Signed-out call to the BFF's allowlisted public actions; resolves with the backend `data`, rejects with the API error. */
-async function publicCall<T = unknown>(action: string, body: Record<string, unknown>): Promise<T> {
+export async function publicCall<T = unknown>(action: string, body: Record<string, unknown>): Promise<T> {
   const response = await bffFetch(`/api/auth/public/${action}`, { method: "POST", body });
   const payload = (await response.json()) as { data?: T };
   return payload.data as T;
@@ -37,7 +37,7 @@ export function AuthCard({ title, subtitle, children }: { title: string; subtitl
   );
 }
 
-function PasswordField({ id, label, value, onChange, autoComplete }: { id: string; label: string; value: string; onChange: (value: string) => void; autoComplete: string }) {
+export function PasswordField({ id, label, value, onChange, autoComplete }: { id: string; label: string; value: string; onChange: (value: string) => void; autoComplete: string }) {
   const { t } = useI18n();
   const [show, setShow] = useState(false);
   return (
@@ -55,56 +55,11 @@ function PasswordField({ id, label, value, onChange, autoComplete }: { id: strin
 }
 
 /** Password rules the person sees before submitting (the backend remains the authority and may add its own messages). */
-function passwordProblem(password: string, confirm: string, t: ReturnType<typeof useI18n>["t"]): string | null {
+export function passwordProblem(password: string, confirm: string, t: ReturnType<typeof useI18n>["t"]): string | null {
   if (password.length < MIN_PASSWORD) return t("publicAuth.passwordShort", { min: MIN_PASSWORD });
   if (/^\d+$/u.test(password)) return t("publicAuth.passwordNumeric");
   if (password !== confirm) return t("publicAuth.passwordMismatch");
   return null;
-}
-
-/** /invite/<token>: the invited person chooses their password once. */
-export function AcceptInvitationForm({ token }: { token: string }) {
-  const { t } = useI18n();
-  const params = useParams<{ locale: string }>();
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [invalid, setInvalid] = useState(false);
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    const problem = passwordProblem(password, confirm, t);
-    if (problem) { setError(problem); return; }
-    setBusy(true); setError(null);
-    try {
-      await publicCall("invitation-accept", { token, password, password_confirm: confirm });
-      setDone(true);
-    } catch (failure) {
-      const text = apiErrorText(failure, t);
-      setError(text);
-      if ((failure as { status?: number }).status === 400 && /invalid|expired|منتهي|غير صالح/iu.test(String((failure as Error).message))) setInvalid(true);
-    } finally { setBusy(false); }
-  };
-
-  if (done) {
-    return (
-      <AuthCard title={t("publicAuth.inviteDoneTitle")} subtitle={t("publicAuth.inviteDoneBody")}>
-        <Button asChild className="h-12 w-full"><Link href={`/${params.locale}/login`}>{t("auth.signIn")}</Link></Button>
-      </AuthCard>
-    );
-  }
-  return (
-    <AuthCard title={t("publicAuth.inviteTitle")} subtitle={invalid ? t("publicAuth.inviteInvalid") : t("publicAuth.inviteBody", { min: MIN_PASSWORD })}>
-      <form className="space-y-5" onSubmit={submit} noValidate>
-        <PasswordField id="invite-password" label={t("publicAuth.newPassword")} value={password} onChange={setPassword} autoComplete="new-password" />
-        <PasswordField id="invite-confirm" label={t("publicAuth.confirmPassword")} value={confirm} onChange={setConfirm} autoComplete="new-password" />
-        {error ? <p role="alert" className="text-sm font-medium text-destructive">{error}</p> : null}
-        <Button type="submit" className="h-12 w-full rounded-xl brand-gradient text-white" isLoading={busy} disabled={busy}>{t("publicAuth.setPassword")}</Button>
-      </form>
-    </AuthCard>
-  );
 }
 
 /** /forgot-password: e-mail a code, then choose a new password. */
