@@ -5,6 +5,8 @@ import { useCallback, useMemo, useState } from "react";
 
 import { Money } from "@/components/shared/money";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ItemExtrasList } from "@/features/printing/paper-extras-view";
+import { parseItemExtras, parseItemExtrasPrice } from "@/features/printing/paper-options-rules";
 import { PrintOrderPreview } from "@/features/printing/print-order-preview";
 import { parseItemOptions } from "@/features/printing/print-options";
 import { SheetSimulation } from "@/features/printing/sheet-simulation";
@@ -126,6 +128,10 @@ export function OrderItemsPanel({ orderId, items: rawItems, currency, pickup }: 
                     <div key={String(label)} className="rounded-lg bg-muted/40 py-2"><dt className="text-muted-foreground">{label}</dt><dd className="mt-0.5 text-sm font-bold"><bdi>{value}</bdi></dd></div>
                   ))}
                 </dl>
+                {(() => {
+                  const raw = rawList.find((entry) => entry.id === item.id) ?? {};
+                  return <ItemExtrasList extras={parseItemExtras(raw)} total={parseItemExtrasPrice(raw)} currency={currency} />;
+                })()}
                 <label className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
                   <input type="checkbox" className="size-4 accent-emerald-600" checked={ticked} onChange={() => toggle(id)} />
                   {t("printing.markPrepared")}

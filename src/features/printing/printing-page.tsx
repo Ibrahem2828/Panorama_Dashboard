@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CounterOrderTab } from "@/features/printing/counter-order-page";
 import { JobQueuePanel } from "@/features/printing/job-queue-panel";
 import { PrintOrdersPanel } from "@/features/printing/orders-panel";
+import { PaperOptionsPanel } from "@/features/printing/paper-options-panel";
 import { PricingSimulator } from "@/features/printing/pricing-simulator";
 import { CATALOG_SECTIONS, resolveCopyFrom, resolveSection, resolveTab, tabHref, type PrintingTab } from "@/features/printing/printing-home-rules";
 import { PrintersPanel } from "@/features/printing/printers-panel";
@@ -65,7 +66,7 @@ function CatalogTab({ section, onSection }: { section: ReturnType<typeof resolve
   const { t, enumLabel } = useI18n();
   const currencyFilter = (clientSide: boolean): ManagerFilter[] => [{ param: "currency", label: t("printing.currencyFilter"), clientSide, options: CURRENCIES.map((value) => ({ value, label: enumLabel(value) })) }];
   const labels: Record<(typeof CATALOG_SECTIONS)[number], string> = {
-    pricing: t("printing.pricing"), binding: t("printing.binding"), covers: t("printing.covers"), wire: t("printing.wire"), products: t("printing.products"), simulator: t("printing.simulator"),
+    pricing: t("printing.pricing"), binding: t("printing.binding"), covers: t("printing.covers"), paper: t("printing.paper"), wire: t("printing.wire"), products: t("printing.products"), simulator: t("printing.simulator"),
   };
   return (
     <Tabs value={section} onValueChange={onSection} className="space-y-4">
@@ -75,6 +76,7 @@ function CatalogTab({ section, onSection }: { section: ReturnType<typeof resolve
       <TabsContent value="pricing"><ResourceManager resourceKey="printing-pricing-rules" columns={RESOURCE_COLUMNS["printing-pricing-rules"]} title={t("printing.pricing")} capability={CAPABILITIES.printing} filters={currencyFilter(false)} /></TabsContent>
       <TabsContent value="binding"><ResourceManager resourceKey="printing-binding-prices" columns={RESOURCE_COLUMNS["printing-binding-prices"]} title={t("printing.binding")} capability={CAPABILITIES.printing} filters={currencyFilter(true)} /></TabsContent>
       <TabsContent value="covers"><ResourceManager resourceKey="printing-covers" columns={RESOURCE_COLUMNS["printing-covers"]} title={t("printing.covers")} capability={CAPABILITIES.printing} filters={currencyFilter(true)} /></TabsContent>
+      <TabsContent value="paper"><PaperOptionsPanel /></TabsContent>
       <TabsContent value="wire"><ResourceManager resourceKey="printing-wire-specs" columns={RESOURCE_COLUMNS["printing-wire-specs"]} title={t("printing.wire")} capability={CAPABILITIES.printing} /></TabsContent>
       <TabsContent value="products"><ResourceManager resourceKey="printing-products" columns={RESOURCE_COLUMNS["printing-products"]} title={t("printing.products")} capability={CAPABILITIES.printing} /></TabsContent>
       <TabsContent value="simulator"><PricingSimulator /></TabsContent>
