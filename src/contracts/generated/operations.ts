@@ -1784,6 +1784,60 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/printing/option-help/",
+    "operationId": "v1_dashboard_printing_option_help_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/option-help/",
+    "operationId": "v1_dashboard_printing_option_help_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/option-help/{id}/",
+    "operationId": "v1_dashboard_printing_option_help_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/printing/option-help/{id}/",
+    "operationId": "v1_dashboard_printing_option_help_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/printing/option-help/{id}/",
+    "operationId": "v1_dashboard_printing_option_help_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/printing/option-help/{id}/",
+    "operationId": "v1_dashboard_printing_option_help_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/printing/orders/",
     "operationId": "v1_dashboard_printing_orders_list",
     "tags": [
@@ -3721,6 +3775,15 @@ export const API_OPERATIONS = [
     "method": "POST",
     "path": "/api/v1/printing/items/{id}/access-ticket/",
     "operationId": "v1_printing_items_access_ticket_create",
+    "tags": [
+      "Printing"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/printing/option-help/",
+    "operationId": "v1_printing_option_help_retrieve",
     "tags": [
       "Printing"
     ],
