@@ -3,7 +3,7 @@
 export const PRINTING_TABS = ["orders", "queue", "counter", "catalog", "printers", "locations"] as const;
 export type PrintingTab = (typeof PRINTING_TABS)[number];
 
-export const CATALOG_SECTIONS = ["pricing", "binding", "covers", "wire", "products", "simulator"] as const;
+export const CATALOG_SECTIONS = ["pricing", "binding", "covers", "wire", "products", "help", "simulator"] as const;
 export type CatalogSection = (typeof CATALOG_SECTIONS)[number];
 
 export function resolveTab(value: string | null | undefined): PrintingTab {
