@@ -193,7 +193,7 @@ function OrderDialog({ order, onClose }: { order: PrintOrder; onClose: () => voi
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <PrintJobPanel orderId={order.id} status={order.status} source={order.source ?? ""} items={order.items} />
+            <PrintJobPanel orderId={order.id} status={order.status} source={order.source ?? ""} items={order.items} currency={order.currency} />
             {next ? (
               <ConfirmDialog
                 trigger={<Button disabled={mutate.isPending}><StepForward />{t("printing.nextStep", { status: enumLabel(next) })}</Button>}

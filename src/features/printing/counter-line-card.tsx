@@ -15,6 +15,7 @@ import {
 import { displayServerMessage } from "@/features/printing/server-errors";
 import { PrintOrderPreview } from "@/features/printing/print-order-preview";
 import { countLabel, type Binding } from "@/features/printing/print-order-rules";
+import { estimateExtrasCost, parseShopExtras, priceUnitLabelKey, sectionLabelKey, withExtra, type ShopExtraSection } from "@/features/printing/paper-options-rules";
 import { Field, Segmented, type SegmentedOption } from "@/features/printing/segmented";
 import { useI18n } from "@/i18n/provider";
 import { apiFetch, normalizeCollection, unwrap } from "@/lib/api/browser-client";
@@ -44,7 +45,7 @@ export function Stepper({ id, value, onChange, max, invalid, label }: { id: stri
 interface ShopProduct { id: number; name: string; price: string; currency: string }
 interface ShopBinding { code: string; name: string }
 interface ShopCover { code: string; name: string; price_per_copy: string }
-interface ShopOptions { binding_types?: ShopBinding[]; covers?: ShopCover[]; pages_per_sheet?: number[] }
+interface ShopOptions { binding_types?: ShopBinding[]; covers?: ShopCover[]; pages_per_sheet?: number[]; extras?: unknown }
 
 /** The shop's catalog as the app sees it: ready products, custom binding types, covers and the pages-per-sheet choices. */
 export function useShopCatalog(currency: FinanceCurrency) {
@@ -55,6 +56,7 @@ export function useShopCatalog(currency: FinanceCurrency) {
     products: products.data?.results ?? [],
     bindings: options.data?.binding_types ?? [],
     covers: options.data?.covers ?? [],
+    extras: parseShopExtras(options.data?.extras),
     pagesPerSheet: perSheet.length ? perSheet : [...PAGES_PER_SHEET_CHOICES],
   };
 }
@@ -81,6 +83,33 @@ function PageRangeField({ id, line, serverMessage, onChange }: { id: string; lin
   );
 }
 
+/** One select per section of the order form that has options (cover paper, transparency, delivery, finishing, design paper). */
+function ExtrasPicker({ id, line, sections, currency, serverMessage, onChange }: { id: string; line: CounterLine; sections: readonly ShopExtraSection[]; currency: FinanceCurrency; serverMessage: string | null; onChange: (patch: Partial<CounterLine>) => void }) {
+  const { t, locale } = useI18n();
+  if (sections.length === 0) return null;
+  return (
+    <fieldset className="space-y-3 rounded-xl border p-3">
+      <legend className="px-1 text-sm font-semibold">{t("counter.extras.title")}</legend>
+      <div className="grid gap-3">
+        {sections.map((section) => {
+          const chosen = line.extras[section.section] ?? "";
+          const known = section.options.some((option) => option.code === chosen);
+          return (
+            <Field key={section.section} label={t(sectionLabelKey(section.section))} htmlFor={`${id}-extra-${section.section}`} optional={t("counter.optional")}>
+              <select id={`${id}-extra-${section.section}`} className="h-11 w-full rounded-md border bg-background px-3 text-sm" value={chosen} onChange={(event) => onChange({ extras: withExtra(line.extras, section.section, event.target.value) })}>
+                <option value="">{t("counter.extras.none")}</option>
+                {chosen && !known ? <option value={chosen}>{t("counter.extras.inactive", { name: chosen })}</option> : null}
+                {section.options.map((option) => <option key={option.code} value={option.code}>{option.name} — {formatMoney(option.price, currency, locale)} {t(priceUnitLabelKey(option.priceUnit))}</option>)}
+              </select>
+            </Field>
+          );
+        })}
+      </div>
+      {serverMessage ? <p className="text-xs font-medium text-destructive" role="alert">{serverMessage}</p> : null}
+    </fieldset>
+  );
+}
+
 export function LineCard({ line, index, canRemove, quoteLine, currency, showErrors, onChange, onRemove, autoFocusPages, serverErrors }: {
   line: CounterLine; index: number; canRemove: boolean; quoteLine?: QuoteLine; currency: FinanceCurrency; showErrors: boolean;
   /** Messages the server sent for this line (field name to sentence), shown next to the field they belong to. */
@@ -103,6 +132,8 @@ export function LineCard({ line, index, canRemove, quoteLine, currency, showErro
   const bindingOptions: SegmentedOption<Binding>[] = COUNTER_BINDINGS.map((value) => ({ value, label: enumLabel(value), icon: BINDING_ICON[value] }));
   const id = `counter-${line.key}`;
   const catalog = useShopCatalog(currency);
+  // The server's quote has no per-part breakdown, so the paper options' share of the line price is worked out here from the same catalog prices (display only).
+  const extrasShare = quoteLine?.subtotal ? estimateExtrasCost(line.extras, catalog.extras, Number(line.copies) || 1, quoteLine.sheets) : null;
   const custom = catalog.bindings.filter((type) => !COUNTER_BINDINGS.includes(type.code));
   const bindingChoices: SegmentedOption<Binding>[] = [...bindingOptions, ...custom.map((type) => ({ value: type.code, label: type.name || type.code, icon: <BookMarked className="size-4" /> }))];
   const perSheetOptions: SegmentedOption<string>[] = catalog.pagesPerSheet.map((value) => ({ value: String(value), label: String(value) }));
@@ -183,10 +214,12 @@ export function LineCard({ line, index, canRemove, quoteLine, currency, showErro
               </select>
             </Field>
           ) : null}
+          <ExtrasPicker id={id} line={line} sections={catalog.extras} currency={currency} serverMessage={displayServerMessage(serverErrors?.extras ?? null, locale, t("counter.extras.title"))} onChange={onChange} />
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-xl bg-muted/50 px-3 py-2 text-sm">
             <span className="text-muted-foreground">{sheets !== null ? t("counter.sheetsOfLine", { sheets: countLabel(locale, sheets, "sheets") }) : "—"}</span>
             {quoteLine?.subtotal ? <span className="font-bold">{t("counter.linePrice", { price: formatMoney(quoteLine.subtotal, currency, locale) })}</span> : null}
           </div>
+          {extrasShare !== null ? <p className="text-xs text-muted-foreground">{t("counter.extrasIncluded", { price: formatMoney(extrasShare, currency, locale) })}</p> : null}
           {quoteLine?.unavailable ? <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs leading-5 text-amber-800 dark:text-amber-200">{quoteLine.unavailable === "binding" ? t("counter.lineUnpricedBinding") : t("counter.lineUnpricedPricing")}</p> : null}
         </div>
         <div className="md:order-last">

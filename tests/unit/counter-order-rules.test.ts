@@ -153,6 +153,26 @@ describe("pages per sheet (N-up) and cover", () => {
   });
 });
 
+describe("paper options (extras) on a counter line", () => {
+  it("sends extras only when something is chosen, dropping empty and unknown sections", () => {
+    expect(itemBody(line())).not.toHaveProperty("extras");
+    expect(itemBody(line({ extras: { front_cover: "", bogus: "x" } }))).not.toHaveProperty("extras");
+    expect(itemBody(line({ extras: { front_cover: "card_130", finishing: "wire_comb", bogus: "x" } }))).toMatchObject({ extras: { front_cover: "card_130", finishing: "wire_comb" } });
+  });
+  it("sends extras in the quote body", () => {
+    const lines = [line({ extras: { final_delivery: "bag" } })];
+    expect(quoteBody(lines, "SYP")).toMatchObject({ items: [{ extras: { final_delivery: "bag" } }] });
+  });
+  it("does not send extras for a ready-made product", () => {
+    expect(itemBody(line({ productId: 3, extras: { front_cover: "card_130" } }))).toEqual({ product: 3, copies: 2 });
+  });
+  it("copies the extras of an existing order item and ignores malformed ones", () => {
+    const [copied, plain] = linesFromOrderItems([{ pages_count: 4, copies: 1, extras: { front_cover: "paper", bogus: "x", finishing: 5 } }, { pages_count: 4, copies: 1, extras: [] }]);
+    expect(copied?.extras).toEqual({ front_cover: "paper" });
+    expect(plain?.extras).toEqual({});
+  });
+});
+
 describe("parsePageRange (same rules as the server)", () => {
   it("treats an empty range as no range", () => {
     expect(parsePageRange("")).toEqual({ text: "", count: 0 });

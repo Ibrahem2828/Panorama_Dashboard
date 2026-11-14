@@ -260,6 +260,11 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     for (const [name, value] of Object.entries(bffTrustHeaders(request.headers))) headers.set(name, value);
     const contentType = request.headers.get("content-type");
     if (contentType) headers.set("Content-Type", contentType);
+    // Conditional GET: lets the browser revalidate private, cacheable files (help pictures) with a 304.
+    for (const name of ["if-none-match", "if-modified-since"]) {
+      const value = request.headers.get(name);
+      if (value && SAFE_METHODS.has(method) && value.length <= 256 && !/[^ -~]/u.test(value)) headers.set(name, value);
+    }
     const range = request.headers.get("range");
     if (range && /^bytes=\d*-\d*$/u.test(range)) headers.set("Range", range);
     if (!SAFE_METHODS.has(method)) {

@@ -137,6 +137,14 @@ describe("BFF idempotency", () => {
     await GET(authedGet(), ctx(LIST));
     expect(sentHeaders().get("idempotency-key")).toBeNull();
   });
+
+  it("forwards a conditional GET so a private file can answer 304", async () => {
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 304, headers: { etag: '"abc"', "cache-control": "private, max-age=3600" } }));
+    const response = await GET(authedGet({ "if-none-match": '"abc"' }), ctx(LIST));
+    expect(sentHeaders().get("if-none-match")).toBe('"abc"');
+    expect(response.status).toBe(304);
+    expect(response.headers.get("cache-control")).toBe("private, max-age=3600");
+  });
 });
 
 describe("BFF client address", () => {

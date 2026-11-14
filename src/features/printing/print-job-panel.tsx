@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { openJobPdf } from "@/features/printing/print-job-api";
+import { ItemExtrasList } from "@/features/printing/paper-extras-view";
+import { parseItemExtras, parseItemExtrasPrice } from "@/features/printing/paper-options-rules";
 import { parseItemOptions, printerSettings } from "@/features/printing/print-options";
 import { parseOrderItems } from "@/features/printing/print-order-rules";
 import { SheetSimulation } from "@/features/printing/sheet-simulation";
@@ -35,7 +37,7 @@ const PRINTABLE = new Set(["submitted", "under_review", "accepted", "printing", 
  * applied), opens it in the browser's print dialog and follows each file's status. The side panel shows what the customer asked for
  * and the printer settings to choose, so the paper comes out exactly as ordered.
  */
-export function PrintJobPanel({ orderId, status, source, items: rawItems }: { orderId: number; status: string; source: string; items: unknown }) {
+export function PrintJobPanel({ orderId, status, source, items: rawItems, currency = "SYP" }: { orderId: number; status: string; source: string; items: unknown; currency?: string }) {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -107,6 +109,7 @@ export function PrintJobPanel({ orderId, status, source, items: rawItems }: { or
                       {options.cover ? <><dt className="text-muted-foreground">{t("printing.job.cover")}</dt><dd><bdi>{options.cover}</bdi></dd></> : null}
                       {options.wireGrams ? <><dt className="text-muted-foreground">{t("printing.job.wire")}</dt><dd><bdi>{options.wireGrams} g</bdi></dd></> : null}
                     </dl>
+                    <ItemExtrasList extras={parseItemExtras(raw)} total={parseItemExtrasPrice(raw)} currency={currency} />
                     <div className="rounded-lg bg-amber-500/10 p-2 text-xs">
                       <p className="mb-1 font-bold">{t("printing.job.printerSettings")}</p>
                       <p>{t("printing.job.settingDuplex")}: {t(`printing.job.duplex.${settings.duplex}`)} · {t("printing.job.settingColor")}: {t(`printing.job.color.${settings.color}`)} · {t("printing.job.settingPaper")}: {settings.paper} · {t("printing.job.settingCopies")}: {settings.copies}</p>

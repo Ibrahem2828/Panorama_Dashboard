@@ -1,4 +1,5 @@
 import { fromMinor, toMinor, type FinanceCurrency, type PaymentMethod } from "@/features/finance/finance-rules";
+import { extrasBody } from "@/features/printing/paper-options-rules";
 import type { Binding, ColorMode, PaperSize, Sides } from "@/features/printing/print-order-rules";
 
 /** Rules of the "order from the shop counter" form (mirrors CounterOrderService in the backend). */
@@ -40,6 +41,8 @@ export interface CounterLine {
   pagesPerSheet: number;
   /** Code of the cover option from the shop catalog, "" for none. */
   cover: string;
+  /** Paper option chosen per section of the order form ({section: code}); a section left out has none. */
+  extras: Record<string, string>;
   /** Edge a double-sided sheet turns on; only meaningful (and only sent) for a double-sided line. */
   duplexFlip: DuplexFlipChoice;
   /** Pages of the customer's document to print, like "1-5, 8". When filled, the pages of one copy come from it. */
@@ -52,7 +55,7 @@ export interface CounterLine {
 let counter = 0;
 export function newLine(): CounterLine {
   counter += 1;
-  return { key: `line-${Date.now().toString(36)}-${counter}`, title: "", pages: "", copies: "1", colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", bindingNote: "", pagesPerSheet: 1, cover: "", duplexFlip: "long", pageRange: "", productId: null, productName: "" };
+  return { key: `line-${Date.now().toString(36)}-${counter}`, title: "", pages: "", copies: "1", colorMode: "black_white", paperSize: "A4", sides: "one_sided", binding: "none", bindingNote: "", pagesPerSheet: 1, cover: "", extras: {}, duplexFlip: "long", pageRange: "", productId: null, productName: "" };
 }
 
 /** A positive whole number within bounds, or null. */
@@ -148,6 +151,8 @@ export function itemBody(line: CounterLine): Record<string, unknown> {
   body.duplex_flip = line.sides === "double_sided" ? line.duplexFlip : "";
   if (pagesPerSheetOf(line) !== 1) body.pages_per_sheet = pagesPerSheetOf(line);
   if (line.cover) body.cover = line.cover;
+  const extras = extrasBody(line.extras);
+  if (Object.keys(extras).length) body.extras = extras;
   if (line.binding === "other") body.binding_note = line.bindingNote.trim().slice(0, BINDING_NOTE_MAX);
   return body;
 }
@@ -311,7 +316,14 @@ export function linesFromOrderItems(raw: unknown): CounterLine[] {
       duplexFlip: item.duplex_flip === "short" || item.duplex_flip === "short_edge" ? "short" : "long",
       pageRange,
       cover: typeof item.cover === "string" ? item.cover : "",
+      extras: itemExtrasCodes(item.extras),
     });
   }
   return lines;
+}
+
+/** `{section: code}` of an existing item, keeping only well-formed pairs. */
+function itemExtrasCodes(raw: unknown): Record<string, string> {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return {};
+  return extrasBody(Object.fromEntries(Object.entries(raw).filter((pair): pair is [string, string] => typeof pair[1] === "string")));
 }
