@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { OfflineLicensesPanel } from "@/features/lectures/offline-licenses-panel";
 import { SenderAvatar } from "@/features/chat/chat-bubbles";
 import { availableMembershipActions, membershipRequest, type MembershipAction } from "@/features/groups/group-rules";
 import { useCan, useSession } from "@/features/session";
@@ -45,6 +46,7 @@ const TABS: { key: ProfileTab; label: MessageKey; count?: Count }[] = [
   { key: "orders", label: "userProfile.tab.orders", count: "print_orders" },
   { key: "tickets", label: "userProfile.tab.tickets", count: "support_tickets" },
   { key: "verification", label: "userProfile.tab.verification", count: "verification_history" },
+  { key: "offline", label: "userProfile.tab.offline" },
 ];
 
 type UserAction = "activate" | "deactivate" | "unlock";
@@ -54,9 +56,11 @@ export function UserProfilePage({ userId }: { userId: number }) {
   const { t, locale } = useI18n();
   const canUsers = useCan(CAPABILITIES.users);
   const canVerify = useCan(CAPABILITIES.verification);
+  const canLectures = useCan(CAPABILITIES.lectures);
   const router = useRouter();
   const pathname = usePathname();
-  const tab = parseProfileTab(useSearchParams()?.get("tab"));
+  const requestedTab = parseProfileTab(useSearchParams()?.get("tab"));
+  const tab = requestedTab === "offline" && !canLectures ? "overview" : requestedTab;
 
   const detail = useQuery({
     queryKey: ["user-profile", userId],
@@ -87,7 +91,7 @@ export function UserProfilePage({ userId }: { userId: number }) {
       <ProfileHeader data={data} role={role} active={active} userId={userId} />
       <Tabs value={tab} onValueChange={select}>
         <TabsList className="h-auto max-w-full flex-wrap justify-start gap-1">
-          {TABS.map(({ key, label, count }) => (
+          {TABS.filter(({ key }) => key !== "offline" || canLectures).map(({ key, label, count }) => (
             <TabsTrigger key={key} value={key}>
               {t(label)}
               {count ? <span className="ms-1.5 rounded-full bg-background/70 px-1.5 text-xs tabular-nums">{tabCount(data, count)}</span> : null}
@@ -101,6 +105,7 @@ export function UserProfilePage({ userId }: { userId: number }) {
         <TabsContent value="orders"><OrdersTab data={data} /></TabsContent>
         <TabsContent value="tickets"><TicketsTab data={data} /></TabsContent>
         <TabsContent value="verification"><VerificationTab data={data} /></TabsContent>
+        {canLectures ? <TabsContent value="offline"><OfflineLicensesPanel userId={userId} userName={data.user.full_name || data.user.email || `#${userId}`} /></TabsContent> : null}
       </Tabs>
     </div>
   );
