@@ -2639,6 +2639,357 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/store/brands/",
+    "operationId": "v1_dashboard_store_brands_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/store/brands/",
+    "operationId": "v1_dashboard_store_brands_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/brands/{id}/",
+    "operationId": "v1_dashboard_store_brands_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/store/brands/{id}/",
+    "operationId": "v1_dashboard_store_brands_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/store/brands/{id}/",
+    "operationId": "v1_dashboard_store_brands_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/store/brands/{id}/",
+    "operationId": "v1_dashboard_store_brands_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/categories/",
+    "operationId": "v1_dashboard_store_categories_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/store/categories/",
+    "operationId": "v1_dashboard_store_categories_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/categories/{id}/",
+    "operationId": "v1_dashboard_store_categories_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/store/categories/{id}/",
+    "operationId": "v1_dashboard_store_categories_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/store/categories/{id}/",
+    "operationId": "v1_dashboard_store_categories_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/store/categories/{id}/",
+    "operationId": "v1_dashboard_store_categories_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/images/",
+    "operationId": "v1_dashboard_store_images_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/store/images/",
+    "operationId": "v1_dashboard_store_images_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/images/{id}/",
+    "operationId": "v1_dashboard_store_images_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/store/images/{id}/",
+    "operationId": "v1_dashboard_store_images_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/store/images/{id}/",
+    "operationId": "v1_dashboard_store_images_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/store/images/{id}/",
+    "operationId": "v1_dashboard_store_images_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/orders/",
+    "operationId": "v1_dashboard_store_orders_list",
+    "tags": [
+      "Dashboard store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/orders/{id}/",
+    "operationId": "v1_dashboard_store_orders_retrieve",
+    "tags": [
+      "Dashboard store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/store/orders/{id}/status/",
+    "operationId": "v1_dashboard_store_orders_status_partial_update",
+    "tags": [
+      "Dashboard store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/products/",
+    "operationId": "v1_dashboard_store_products_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/store/products/",
+    "operationId": "v1_dashboard_store_products_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/products/{id}/",
+    "operationId": "v1_dashboard_store_products_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/store/products/{id}/",
+    "operationId": "v1_dashboard_store_products_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/store/products/{id}/",
+    "operationId": "v1_dashboard_store_products_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/store/products/{id}/",
+    "operationId": "v1_dashboard_store_products_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/reviews/",
+    "operationId": "v1_dashboard_store_reviews_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/reviews/{id}/",
+    "operationId": "v1_dashboard_store_reviews_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/store/reviews/{id}/hide/",
+    "operationId": "v1_dashboard_store_reviews_hide_create",
+    "tags": [
+      "Dashboard store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/store/reviews/{id}/unhide/",
+    "operationId": "v1_dashboard_store_reviews_unhide_create",
+    "tags": [
+      "Dashboard store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/summary/",
+    "operationId": "v1_dashboard_store_summary_retrieve",
+    "tags": [
+      "Dashboard store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/variants/",
+    "operationId": "v1_dashboard_store_variants_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/store/variants/",
+    "operationId": "v1_dashboard_store_variants_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/store/variants/{id}/",
+    "operationId": "v1_dashboard_store_variants_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/store/variants/{id}/",
+    "operationId": "v1_dashboard_store_variants_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/store/variants/{id}/",
+    "operationId": "v1_dashboard_store_variants_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/store/variants/{id}/",
+    "operationId": "v1_dashboard_store_variants_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/store/variants/{id}/stock/",
+    "operationId": "v1_dashboard_store_variants_stock_create",
+    "tags": [
+      "Dashboard store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/students/",
     "operationId": "v1_dashboard_students_list",
     "tags": [
@@ -4184,6 +4535,177 @@ export const API_OPERATIONS = [
       "v1"
     ],
     "authenticated": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/brands/",
+    "operationId": "v1_store_brands_list",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/brands/{id}/logo/",
+    "operationId": "v1_store_brands_logo_retrieve",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/cart/",
+    "operationId": "v1_store_cart_retrieve",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/store/cart/",
+    "operationId": "v1_store_cart_destroy",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/store/cart/items/",
+    "operationId": "v1_store_cart_items_create",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/store/cart/items/{id}/",
+    "operationId": "v1_store_cart_items_partial_update",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/store/cart/items/{id}/",
+    "operationId": "v1_store_cart_items_destroy",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/categories/",
+    "operationId": "v1_store_categories_list",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/store/checkout/",
+    "operationId": "v1_store_checkout_create",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/images/{id}/",
+    "operationId": "v1_store_images_retrieve",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/orders/",
+    "operationId": "v1_store_orders_list",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/orders/{id}/",
+    "operationId": "v1_store_orders_retrieve",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/store/orders/{id}/cancel/",
+    "operationId": "v1_store_orders_cancel_create",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/products/",
+    "operationId": "v1_store_products_list",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/products/{id}/",
+    "operationId": "v1_store_products_retrieve",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/products/{id}/reviews/",
+    "operationId": "v1_store_products_reviews_list",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/store/products/{id}/reviews/",
+    "operationId": "v1_store_products_reviews_create",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/store/products/{id}/reviews/mine/",
+    "operationId": "v1_store_products_reviews_mine_retrieve",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/store/products/{id}/reviews/mine/",
+    "operationId": "v1_store_products_reviews_mine_partial_update",
+    "tags": [
+      "Store"
+    ],
+    "authenticated": true
   },
   {
     "method": "GET",
