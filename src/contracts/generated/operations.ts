@@ -1766,6 +1766,60 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/printing/extra-options/",
+    "operationId": "v1_dashboard_printing_extra_options_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/extra-options/",
+    "operationId": "v1_dashboard_printing_extra_options_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/extra-options/{id}/",
+    "operationId": "v1_dashboard_printing_extra_options_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/printing/extra-options/{id}/",
+    "operationId": "v1_dashboard_printing_extra_options_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/printing/extra-options/{id}/",
+    "operationId": "v1_dashboard_printing_extra_options_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/printing/extra-options/{id}/",
+    "operationId": "v1_dashboard_printing_extra_options_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/printing/jobs/",
     "operationId": "v1_dashboard_printing_jobs_list",
     "tags": [
