@@ -82,6 +82,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/AcademicYear'
           description: ''
+  /api/v1/academic/current-term/:
+    get:
+      operationId: v1_academic_current_term_retrieve
+      description: '``GET /academic/current-term/``: the semester the app shows first,
+        plus "the other" semester.'
+      tags:
+      - Academic
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/account/deletion/cancel/:
     post:
       operationId: v1_account_deletion_cancel_create
@@ -360,9 +378,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/ConfirmPasswordReset'
           description: ''
+  /api/v1/auth/device/switch/:
+    post:
+      operationId: v1_auth_device_switch_create
+      description: Take an account over on a new device using the ``device_switch_token``
+        a ``DEVICE_MISMATCH`` login returned.
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceSwitchRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DeviceSwitchRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DeviceSwitchRequest'
+        required: true
+      responses:
+        '200':
+          description: JWT login response for the new device
   /api/v1/auth/invitations/{token}/:
     get:
       operationId: v1_auth_invitations_retrieve
+      description: |-
+        Always 200: ``data.state`` is valid | accepted | expired | revoked | unknown. ``valid`` adds ``full_name``,
+        ``expires_at`` and ``purpose`` (invite | reset); ``accepted`` adds ``email_masked`` and ``purpose``.
       parameters:
       - in: path
         name: token
@@ -539,6 +582,99 @@ paths:
               schema:
                 $ref: '#/components/schemas/VerifyOTP'
           description: ''
+  /api/v1/auth/phone-verification/:
+    post:
+      operationId: v1_auth_phone_verification_create
+      description: '``POST auth/phone-verification/``: ask to verify a phone number
+        (phone + the account password).'
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneVerificationCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PhoneVerificationCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PhoneVerificationCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyPhoneVerification'
+          description: ''
+        '409':
+          description: Conflict
+  /api/v1/auth/phone-verification/cancel/:
+    post:
+      operationId: v1_auth_phone_verification_cancel_create
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyPhoneVerification'
+          description: ''
+  /api/v1/auth/phone-verification/confirm/:
+    post:
+      operationId: v1_auth_phone_verification_confirm_create
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneVerificationConfirmRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PhoneVerificationConfirmRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PhoneVerificationConfirmRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyPhoneVerification'
+          description: ''
+        '400':
+          description: Wrong or expired code
+  /api/v1/auth/phone-verification/current/:
+    get:
+      operationId: v1_auth_phone_verification_current_retrieve
+      description: '``GET auth/phone-verification/current/``: the latest request (``data.request``
+        is null when there never was one).'
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/auth/register/normal/:
     post:
       operationId: v1_auth_register_normal_create
@@ -630,6 +766,25 @@ paths:
       responses:
         '200':
           description: JWT refresh response
+  /api/v1/chat/preferences/:
+    get:
+      operationId: v1_chat_preferences_list
+      description: Every chat the member belongs to with its mute state, for one management
+        screen in the app.
+      tags:
+      - Chat
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatPreferenceListItem'
+          description: ''
   /api/v1/chat/unread/:
     get:
       operationId: v1_chat_unread_retrieve
@@ -828,6 +983,165 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/dashboard/academic/current-term/:
+    get:
+      operationId: v1_dashboard_academic_current_term_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    put:
+      operationId: v1_dashboard_academic_current_term_update
+      tags:
+      - Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurrentTermWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CurrentTermWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CurrentTermWriteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/dashboard/academic/end-term/:
+    get:
+      operationId: v1_dashboard_academic_end_term_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: v1_dashboard_academic_end_term_create
+      tags:
+      - Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EndTermRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EndTermRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EndTermRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/dashboard/academic/end-term/{rollover_id}/undo/:
+    post:
+      operationId: v1_dashboard_academic_end_term_undo_create
+      parameters:
+      - in: path
+        name: rollover_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/dashboard/academic/end-term/{rollover_id}/whatsapp-list/:
+    get:
+      operationId: v1_dashboard_academic_end_term_whatsapp_list_retrieve
+      description: 'JSON by default; ``?format=csv`` for a UTF-8 (BOM) spreadsheet.
+        Phone numbers: every read is audited.'
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - csv
+          - json
+      - in: path
+        name: rollover_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+            text/csv:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/dashboard/academic/end-term/preview/:
+    post:
+      operationId: v1_dashboard_academic_end_term_preview_create
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/dashboard/account-deletions/:
     get:
       operationId: v1_dashboard_account_deletions_list
@@ -1218,11 +1532,18 @@ paths:
           - account_deletion_cancelled
           - account_deletion_completed
           - account_deletion_requested
+          - account_device_bound
+          - account_device_mismatch
+          - account_device_reset
+          - account_device_switch_refused
+          - account_device_switched
           - account_locked
           - account_login_unlocked
           - announcement_created
           - announcement_deleted
           - announcement_updated
+          - community_auto_joined
+          - current_term_changed
           - device_installation_registered
           - device_installation_revoked
           - enrollment_cancelled
@@ -1244,6 +1565,7 @@ paths:
           - group_external_channel_opened
           - group_external_channel_ticket_issued
           - group_external_channel_updated
+          - group_members_exported
           - group_membership_approved
           - group_membership_blocked
           - group_membership_rejected
@@ -1251,6 +1573,9 @@ paths:
           - inventory_item_changed
           - lecture_deleted
           - lecture_note_updated
+          - lecture_offline_license_issued
+          - lecture_offline_license_renewed
+          - lecture_offline_license_revoked
           - lecture_processing_retried
           - lecture_processing_updated
           - lecture_updated
@@ -1269,11 +1594,20 @@ paths:
           - payment_recorded
           - payment_voided
           - permission_template_changed
+          - phone_verification_cancelled
+          - phone_verification_code_issued
+          - phone_verification_code_sent
+          - phone_verification_expired
+          - phone_verification_failed
+          - phone_verification_rejected
+          - phone_verification_requested
+          - phone_verification_verified
           - policy_accepted
           - policy_version_published
           - policy_version_unpublished
           - policy_version_updated
           - print_file_prepared
+          - print_job_cancelled
           - print_job_created
           - print_job_status_changed
           - print_order_assigned
@@ -1281,17 +1615,23 @@ paths:
           - print_order_note_updated
           - print_order_status_changed
           - print_pricing_changed
+          - printer_changed
           - stationery_sale_recorded
           - stock_movement_recorded
           - student_profile_updated
+          - student_term_confirmed
           - support_ticket_assigned
           - support_ticket_created
           - support_ticket_priority_changed
           - support_ticket_status_changed
+          - term_ended
+          - term_rollover_undone
+          - term_whatsapp_list_exported
           - user_invitation_accepted
           - user_invitation_revoked
           - user_invited
           - user_permission_override_changed
+          - user_profile_updated
           - user_registered
           - user_role_changed
           - user_sessions_ended
@@ -1348,6 +1688,9 @@ paths:
           * `lecture_updated` - Lecture Updated
           * `lecture_deleted` - Lecture Deleted
           * `lecture_processing_retried` - Lecture Processing Retried
+          * `lecture_offline_license_issued` - Lecture Offline License Issued
+          * `lecture_offline_license_renewed` - Lecture Offline License Renewed
+          * `lecture_offline_license_revoked` - Lecture Offline License Revoked
           * `announcement_created` - Announcement Created
           * `announcement_updated` - Announcement Updated
           * `announcement_deleted` - Announcement Deleted
@@ -1358,6 +1701,8 @@ paths:
           * `print_pricing_changed` - Print Pricing Changed
           * `print_job_created` - Print Job Created
           * `print_job_status_changed` - Print Job Status Changed
+          * `print_job_cancelled` - Print Job Cancelled
+          * `printer_changed` - Printer Changed
           * `print_file_prepared` - Print-ready File Prepared
           * `stationery_sale_recorded` - Stationery Sale Recorded
           * `finance_rate_changed` - Exchange Rate Changed
@@ -1391,6 +1736,27 @@ paths:
           * `policy_version_published` - Policy Version Published
           * `policy_version_updated` - Policy Version Updated
           * `policy_version_unpublished` - Policy Version Unpublished
+          * `current_term_changed` - Current Term Changed
+          * `term_ended` - Term Ended
+          * `term_rollover_undone` - Term Rollover Undone
+          * `term_whatsapp_list_exported` - Term WhatsApp Removal List Exported
+          * `student_term_confirmed` - Student Term Confirmed
+          * `group_members_exported` - Group Members Exported
+          * `user_profile_updated` - User Profile Updated
+          * `account_device_bound` - Account Device Bound
+          * `account_device_mismatch` - Account Device Mismatch
+          * `account_device_switched` - Account Device Switched
+          * `account_device_switch_refused` - Account Device Switch Refused
+          * `account_device_reset` - Account Device Reset
+          * `phone_verification_requested` - Phone Verification Requested
+          * `phone_verification_code_issued` - Phone Verification Code Issued
+          * `phone_verification_code_sent` - Phone Verification Code Sent
+          * `phone_verification_verified` - Phone Verification Verified
+          * `phone_verification_failed` - Phone Verification Failed
+          * `phone_verification_rejected` - Phone Verification Rejected
+          * `phone_verification_cancelled` - Phone Verification Cancelled
+          * `phone_verification_expired` - Phone Verification Expired
+          * `community_auto_joined` - Community Auto Joined
       - in: query
         name: actor
         schema:
@@ -1486,11 +1852,58 @@ paths:
     get:
       operationId: v1_dashboard_chat_groups_list
       description: |-
-        The chat console's group list: ``GET /dashboard/chat/groups/`` (``search`` by group or subject, ``reported=1``).
+        The chat console's group list: ``GET /dashboard/chat/groups/``.
+
+        Filters: ``search`` (group, subject or faculty name), ``faculty``, ``major``, ``academic_year``, ``semester``,
+        ``subject``, ``kind`` (subject|faculty|general), ``has_messages``, ``active_after`` (last message on/after
+        YYYY-MM-DD), ``has_open_reports`` (``reported``/``reported_only`` = true are aliases).
+        ``ordering``: ``last_message_at``, ``open_reports``, ``members``, ``name`` (``-`` = descending; nulls last);
+        default: most open reports, then latest activity.
 
         Opening a chat from here uses the ordinary message endpoints: staff with ``groups.manage`` may read and write in
         every group chat, and their messages carry their position title instead of a name.
       parameters:
+      - in: query
+        name: academic_year
+        schema:
+          type: integer
+      - in: query
+        name: active_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: faculty
+        schema:
+          type: integer
+      - in: query
+        name: has_messages
+        schema:
+          type: boolean
+      - in: query
+        name: has_open_reports
+        schema:
+          type: boolean
+      - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - faculty
+          - general
+          - subject
+        description: |-
+          * `subject` - subject
+          * `faculty` - faculty
+          * `general` - general
+      - in: query
+        name: major
+        schema:
+          type: integer
+      - in: query
+        name: ordering
+        schema:
+          type: string
       - name: page
         required: false
         in: query
@@ -1503,12 +1916,28 @@ paths:
         description: عدد النتائج التي يجب إرجاعها في كل صفحة.
         schema:
           type: integer
+      - in: query
+        name: reported
+        schema:
+          type: boolean
+      - in: query
+        name: reported_only
+        schema:
+          type: boolean
       - name: search
         required: false
         in: query
         description: مصطلح البحث.
         schema:
           type: string
+      - in: query
+        name: semester
+        schema:
+          type: integer
+      - in: query
+        name: subject
+        schema:
+          type: integer
       tags:
       - v1
       security:
@@ -1715,9 +2144,28 @@ paths:
   /api/v1/dashboard/enrollment/requests/:
     get:
       operationId: v1_dashboard_enrollment_requests_list
-      description: '``GET /dashboard/enrollment/requests/``: filter by ``status``,
-        ``faculty``; search name, e-mail or student number.'
+      description: |-
+        ``GET /dashboard/enrollment/requests/``: ``status``, ``faculty``, ``academic_year``, ``semester``,
+        ``created_after``/``created_before`` (inclusive YYYY-MM-DD); ``search`` student name, e-mail or student number.
       parameters:
+      - in: query
+        name: academic_year
+        schema:
+          type: integer
+      - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: faculty
+        schema:
+          type: integer
       - name: ordering
         required: false
         in: query
@@ -1736,6 +2184,31 @@ paths:
         description: عدد النتائج التي يجب إرجاعها في كل صفحة.
         schema:
           type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Student name, e-mail or student number
+      - in: query
+        name: semester
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - approved
+          - cancelled
+          - partially_approved
+          - pending
+          - rejected
+        description: |-
+          * `pending` - Pending review
+          * `approved` - Approved
+          * `partially_approved` - Partially approved
+          * `rejected` - Rejected
+          * `cancelled` - Cancelled
       tags:
       - v1
       security:
@@ -1751,8 +2224,9 @@ paths:
   /api/v1/dashboard/enrollment/requests/{id}/:
     get:
       operationId: v1_dashboard_enrollment_requests_retrieve
-      description: '``GET /dashboard/enrollment/requests/``: filter by ``status``,
-        ``faculty``; search name, e-mail or student number.'
+      description: |-
+        ``GET /dashboard/enrollment/requests/``: ``status``, ``faculty``, ``academic_year``, ``semester``,
+        ``created_after``/``created_before`` (inclusive YYYY-MM-DD); ``search`` student name, e-mail or student number.
       parameters:
       - in: path
         name: id
@@ -2786,12 +3260,25 @@ paths:
   /api/v1/dashboard/files/:
     get:
       operationId: v1_dashboard_files_list
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/files/``: ``visibility``, ``processing_status``/``status``, ``group``, ``subject``, ``uploaded_by``,
+        the academic hierarchy, ``is_active``, ``is_printable`` and ``created_after``/``created_before`` (inclusive
+        YYYY-MM-DD); ``search`` title, description or sha256.
       parameters:
       - in: query
         name: academic_year
         schema:
           type: integer
+      - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date
       - in: query
         name: faculty
         schema:
@@ -2865,11 +3352,39 @@ paths:
         schema:
           type: integer
       - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - converting
+          - extracting
+          - failed
+          - pending
+          - quarantined
+          - queued
+          - ready
+          - rendering
+          - scanning
+        description: |-
+          * `pending` - Not processed yet
+          * `queued` - Queued
+          * `scanning` - Scanning
+          * `converting` - Converting
+          * `extracting` - Extracting
+          * `rendering` - Rendering
+          * `ready` - Ready
+          * `failed` - Failed
+          * `quarantined` - Quarantined
+      - in: query
         name: subject
         schema:
           type: integer
       - in: query
         name: university
+        schema:
+          type: integer
+      - in: query
+        name: uploaded_by
         schema:
           type: integer
       - in: query
@@ -2904,7 +3419,10 @@ paths:
           description: ''
     post:
       operationId: v1_dashboard_files_create
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/files/``: ``visibility``, ``processing_status``/``status``, ``group``, ``subject``, ``uploaded_by``,
+        the academic hierarchy, ``is_active``, ``is_printable`` and ``created_after``/``created_before`` (inclusive
+        YYYY-MM-DD); ``search`` title, description or sha256.
       tags:
       - v1
       requestBody:
@@ -2932,7 +3450,10 @@ paths:
   /api/v1/dashboard/files/{id}/:
     get:
       operationId: v1_dashboard_files_retrieve
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/files/``: ``visibility``, ``processing_status``/``status``, ``group``, ``subject``, ``uploaded_by``,
+        the academic hierarchy, ``is_active``, ``is_printable`` and ``created_after``/``created_before`` (inclusive
+        YYYY-MM-DD); ``search`` title, description or sha256.
       parameters:
       - in: path
         name: id
@@ -2954,7 +3475,10 @@ paths:
           description: ''
     put:
       operationId: v1_dashboard_files_update
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/files/``: ``visibility``, ``processing_status``/``status``, ``group``, ``subject``, ``uploaded_by``,
+        the academic hierarchy, ``is_active``, ``is_printable`` and ``created_after``/``created_before`` (inclusive
+        YYYY-MM-DD); ``search`` title, description or sha256.
       parameters:
       - in: path
         name: id
@@ -2988,7 +3512,10 @@ paths:
           description: ''
     patch:
       operationId: v1_dashboard_files_partial_update
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/files/``: ``visibility``, ``processing_status``/``status``, ``group``, ``subject``, ``uploaded_by``,
+        the academic hierarchy, ``is_active``, ``is_printable`` and ``created_after``/``created_before`` (inclusive
+        YYYY-MM-DD); ``search`` title, description or sha256.
       parameters:
       - in: path
         name: id
@@ -3021,7 +3548,10 @@ paths:
           description: ''
     delete:
       operationId: v1_dashboard_files_destroy
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/files/``: ``visibility``, ``processing_status``/``status``, ``group``, ``subject``, ``uploaded_by``,
+        the academic hierarchy, ``is_active``, ``is_printable`` and ``created_after``/``created_before`` (inclusive
+        YYYY-MM-DD); ``search`` title, description or sha256.
       parameters:
       - in: path
         name: id
@@ -3065,7 +3595,10 @@ paths:
   /api/v1/dashboard/files/processing-summary/:
     get:
       operationId: v1_dashboard_files_processing_summary_retrieve
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/files/``: ``visibility``, ``processing_status``/``status``, ``group``, ``subject``, ``uploaded_by``,
+        the academic hierarchy, ``is_active``, ``is_printable`` and ``created_after``/``created_before`` (inclusive
+        YYYY-MM-DD); ``search`` title, description or sha256.
       tags:
       - Dashboard
       security:
@@ -3946,6 +4479,154 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/dashboard/group-join-requests/:
+    get:
+      operationId: v1_dashboard_group_join_requests_list
+      description: |-
+        ``GET dashboard/group-join-requests/``.
+
+        Filters: ``status`` (pending|approved|rejected|blocked|left, default pending), ``group``, ``faculty``,
+        ``academic_year``, ``semester``, ``subject``, ``kind`` (subject|faculty|general), ``search`` (student name, e-mail,
+        student number, group name), ``created_after``/``created_before`` (inclusive YYYY-MM-DD), ``ordering``
+        (``created_at`` or ``-created_at``, default ``-created_at``).
+      parameters:
+      - in: query
+        name: academic_year
+        schema:
+          type: integer
+      - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: faculty
+        schema:
+          type: integer
+      - in: query
+        name: group
+        schema:
+          type: integer
+      - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - faculty
+          - general
+          - subject
+        description: |-
+          * `subject` - subject
+          * `faculty` - faculty
+          * `general` - general
+      - in: query
+        name: ordering
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+      - in: query
+        name: semester
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - approved
+          - blocked
+          - left
+          - pending
+          - rejected
+        description: |-
+          * `pending` - Pending
+          * `approved` - Approved
+          * `rejected` - Rejected
+          * `blocked` - Blocked
+          * `left` - Left
+      - in: query
+        name: subject
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedJoinRequestList'
+          description: ''
+  /api/v1/dashboard/group-join-requests/bulk-decision/:
+    post:
+      operationId: v1_dashboard_group_join_requests_bulk_decision_create
+      description: |-
+        Approve or reject many pending requests. Every item is its own transaction through the same service as the
+        single approve/reject actions, so one failing item never rolls back the others.
+      tags:
+      - Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinRequestBulkDecisionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JoinRequestBulkDecisionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JoinRequestBulkDecisionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkDecisionResponse'
+          description: ''
+  /api/v1/dashboard/group-join-requests/summary/:
+    get:
+      operationId: v1_dashboard_group_join_requests_summary_retrieve
+      description: '``GET dashboard/group-join-requests/summary/``: counts under the
+        same filters as the list except ``status``.'
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRequestSummary'
+          description: ''
   /api/v1/dashboard/group-memberships/{id}/approve/:
     post:
       operationId: v1_dashboard_group_memberships_approve_create
@@ -4044,22 +4725,67 @@ paths:
   /api/v1/dashboard/groups/:
     get:
       operationId: v1_dashboard_groups_list
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/groups/``.
+
+        Filters: ``university``, ``faculty``, ``major``, ``academic_year``, ``semester``, ``subject``, ``is_active``,
+        ``kind`` (subject|faculty|general), ``requires_approval``, ``has_whatsapp``, ``send_messages_permission``
+        (all_members|admins_only), ``has_pending_requests``, ``members_min``/``members_max`` (approved members),
+        ``created_after``/``created_before`` (inclusive YYYY-MM-DD), ``search`` (name, description).
+        ``ordering``: ``name``, ``created_at``, ``members_count``, ``pending_requests_count`` (``-`` = descending).
       parameters:
       - in: query
         name: academic_year
         schema:
           type: integer
       - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date
+      - in: query
         name: faculty
         schema:
           type: integer
+      - in: query
+        name: has_pending_requests
+        schema:
+          type: boolean
+      - in: query
+        name: has_whatsapp
+        schema:
+          type: boolean
       - in: query
         name: is_active
         schema:
           type: boolean
       - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - faculty
+          - general
+          - subject
+        description: |-
+          * `subject` - subject
+          * `faculty` - faculty
+          * `general` - general
+      - in: query
         name: major
+        schema:
+          type: integer
+      - in: query
+        name: members_max
+        schema:
+          type: integer
+      - in: query
+        name: members_min
         schema:
           type: integer
       - name: ordering
@@ -4080,6 +4806,10 @@ paths:
         description: عدد النتائج التي يجب إرجاعها في كل صفحة.
         schema:
           type: integer
+      - in: query
+        name: requires_approval
+        schema:
+          type: boolean
       - name: search
         required: false
         in: query
@@ -4090,6 +4820,16 @@ paths:
         name: semester
         schema:
           type: integer
+      - in: query
+        name: send_messages_permission
+        schema:
+          type: string
+          enum:
+          - admins_only
+          - all_members
+        description: |-
+          * `all_members` - All Members
+          * `admins_only` - Admins Only
       - in: query
         name: subject
         schema:
@@ -4112,7 +4852,14 @@ paths:
           description: ''
     post:
       operationId: v1_dashboard_groups_create
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/groups/``.
+
+        Filters: ``university``, ``faculty``, ``major``, ``academic_year``, ``semester``, ``subject``, ``is_active``,
+        ``kind`` (subject|faculty|general), ``requires_approval``, ``has_whatsapp``, ``send_messages_permission``
+        (all_members|admins_only), ``has_pending_requests``, ``members_min``/``members_max`` (approved members),
+        ``created_after``/``created_before`` (inclusive YYYY-MM-DD), ``search`` (name, description).
+        ``ordering``: ``name``, ``created_at``, ``members_count``, ``pending_requests_count`` (``-`` = descending).
       tags:
       - v1
       requestBody:
@@ -4197,12 +4944,14 @@ paths:
           - left
           - pending
           - rejected
+          - term_ended
         description: |-
           * `pending` - Pending
           * `approved` - Approved
           * `rejected` - Rejected
           * `blocked` - Blocked
           * `left` - Left
+          * `term_ended` - Term ended
       tags:
       - v1
       security:
@@ -4275,12 +5024,14 @@ paths:
           - left
           - pending
           - rejected
+          - term_ended
         description: |-
           * `pending` - Pending
           * `approved` - Approved
           * `rejected` - Rejected
           * `blocked` - Blocked
           * `left` - Left
+          * `term_ended` - Term ended
       tags:
       - v1
       security:
@@ -4296,7 +5047,14 @@ paths:
   /api/v1/dashboard/groups/{id}/:
     get:
       operationId: v1_dashboard_groups_retrieve
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/groups/``.
+
+        Filters: ``university``, ``faculty``, ``major``, ``academic_year``, ``semester``, ``subject``, ``is_active``,
+        ``kind`` (subject|faculty|general), ``requires_approval``, ``has_whatsapp``, ``send_messages_permission``
+        (all_members|admins_only), ``has_pending_requests``, ``members_min``/``members_max`` (approved members),
+        ``created_after``/``created_before`` (inclusive YYYY-MM-DD), ``search`` (name, description).
+        ``ordering``: ``name``, ``created_at``, ``members_count``, ``pending_requests_count`` (``-`` = descending).
       parameters:
       - in: path
         name: id
@@ -4318,7 +5076,14 @@ paths:
           description: ''
     put:
       operationId: v1_dashboard_groups_update
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/groups/``.
+
+        Filters: ``university``, ``faculty``, ``major``, ``academic_year``, ``semester``, ``subject``, ``is_active``,
+        ``kind`` (subject|faculty|general), ``requires_approval``, ``has_whatsapp``, ``send_messages_permission``
+        (all_members|admins_only), ``has_pending_requests``, ``members_min``/``members_max`` (approved members),
+        ``created_after``/``created_before`` (inclusive YYYY-MM-DD), ``search`` (name, description).
+        ``ordering``: ``name``, ``created_at``, ``members_count``, ``pending_requests_count`` (``-`` = descending).
       parameters:
       - in: path
         name: id
@@ -4352,7 +5117,14 @@ paths:
           description: ''
     patch:
       operationId: v1_dashboard_groups_partial_update
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/groups/``.
+
+        Filters: ``university``, ``faculty``, ``major``, ``academic_year``, ``semester``, ``subject``, ``is_active``,
+        ``kind`` (subject|faculty|general), ``requires_approval``, ``has_whatsapp``, ``send_messages_permission``
+        (all_members|admins_only), ``has_pending_requests``, ``members_min``/``members_max`` (approved members),
+        ``created_after``/``created_before`` (inclusive YYYY-MM-DD), ``search`` (name, description).
+        ``ordering``: ``name``, ``created_at``, ``members_count``, ``pending_requests_count`` (``-`` = descending).
       parameters:
       - in: path
         name: id
@@ -4385,7 +5157,14 @@ paths:
           description: ''
     delete:
       operationId: v1_dashboard_groups_destroy
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/groups/``.
+
+        Filters: ``university``, ``faculty``, ``major``, ``academic_year``, ``semester``, ``subject``, ``is_active``,
+        ``kind`` (subject|faculty|general), ``requires_approval``, ``has_whatsapp``, ``send_messages_permission``
+        (all_members|admins_only), ``has_pending_requests``, ``members_min``/``members_max`` (approved members),
+        ``created_after``/``created_before`` (inclusive YYYY-MM-DD), ``search`` (name, description).
+        ``ordering``: ``name``, ``created_at``, ``members_count``, ``pending_requests_count`` (``-`` = descending).
       parameters:
       - in: path
         name: id
@@ -4401,6 +5180,50 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/dashboard/groups/{id}/members-export/:
+    get:
+      operationId: v1_dashboard_groups_members_export_retrieve
+      description: |-
+        ``GET dashboard/groups/<id>/members-export/``: approved members with phone numbers (``?status=all`` for everyone).
+
+        JSON by default, ``?format=csv`` for a UTF-8 (BOM) spreadsheet. Handing out phone numbers is audited.
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - csv
+          - json
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - all
+          - approved
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+            text/csv:
+              schema:
+                type: string
+                format: binary
+          description: ''
   /api/v1/dashboard/groups/{id}/whatsapp-channel/:
     put:
       operationId: v1_dashboard_groups_whatsapp_channel_update
@@ -4440,6 +5263,16 @@ paths:
       description: Standard envelopes for the two methods safe for read-only resources.
       parameters:
       - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date
+      - in: query
         name: faculty
         schema:
           type: integer
@@ -4459,6 +5292,30 @@ paths:
         description: عدد النتائج التي يجب إرجاعها في كل صفحة.
         schema:
           type: integer
+      - in: query
+        name: processing_status
+        schema:
+          type: string
+          enum:
+          - converting
+          - extracting
+          - failed
+          - quarantined
+          - queued
+          - ready
+          - rendering
+          - scanning
+          - uploaded
+        description: |-
+          * `uploaded` - Uploaded
+          * `queued` - Queued
+          * `scanning` - Scanning
+          * `converting` - Converting
+          * `extracting` - Extracting
+          * `rendering` - Rendering
+          * `ready` - Ready
+          * `failed` - Failed
+          * `quarantined` - Quarantined
       - in: query
         name: status
         schema:
@@ -4673,6 +5530,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DashboardLecture'
+          description: ''
+  /api/v1/dashboard/lectures/offline-licenses/:
+    get:
+      operationId: v1_dashboard_lectures_offline_licenses_retrieve
+      description: 'Staff view of one student''s (or one lecture''s) offline licenses.
+        Capability: ``lectures.manage``.'
+      tags:
+      - Dashboard lectures
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/dashboard/lectures/offline-licenses/revoke/:
+    post:
+      operationId: v1_dashboard_lectures_offline_licenses_revoke_create
+      tags:
+      - Dashboard lectures
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffRevokeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StaffRevokeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StaffRevokeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
           description: ''
   /api/v1/dashboard/maintenance-modes/:
     get:
@@ -5418,6 +6321,170 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/dashboard/phone-verifications/:
+    get:
+      operationId: v1_dashboard_phone_verifications_list
+      description: |-
+        ``GET dashboard/phone-verifications/``: the staff queue. ``status`` filter, ``search`` on name, e-mail or phone;
+        oldest first by default so nobody waits behind newer requests.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - cancelled
+          - code_sent
+          - expired
+          - pending_staff
+          - rejected
+          - verified
+        description: |-
+          * `pending_staff` - Waiting for staff
+          * `code_sent` - Code sent
+          * `verified` - Verified
+          * `expired` - Expired
+          * `cancelled` - Cancelled
+          * `rejected` - Rejected
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDashboardPhoneVerificationList'
+          description: ''
+  /api/v1/dashboard/phone-verifications/{id}/:
+    get:
+      operationId: v1_dashboard_phone_verifications_retrieve
+      description: |-
+        ``GET dashboard/phone-verifications/``: the staff queue. ``status`` filter, ``search`` on name, e-mail or phone;
+        oldest first by default so nobody waits behind newer requests.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا phone verification request.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardPhoneVerification'
+          description: ''
+  /api/v1/dashboard/phone-verifications/{id}/claim/:
+    post:
+      operationId: v1_dashboard_phone_verifications_claim_create
+      description: |-
+        ``POST dashboard/phone-verifications/{id}/claim/``: generates the code and returns it ONCE (``data.code``). Send it
+        to the student by WhatsApp, then call ``mark-sent``. Calling it again issues a new code.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardPhoneVerificationClaim'
+          description: ''
+  /api/v1/dashboard/phone-verifications/{id}/mark-sent/:
+    post:
+      operationId: v1_dashboard_phone_verifications_mark_sent_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardPhoneVerification'
+          description: ''
+  /api/v1/dashboard/phone-verifications/{id}/reject/:
+    post:
+      operationId: v1_dashboard_phone_verifications_reject_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneVerificationRejectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PhoneVerificationRejectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PhoneVerificationRejectRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardPhoneVerification'
+          description: ''
   /api/v1/dashboard/printing/binding-prices/:
     get:
       operationId: v1_dashboard_printing_binding_prices_list
@@ -5794,6 +6861,204 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/dashboard/printing/extra-options/:
+    get:
+      operationId: v1_dashboard_printing_extra_options_list
+      description: Paper/material options per section of the order form (``?section=``,
+        ``?currency=``, ``?is_active=`` filters).
+      parameters:
+      - in: query
+        name: currency
+        schema:
+          type: string
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - in: query
+        name: section
+        schema:
+          type: string
+          enum:
+          - back_cover
+          - back_transparency_optional
+          - back_transparency_required
+          - design_paper
+          - final_delivery
+          - finishing
+          - front_cover
+          - front_transparency_optional
+          - front_transparency_required
+        description: |-
+          * `front_cover` - نوع الغلاف الأمامي
+          * `back_cover` - نوع الغلاف الخلفي
+          * `front_transparency_required` - الشفافية الأمامية - مطلوب
+          * `front_transparency_optional` - الشفافية الأمامية - غير مطلوبة
+          * `back_transparency_required` - الشفافية الخلفية - مطلوب
+          * `back_transparency_optional` - الشفافية الخلفية - غير مطلوبة
+          * `final_delivery` - التسليم النهائي
+          * `finishing` - الإخراج الفني
+          * `design_paper` - خدمات أخرى: نوع الورق
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PrintExtraOption'
+          description: ''
+    post:
+      operationId: v1_dashboard_printing_extra_options_create
+      description: Paper/material options per section of the order form (``?section=``,
+        ``?currency=``, ``?is_active=`` filters).
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrintExtraOptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PrintExtraOptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PrintExtraOptionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrintExtraOption'
+          description: ''
+  /api/v1/dashboard/printing/extra-options/{id}/:
+    get:
+      operationId: v1_dashboard_printing_extra_options_retrieve
+      description: Paper/material options per section of the order form (``?section=``,
+        ``?currency=``, ``?is_active=`` filters).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا print extra option.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrintExtraOption'
+          description: ''
+    put:
+      operationId: v1_dashboard_printing_extra_options_update
+      description: Paper/material options per section of the order form (``?section=``,
+        ``?currency=``, ``?is_active=`` filters).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا print extra option.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrintExtraOptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PrintExtraOptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PrintExtraOptionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrintExtraOption'
+          description: ''
+    patch:
+      operationId: v1_dashboard_printing_extra_options_partial_update
+      description: Paper/material options per section of the order form (``?section=``,
+        ``?currency=``, ``?is_active=`` filters).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا print extra option.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPrintExtraOptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPrintExtraOptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPrintExtraOptionRequest'
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrintExtraOption'
+          description: ''
+    delete:
+      operationId: v1_dashboard_printing_extra_options_destroy
+      description: Paper/material options per section of the order form (``?section=``,
+        ``?currency=``, ``?is_active=`` filters).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا print extra option.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/dashboard/printing/jobs/:
     get:
       operationId: v1_dashboard_printing_jobs_list
@@ -5866,6 +7131,184 @@ paths:
               schema:
                 $ref: '#/components/schemas/PrintJob'
           description: ''
+  /api/v1/dashboard/printing/option-help/:
+    get:
+      operationId: v1_dashboard_printing_option_help_list
+      description: Staff CRUD of the option explanations; send ``multipart/form-data``
+        to attach an image.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: key
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - in: query
+        name: topic
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PrintOptionHelp'
+          description: ''
+    post:
+      operationId: v1_dashboard_printing_option_help_create
+      description: Staff CRUD of the option explanations; send ``multipart/form-data``
+        to attach an image.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrintOptionHelpRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PrintOptionHelpRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PrintOptionHelpRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrintOptionHelp'
+          description: ''
+  /api/v1/dashboard/printing/option-help/{id}/:
+    get:
+      operationId: v1_dashboard_printing_option_help_retrieve
+      description: Staff CRUD of the option explanations; send ``multipart/form-data``
+        to attach an image.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا print option help.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrintOptionHelp'
+          description: ''
+    put:
+      operationId: v1_dashboard_printing_option_help_update
+      description: Staff CRUD of the option explanations; send ``multipart/form-data``
+        to attach an image.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا print option help.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrintOptionHelpRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PrintOptionHelpRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PrintOptionHelpRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrintOptionHelp'
+          description: ''
+    patch:
+      operationId: v1_dashboard_printing_option_help_partial_update
+      description: Staff CRUD of the option explanations; send ``multipart/form-data``
+        to attach an image.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا print option help.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPrintOptionHelpRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPrintOptionHelpRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPrintOptionHelpRequest'
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrintOptionHelp'
+          description: ''
+    delete:
+      operationId: v1_dashboard_printing_option_help_destroy
+      description: Staff CRUD of the option explanations; send ``multipart/form-data``
+        to attach an image.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا print option help.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/dashboard/printing/orders/:
     get:
       operationId: v1_dashboard_printing_orders_list
@@ -5879,6 +7322,18 @@ paths:
         name: assigned_to
         schema:
           type: integer
+      - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date
+        description: Orders created on or after this date.
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date
+        description: Orders created on or before this date.
       - name: ordering
         required: false
         in: query
@@ -6630,6 +8085,7 @@ paths:
         schema:
           type: string
           enum:
+          - cancelled
           - done
           - failed
           - printing
@@ -6639,6 +8095,7 @@ paths:
           * `printing` - Printing
           * `done` - Done
           * `failed` - Failed
+          * `cancelled` - Cancelled
       tags:
       - v1
       security:
@@ -6665,6 +8122,40 @@ paths:
         required: true
       tags:
       - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrintQueueJob'
+          description: ''
+  /api/v1/dashboard/printing/print-jobs/{id}/cancel/:
+    post:
+      operationId: v1_dashboard_printing_print_jobs_cancel_create
+      description: '``POST``: stop a queued or printing job (optional ``reason``).
+        A finished job answers 409.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrintJobCancelRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PrintJobCancelRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PrintJobCancelRequest'
       security:
       - jwtAuth: []
       - bearerAuth: []
@@ -6747,6 +8238,186 @@ paths:
               schema:
                 $ref: '#/components/schemas/PrintQueueJob'
           description: ''
+  /api/v1/dashboard/printing/printers/:
+    get:
+      operationId: v1_dashboard_printing_printers_list
+      description: The printers the silent-print agent drives, with whether each is
+        online and its job counts.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: is_default
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Printer'
+          description: ''
+    post:
+      operationId: v1_dashboard_printing_printers_create
+      description: The printers the silent-print agent drives, with whether each is
+        online and its job counts.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrinterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PrinterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PrinterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Printer'
+          description: ''
+  /api/v1/dashboard/printing/printers/{id}/:
+    get:
+      operationId: v1_dashboard_printing_printers_retrieve
+      description: The printers the silent-print agent drives, with whether each is
+        online and its job counts.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا printer.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Printer'
+          description: ''
+    put:
+      operationId: v1_dashboard_printing_printers_update
+      description: The printers the silent-print agent drives, with whether each is
+        online and its job counts.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا printer.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrinterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PrinterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PrinterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Printer'
+          description: ''
+    patch:
+      operationId: v1_dashboard_printing_printers_partial_update
+      description: The printers the silent-print agent drives, with whether each is
+        online and its job counts.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا printer.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPrinterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPrinterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPrinterRequest'
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Printer'
+          description: ''
+    delete:
+      operationId: v1_dashboard_printing_printers_destroy
+      description: The printers the silent-print agent drives, with whether each is
+        online and its job counts.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا printer.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/dashboard/printing/products/:
     get:
       operationId: v1_dashboard_printing_products_list
@@ -7834,10 +9505,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/DashboardStats'
           description: ''
-  /api/v1/dashboard/subjects/:
+  /api/v1/dashboard/students/:
     get:
-      operationId: v1_dashboard_subjects_list
-      description: Standard envelopes for the two methods safe for read-only resources.
+      operationId: v1_dashboard_students_list
+      description: '``GET dashboard/students/`` (list only; the per-student screen
+        is ``dashboard/users/<id>/student-detail/``).'
       parameters:
       - in: query
         name: academic_year
@@ -7847,6 +9519,141 @@ paths:
         name: faculty
         schema:
           type: integer
+      - in: query
+        name: group
+        schema:
+          type: integer
+      - in: query
+        name: has_pending_enrollment
+        schema:
+          type: boolean
+      - in: query
+        name: inactive_days
+        schema:
+          type: integer
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: is_verified
+        schema:
+          type: boolean
+      - in: query
+        name: major
+        schema:
+          type: integer
+      - in: query
+        name: needs_term_confirmation
+        schema:
+          type: boolean
+      - in: query
+        name: no_groups
+        schema:
+          type: boolean
+      - in: query
+        name: ordering
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - in: query
+        name: registered_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: registered_before
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Name, e-mail, phone or student number
+      - in: query
+        name: semester
+        schema:
+          type: integer
+      - in: query
+        name: university
+        schema:
+          type: integer
+      - in: query
+        name: verification_status
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDashboardStudentList'
+          description: ''
+  /api/v1/dashboard/students/summary/:
+    get:
+      operationId: v1_dashboard_students_summary_retrieve
+      description: Segment counts for the same filters (``verification_status`` and
+        ``ordering`` are ignored here).
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/dashboard/subjects/:
+    get:
+      operationId: v1_dashboard_subjects_list
+      description: |-
+        ``GET dashboard/subjects/``.
+
+        Filters: ``faculty``, ``major``, ``has_major``, ``university``, ``academic_year``, ``semester``, ``is_active``,
+        ``has_groups``, ``has_lectures``, ``has_files``, ``search`` (name, code, description).
+        ``ordering``: ``name``, ``code``, ``created_at``, ``groups_count``, ``lectures_count``, ``files_count`` (``-`` = descending).
+      parameters:
+      - in: query
+        name: academic_year
+        schema:
+          type: integer
+      - in: query
+        name: faculty
+        schema:
+          type: integer
+      - in: query
+        name: has_files
+        schema:
+          type: boolean
+      - in: query
+        name: has_groups
+        schema:
+          type: boolean
+      - in: query
+        name: has_lectures
+        schema:
+          type: boolean
       - in: query
         name: has_major
         schema:
@@ -7887,6 +9694,10 @@ paths:
         name: semester
         schema:
           type: integer
+      - in: query
+        name: university
+        schema:
+          type: integer
       tags:
       - v1
       security:
@@ -7897,24 +9708,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedSubjectList'
+                $ref: '#/components/schemas/PaginatedDashboardSubjectList'
           description: ''
     post:
       operationId: v1_dashboard_subjects_create
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/subjects/``.
+
+        Filters: ``faculty``, ``major``, ``has_major``, ``university``, ``academic_year``, ``semester``, ``is_active``,
+        ``has_groups``, ``has_lectures``, ``has_files``, ``search`` (name, code, description).
+        ``ordering``: ``name``, ``code``, ``created_at``, ``groups_count``, ``lectures_count``, ``files_count`` (``-`` = descending).
       tags:
       - v1
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubjectRequest'
+              $ref: '#/components/schemas/DashboardSubjectRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SubjectRequest'
+              $ref: '#/components/schemas/DashboardSubjectRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SubjectRequest'
+              $ref: '#/components/schemas/DashboardSubjectRequest'
         required: true
       security:
       - jwtAuth: []
@@ -7924,12 +9740,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Subject'
+                $ref: '#/components/schemas/DashboardSubject'
           description: ''
   /api/v1/dashboard/subjects/{id}/:
     get:
       operationId: v1_dashboard_subjects_retrieve
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/subjects/``.
+
+        Filters: ``faculty``, ``major``, ``has_major``, ``university``, ``academic_year``, ``semester``, ``is_active``,
+        ``has_groups``, ``has_lectures``, ``has_files``, ``search`` (name, code, description).
+        ``ordering``: ``name``, ``code``, ``created_at``, ``groups_count``, ``lectures_count``, ``files_count`` (``-`` = descending).
       parameters:
       - in: path
         name: id
@@ -7947,11 +9768,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Subject'
+                $ref: '#/components/schemas/DashboardSubject'
           description: ''
     put:
       operationId: v1_dashboard_subjects_update
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/subjects/``.
+
+        Filters: ``faculty``, ``major``, ``has_major``, ``university``, ``academic_year``, ``semester``, ``is_active``,
+        ``has_groups``, ``has_lectures``, ``has_files``, ``search`` (name, code, description).
+        ``ordering``: ``name``, ``code``, ``created_at``, ``groups_count``, ``lectures_count``, ``files_count`` (``-`` = descending).
       parameters:
       - in: path
         name: id
@@ -7965,13 +9791,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubjectRequest'
+              $ref: '#/components/schemas/DashboardSubjectRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SubjectRequest'
+              $ref: '#/components/schemas/DashboardSubjectRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SubjectRequest'
+              $ref: '#/components/schemas/DashboardSubjectRequest'
         required: true
       security:
       - jwtAuth: []
@@ -7981,11 +9807,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Subject'
+                $ref: '#/components/schemas/DashboardSubject'
           description: ''
     patch:
       operationId: v1_dashboard_subjects_partial_update
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/subjects/``.
+
+        Filters: ``faculty``, ``major``, ``has_major``, ``university``, ``academic_year``, ``semester``, ``is_active``,
+        ``has_groups``, ``has_lectures``, ``has_files``, ``search`` (name, code, description).
+        ``ordering``: ``name``, ``code``, ``created_at``, ``groups_count``, ``lectures_count``, ``files_count`` (``-`` = descending).
       parameters:
       - in: path
         name: id
@@ -7999,13 +9830,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedSubjectRequest'
+              $ref: '#/components/schemas/PatchedDashboardSubjectRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedSubjectRequest'
+              $ref: '#/components/schemas/PatchedDashboardSubjectRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedSubjectRequest'
+              $ref: '#/components/schemas/PatchedDashboardSubjectRequest'
       security:
       - jwtAuth: []
       - bearerAuth: []
@@ -8014,11 +9845,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Subject'
+                $ref: '#/components/schemas/DashboardSubject'
           description: ''
     delete:
       operationId: v1_dashboard_subjects_destroy
-      description: Standard envelopes for the two methods safe for read-only resources.
+      description: |-
+        ``GET dashboard/subjects/``.
+
+        Filters: ``faculty``, ``major``, ``has_major``, ``university``, ``academic_year``, ``semester``, ``is_active``,
+        ``has_groups``, ``has_lectures``, ``has_files``, ``search`` (name, code, description).
+        ``ordering``: ``name``, ``code``, ``created_at``, ``groups_count``, ``lectures_count``, ``files_count`` (``-`` = descending).
       parameters:
       - in: path
         name: id
@@ -8295,6 +10131,149 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SupportTicketStatus'
+          description: ''
+  /api/v1/dashboard/system-activity/:
+    get:
+      operationId: v1_dashboard_system_activity_list
+      description: 'Who asked the system for what: authenticated writes, logins, logouts
+        and denied calls (read-only).'
+      parameters:
+      - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - denied
+          - login_failed
+          - login_success
+          - logout
+          - request
+        description: |-
+          * `request` - Request
+          * `login_success` - Login succeeded
+          * `login_failed` - Login failed
+          * `logout` - Logout
+          * `denied` - Denied
+      - in: query
+        name: method
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - in: query
+        name: outcome
+        schema:
+          type: string
+          enum:
+          - error
+          - success
+        description: |-
+          * `success` - success
+          * `error` - error
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - in: query
+        name: role
+        schema:
+          type: string
+      - in: query
+        name: route
+        schema:
+          type: string
+      - in: query
+        name: search
+        schema:
+          type: string
+      - in: query
+        name: status_code
+        schema:
+          type: integer
+      - in: query
+        name: user
+        schema:
+          type: number
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSystemActivityList'
+          description: ''
+  /api/v1/dashboard/system-activity/summary/:
+    get:
+      operationId: v1_dashboard_system_activity_summary_retrieve
+      description: Counters for the same filters as the list (ordering and pagination
+        ignored).
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemActivitySummary'
+          description: ''
+  /api/v1/dashboard/system-activity/users/:
+    get:
+      operationId: v1_dashboard_system_activity_users_list
+      description: One row per user with any recorded activity (staff and students),
+        most recently active first.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSystemActivityUserRollupList'
           description: ''
   /api/v1/dashboard/terms-versions/:
     get:
@@ -8880,6 +10859,66 @@ paths:
               schema:
                 $ref: '#/components/schemas/DashboardUser'
           description: ''
+  /api/v1/dashboard/users/{user_id}/account-devices/:
+    get:
+      operationId: v1_dashboard_users_account_devices_retrieve
+      description: '``GET dashboard/users/{user_id}/account-devices/``: the binding
+        history and the self-service switch counter.'
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/dashboard/users/{user_id}/account-devices/reset/:
+    post:
+      operationId: v1_dashboard_users_account_devices_reset_create
+      description: |-
+        ``POST dashboard/users/{user_id}/account-devices/reset/``: clears the binding and the switch counter and ends the
+        student's sessions; the next login binds the device they use then.
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDeviceResetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccountDeviceResetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccountDeviceResetRequest'
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/dashboard/users/{user_id}/activity/:
     get:
       operationId: v1_dashboard_users_activity_retrieve
@@ -9076,6 +11115,30 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/dashboard/users/{user_id}/student-detail/:
+    get:
+      operationId: v1_dashboard_users_student_detail_retrieve
+      description: '``GET dashboard/users/<id>/student-detail/``: everything staff
+        need about one student on a single screen.'
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/dashboard/users/invite/:
     post:
       operationId: v1_dashboard_users_invite_create
@@ -9108,15 +11171,23 @@ paths:
     get:
       operationId: v1_dashboard_verifications_list
       description: |-
-        List/retrieve only.
-
-        DRF routers discover actions by attribute. Write methods must never be added
-        to this class, otherwise a nominally read-only resource becomes writable.
+        ``GET dashboard/verifications/``: ``status``, ``university``, ``faculty``, ``major``, ``academic_year``,
+        ``semester``, ``reviewed_by``, ``created_after``/``created_before`` (inclusive YYYY-MM-DD); ``search``.
       parameters:
       - in: query
         name: academic_year
         schema:
           type: integer
+      - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date
       - in: query
         name: faculty
         schema:
@@ -9143,12 +11214,20 @@ paths:
         description: عدد النتائج التي يجب إرجاعها في كل صفحة.
         schema:
           type: integer
+      - in: query
+        name: reviewed_by
+        schema:
+          type: integer
       - name: search
         required: false
         in: query
         description: مصطلح البحث.
         schema:
           type: string
+      - in: query
+        name: semester
+        schema:
+          type: integer
       - in: query
         name: status
         schema:
@@ -9185,10 +11264,8 @@ paths:
     get:
       operationId: v1_dashboard_verifications_retrieve
       description: |-
-        List/retrieve only.
-
-        DRF routers discover actions by attribute. Write methods must never be added
-        to this class, otherwise a nominally read-only resource becomes writable.
+        ``GET dashboard/verifications/``: ``status``, ``university``, ``faculty``, ``major``, ``academic_year``,
+        ``semester``, ``reviewed_by``, ``created_after``/``created_before`` (inclusive YYYY-MM-DD); ``search``.
       parameters:
       - in: path
         name: id
@@ -10335,7 +12412,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ChatPreference'
+                $ref: '#/components/schemas/ChatPreferenceOut'
           description: ''
     put:
       operationId: v1_groups_chat_preferences_update
@@ -10367,7 +12444,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ChatPreference'
+                $ref: '#/components/schemas/ChatPreferenceOut'
           description: ''
   /api/v1/groups/{group_id}/chat/receipts/:
     post:
@@ -10680,6 +12757,42 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/groups/{group_id}/messages/attachment-tickets/:
+    post:
+      operationId: v1_groups_messages_attachment_tickets_create
+      description: Tickets for up to ``BATCH_TICKET_LIMIT`` messages at once, so a
+        screen of thumbnails costs one request.
+      parameters:
+      - in: path
+        name: group_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Chat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachmentTicketBatchRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AttachmentTicketBatchRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AttachmentTicketBatchRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/groups/{group_pk}/files/:
     get:
       operationId: v1_groups_files_list
@@ -10838,6 +12951,8 @@ paths:
   /api/v1/groups/{id}/join/:
     post:
       operationId: v1_groups_join_create
+      description: 'Always refused with 403 `GROUP_JOIN_ENROLLMENT_ONLY`: students
+        join groups automatically after their subject-registration request is approved.'
       parameters:
       - in: path
         name: id
@@ -10849,13 +12964,10 @@ paths:
       security:
       - jwtAuth: []
       - bearerAuth: []
+      deprecated: true
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GroupMembership'
-          description: ''
+        '403':
+          description: GROUP_JOIN_ENROLLMENT_ONLY
   /api/v1/groups/{id}/leave/:
     post:
       operationId: v1_groups_leave_create
@@ -10925,10 +13037,9 @@ paths:
     get:
       operationId: v1_groups_available_list
       description: |-
-        List/retrieve only.
-
-        DRF routers discover actions by attribute. Write methods must never be added
-        to this class, otherwise a nominally read-only resource becomes writable.
+        Read-only list of the groups that match the student's level. Joining by request no longer exists: every row
+        carries ``can_request_join: false`` and groups are joined automatically after a subject-registration request is
+        approved.
       parameters:
       - in: query
         name: academic_year
@@ -10988,16 +13099,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedGroupList'
+                $ref: '#/components/schemas/PaginatedAvailableGroupList'
           description: ''
   /api/v1/groups/available/{id}/:
     get:
       operationId: v1_groups_available_retrieve
       description: |-
-        List/retrieve only.
-
-        DRF routers discover actions by attribute. Write methods must never be added
-        to this class, otherwise a nominally read-only resource becomes writable.
+        Read-only list of the groups that match the student's level. Joining by request no longer exists: every row
+        carries ``can_request_join: false`` and groups are joined automatically after a subject-registration request is
+        approved.
       parameters:
       - in: path
         name: id
@@ -11015,7 +13125,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: '#/components/schemas/AvailableGroup'
           description: ''
   /api/v1/groups/my/:
     get:
@@ -11334,6 +13444,103 @@ paths:
               schema:
                 $ref: '#/components/schemas/LectureNote'
           description: ''
+  /api/v1/lectures/{id}/offline-license/:
+    post:
+      operationId: v1_lectures_offline_license_create
+      description: '``POST`` issues or refreshes the license for this device and returns
+        the content key; ``DELETE`` releases it.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Lecture offline
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    delete:
+      operationId: v1_lectures_offline_license_destroy
+      description: '``POST`` issues or refreshes the license for this device and returns
+        the content key; ``DELETE`` releases it.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Lecture offline
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/lectures/{id}/offline-license/renew/:
+    post:
+      operationId: v1_lectures_offline_license_renew_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Lecture offline
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/lectures/{id}/offline-package/:
+    get:
+      operationId: v1_lectures_offline_package_retrieve
+      description: Streams the AES-GCM *ciphertext* package. Plaintext never leaves
+        the server on this route.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Lecture offline
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Encrypted package
+        '206':
+          description: Range
   /api/v1/lectures/{id}/processing-status/:
     get:
       operationId: v1_lectures_processing_status_retrieve
@@ -11465,6 +13672,52 @@ paths:
       - bearerAuth: []
       responses:
         '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/lectures/offline-licenses/:
+    get:
+      operationId: v1_lectures_offline_licenses_retrieve
+      description: The caller's licenses on this device (state included) so the app
+        can see what must be purged.
+      tags:
+      - Lecture offline
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/lectures/offline-licenses/sync/:
+    post:
+      operationId: v1_lectures_offline_licenses_sync_create
+      tags:
+      - Lecture offline
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfflineSyncRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OfflineSyncRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OfflineSyncRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
           content:
             application/json:
               schema:
@@ -12056,6 +14309,35 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/printing/agent/heartbeat/:
+    post:
+      operationId: v1_printing_agent_heartbeat_create
+      description: '``POST``: the silent-print agent says it is alive. Authenticated
+        like every other call the agent makes.'
+      tags:
+      - Printing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrinterHeartbeatRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PrinterHeartbeatRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PrinterHeartbeatRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Printer'
+          description: ''
   /api/v1/printing/convert/:
     post:
       operationId: v1_printing_convert_create
@@ -12125,6 +14407,33 @@ paths:
       - bearerAuth: []
       responses:
         '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/printing/option-help/:
+    get:
+      operationId: v1_printing_option_help_retrieve
+      description: Active explanations for the print options. ``?topic=`` and ``?key=``
+        narrow the list; ``If-None-Match`` is honoured.
+      parameters:
+      - in: query
+        name: key
+        schema:
+          type: string
+      - in: query
+        name: topic
+        schema:
+          type: string
+      tags:
+      - Printing
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
           content:
             application/json:
               schema:
@@ -12423,6 +14732,11 @@ paths:
           type: string
           format: uuid
         required: true
+      - in: query
+        name: variant
+        schema:
+          type: string
+        description: '`thumb` for the <=480px WebP preview of an image.'
       tags:
       - Protected Assets
       security:
@@ -12431,6 +14745,12 @@ paths:
       responses:
         '200':
           description: Inline chat attachment
+        '206':
+          description: Byte range of the attachment (audio seeking)
+        '304':
+          description: Unchanged (If-None-Match)
+        '416':
+          description: Range not satisfiable
   /api/v1/protected-files/{token}/:
     get:
       operationId: v1_protected_files_retrieve
@@ -12630,6 +14950,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/StudentAcademicProfile'
           description: ''
+  /api/v1/students/me/term-confirmation/:
+    post:
+      operationId: v1_students_me_term_confirmation_create
+      description: '``POST students/me/term-confirmation/``: the student''s own answer
+        to "did you move to the next year?".'
+      tags:
+      - Students
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TermConfirmationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TermConfirmationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TermConfirmationRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentAcademicProfile'
+          description: ''
   /api/v1/students/student-number/parse/:
     get:
       operationId: v1_students_student_number_parse_retrieve
@@ -12644,6 +14993,86 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StudentAcademicProfile'
+          description: ''
+  /api/v1/subjects/:
+    get:
+      operationId: v1_subjects_list
+      description: 'All active subjects of the student''s faculty. Filters: `academic_year`,
+        `semester`, `search` (name or code), `enrolled` (has an approved subject registration),
+        `in_current_term`. Default order: current-term subjects first, then year,
+        semester, name. Informational only: no group or join data.'
+      parameters:
+      - in: query
+        name: academic_year
+        schema:
+          type: integer
+      - in: query
+        name: enrolled
+        schema:
+          type: boolean
+      - in: query
+        name: in_current_term
+        schema:
+          type: boolean
+      - in: query
+        name: ordering
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Name or code
+      - in: query
+        name: semester
+        schema:
+          type: integer
+      tags:
+      - Subjects
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStudentSubjectListList'
+          description: ''
+  /api/v1/subjects/{id}/:
+    get:
+      operationId: v1_subjects_retrieve
+      description: One subject with its full description.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: نوع رقم صحيح فريد يحدد هذا subject.
+        required: true
+      tags:
+      - Subjects
+      security:
+      - jwtAuth: []
+      - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentSubjectDetail'
           description: ''
   /api/v1/support/attachments/{token}/:
     get:
@@ -13307,6 +15736,32 @@ components:
         * `requested` - Requested
         * `cancelled` - Cancelled
         * `completed` - Completed
+    AccountDeviceResetRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          default: ''
+          maxLength: 255
+    ActivityUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        full_name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        job_title:
+          type: string
+      required:
+      - email
+      - full_name
+      - id
+      - job_title
+      - role
     Announcement:
       type: object
       properties:
@@ -13606,6 +16061,17 @@ components:
       required:
       - context
       - kind
+    AttachmentTicketBatchRequest:
+      type: object
+      properties:
+        message_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 20
+      required:
+      - message_ids
     AuditLog:
       type: object
       properties:
@@ -13619,6 +16085,19 @@ components:
         actor_name:
           type: string
           readOnly: true
+        actor_detail:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            full_name:
+              type: string
+            email:
+              type: string
+            role:
+              type: string
+          readOnly: true
         action:
           allOf:
           - $ref: '#/components/schemas/AuditLogActionEnum'
@@ -13627,6 +16106,9 @@ components:
           type: string
           readOnly: true
         target_id:
+          type: string
+          readOnly: true
+        target_label:
           type: string
           readOnly: true
         old_value:
@@ -13649,6 +16131,7 @@ components:
       required:
       - action
       - actor
+      - actor_detail
       - actor_name
       - created_at
       - id
@@ -13656,6 +16139,7 @@ components:
       - new_value
       - old_value
       - target_id
+      - target_label
       - target_type
       - user_agent
     AuditLogActionEnum:
@@ -13706,6 +16190,9 @@ components:
       - lecture_updated
       - lecture_deleted
       - lecture_processing_retried
+      - lecture_offline_license_issued
+      - lecture_offline_license_renewed
+      - lecture_offline_license_revoked
       - announcement_created
       - announcement_updated
       - announcement_deleted
@@ -13716,6 +16203,8 @@ components:
       - print_pricing_changed
       - print_job_created
       - print_job_status_changed
+      - print_job_cancelled
+      - printer_changed
       - print_file_prepared
       - stationery_sale_recorded
       - finance_rate_changed
@@ -13749,6 +16238,27 @@ components:
       - policy_version_published
       - policy_version_updated
       - policy_version_unpublished
+      - current_term_changed
+      - term_ended
+      - term_rollover_undone
+      - term_whatsapp_list_exported
+      - student_term_confirmed
+      - group_members_exported
+      - user_profile_updated
+      - account_device_bound
+      - account_device_mismatch
+      - account_device_switched
+      - account_device_switch_refused
+      - account_device_reset
+      - phone_verification_requested
+      - phone_verification_code_issued
+      - phone_verification_code_sent
+      - phone_verification_verified
+      - phone_verification_failed
+      - phone_verification_rejected
+      - phone_verification_cancelled
+      - phone_verification_expired
+      - community_auto_joined
       type: string
       description: |-
         * `user_registered` - User Registered
@@ -13797,6 +16307,9 @@ components:
         * `lecture_updated` - Lecture Updated
         * `lecture_deleted` - Lecture Deleted
         * `lecture_processing_retried` - Lecture Processing Retried
+        * `lecture_offline_license_issued` - Lecture Offline License Issued
+        * `lecture_offline_license_renewed` - Lecture Offline License Renewed
+        * `lecture_offline_license_revoked` - Lecture Offline License Revoked
         * `announcement_created` - Announcement Created
         * `announcement_updated` - Announcement Updated
         * `announcement_deleted` - Announcement Deleted
@@ -13807,6 +16320,8 @@ components:
         * `print_pricing_changed` - Print Pricing Changed
         * `print_job_created` - Print Job Created
         * `print_job_status_changed` - Print Job Status Changed
+        * `print_job_cancelled` - Print Job Cancelled
+        * `printer_changed` - Printer Changed
         * `print_file_prepared` - Print-ready File Prepared
         * `stationery_sale_recorded` - Stationery Sale Recorded
         * `finance_rate_changed` - Exchange Rate Changed
@@ -13840,6 +16355,110 @@ components:
         * `policy_version_published` - Policy Version Published
         * `policy_version_updated` - Policy Version Updated
         * `policy_version_unpublished` - Policy Version Unpublished
+        * `current_term_changed` - Current Term Changed
+        * `term_ended` - Term Ended
+        * `term_rollover_undone` - Term Rollover Undone
+        * `term_whatsapp_list_exported` - Term WhatsApp Removal List Exported
+        * `student_term_confirmed` - Student Term Confirmed
+        * `group_members_exported` - Group Members Exported
+        * `user_profile_updated` - User Profile Updated
+        * `account_device_bound` - Account Device Bound
+        * `account_device_mismatch` - Account Device Mismatch
+        * `account_device_switched` - Account Device Switched
+        * `account_device_switch_refused` - Account Device Switch Refused
+        * `account_device_reset` - Account Device Reset
+        * `phone_verification_requested` - Phone Verification Requested
+        * `phone_verification_code_issued` - Phone Verification Code Issued
+        * `phone_verification_code_sent` - Phone Verification Code Sent
+        * `phone_verification_verified` - Phone Verification Verified
+        * `phone_verification_failed` - Phone Verification Failed
+        * `phone_verification_rejected` - Phone Verification Rejected
+        * `phone_verification_cancelled` - Phone Verification Cancelled
+        * `phone_verification_expired` - Phone Verification Expired
+        * `community_auto_joined` - Community Auto Joined
+    AvailableGroup:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        image:
+          type: string
+          format: uri
+          nullable: true
+        university:
+          type: integer
+        faculty:
+          type: integer
+          nullable: true
+        major:
+          type: integer
+          nullable: true
+        academic_year:
+          type: integer
+          nullable: true
+        semester:
+          type: integer
+          nullable: true
+        subject:
+          type: integer
+          nullable: true
+        created_by:
+          type: integer
+          readOnly: true
+        is_active:
+          type: boolean
+        requires_approval:
+          type: boolean
+        send_messages_permission:
+          $ref: '#/components/schemas/GroupSendMessagesPermissionEnum'
+        membership_status:
+          type: string
+          nullable: true
+          readOnly: true
+        current_user_membership_status:
+          type: string
+          nullable: true
+          readOnly: true
+        current_user_group_role:
+          type: string
+          nullable: true
+          readOnly: true
+        members_count:
+          type: integer
+          readOnly: true
+        has_whatsapp_channel:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        can_request_join:
+          type: boolean
+          readOnly: true
+      required:
+      - can_request_join
+      - created_at
+      - created_by
+      - current_user_group_role
+      - current_user_membership_status
+      - has_whatsapp_channel
+      - id
+      - members_count
+      - membership_status
+      - name
+      - university
+      - updated_at
     BlankEnum:
       enum:
       - ''
@@ -13867,6 +16486,33 @@ components:
       required:
       - action
       - ids
+    BulkDecisionResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkItemResult'
+        succeeded:
+          type: integer
+        failed:
+          type: integer
+      required:
+      - failed
+      - results
+      - succeeded
+    BulkItemResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        ok:
+          type: boolean
+        error:
+          type: string
+      required:
+      - id
+      - ok
     CategoryEnum:
       enum:
       - account
@@ -13924,18 +16570,54 @@ components:
       - expires_at
       - ticket
       - websocket_path
-    ChatPreference:
+    ChatPreferenceListItem:
+      type: object
+      properties:
+        group_id:
+          type: integer
+        name:
+          type: string
+        kind:
+          $ref: '#/components/schemas/ChatPreferenceListItemKindEnum'
+        is_muted:
+          type: boolean
+        muted_until:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - group_id
+      - is_muted
+      - kind
+      - muted_until
+      - name
+    ChatPreferenceListItemKindEnum:
+      enum:
+      - subject
+      - community
+      type: string
+      description: |-
+        * `subject` - subject
+        * `community` - community
+    ChatPreferenceOut:
       type: object
       properties:
         is_muted:
           type: boolean
+        muted_until:
+          type: string
+          format: date-time
+          nullable: true
       required:
       - is_muted
+      - muted_until
     ChatPreferenceRequest:
       type: object
       properties:
         is_muted:
           type: boolean
+        mute_for:
+          $ref: '#/components/schemas/MuteForEnum'
       required:
       - is_muted
     ColorModeEnum:
@@ -14077,6 +16759,14 @@ components:
         * `settings` - Settings
         * `external_channel` - External Channel
         * `other` - Other
+    CounterDuplexFlipEnum:
+      enum:
+      - long
+      - short
+      type: string
+      description: |-
+        * `long` - long
+        * `short` - short
     CounterItem:
       type: object
       description: 'One line typed in at the counter: there is no file, only what
@@ -14113,6 +16803,9 @@ components:
         cover:
           type: string
           maxLength: 32
+        extras:
+          description: 'Chosen paper option per section: {section: code} (see /printing/options/
+            extras).'
         pages_per_sheet:
           allOf:
           - $ref: '#/components/schemas/PagesPerSheetEnum'
@@ -14120,6 +16813,20 @@ components:
         binding_note:
           type: string
           maxLength: 120
+        duplex_flip:
+          description: |-
+            Which edge a two-sided sheet turns on. Only for two-sided lines; empty keeps the long edge.
+
+            * `long` - long
+            * `short` - short
+          oneOf:
+          - $ref: '#/components/schemas/CounterDuplexFlipEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        page_range:
+          type: string
+          description: Pages of the customer's document to print, like 1-5,8 (ascending,
+            not overlapping).
+          maxLength: 200
       required:
       - copies
     CounterItemRequest:
@@ -14159,6 +16866,9 @@ components:
         cover:
           type: string
           maxLength: 32
+        extras:
+          description: 'Chosen paper option per section: {section: code} (see /printing/options/
+            extras).'
         pages_per_sheet:
           allOf:
           - $ref: '#/components/schemas/PagesPerSheetEnum'
@@ -14166,6 +16876,20 @@ components:
         binding_note:
           type: string
           maxLength: 120
+        duplex_flip:
+          description: |-
+            Which edge a two-sided sheet turns on. Only for two-sided lines; empty keeps the long edge.
+
+            * `long` - long
+            * `short` - short
+          oneOf:
+          - $ref: '#/components/schemas/CounterDuplexFlipEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        page_range:
+          type: string
+          description: Pages of the customer's document to print, like 1-5,8 (ascending,
+            not overlapping).
+          maxLength: 200
       required:
       - copies
     CounterOrderCreateRequest:
@@ -14243,6 +16967,18 @@ components:
           $ref: '#/components/schemas/FinanceCurrencyEnum'
       required:
       - items
+    CurrentTermWriteRequest:
+      type: object
+      properties:
+        semester:
+          type: integer
+          minimum: 1
+        label:
+          type: string
+          default: ''
+          maxLength: 100
+      required:
+      - semester
     DashboardAccountDeletion:
       type: object
       properties:
@@ -14357,6 +17093,10 @@ components:
         name:
           type: string
           readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/GroupKindEnum'
+          readOnly: true
         subject_name:
           type: string
           readOnly: true
@@ -14384,6 +17124,7 @@ components:
       - faculty_name
       - id
       - is_active
+      - kind
       - last_message_at
       - last_message_excerpt
       - members
@@ -14712,6 +17453,7 @@ components:
           $ref: '#/components/schemas/ContextEnum'
         action_key:
           type: string
+          default: ''
           maxLength: 100
         title:
           type: string
@@ -14763,7 +17505,6 @@ components:
           format: date-time
           readOnly: true
       required:
-      - action_key
       - context
       - created_at
       - id
@@ -14777,6 +17518,7 @@ components:
           $ref: '#/components/schemas/ContextEnum'
         action_key:
           type: string
+          default: ''
           maxLength: 100
         title:
           type: string
@@ -14822,7 +17564,6 @@ components:
         roles: {}
         verification_statuses: {}
       required:
-      - action_key
       - context
       - question
       - title
@@ -14893,16 +17634,29 @@ components:
           type: string
           format: date-time
           readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/GroupKindEnum'
+          readOnly: true
+        pending_requests_count:
+          type: integer
+          readOnly: true
+        has_whatsapp:
+          type: boolean
+          readOnly: true
       required:
       - created_at
       - created_by
       - current_user_group_role
       - current_user_membership_status
+      - has_whatsapp
       - has_whatsapp_channel
       - id
+      - kind
       - members_count
       - membership_status
       - name
+      - pending_requests_count
       - university
       - updated_at
     DashboardGroupRequest:
@@ -15102,6 +17856,17 @@ components:
         message_excerpt:
           type: string
           readOnly: true
+        message_type:
+          type: string
+          readOnly: true
+        attachment_meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        attachment_ticket_endpoint:
+          type: string
+          nullable: true
+          readOnly: true
         message_is_deleted:
           type: boolean
           readOnly: true
@@ -15121,6 +17886,8 @@ components:
           format: date-time
           readOnly: true
       required:
+      - attachment_meta
+      - attachment_ticket_endpoint
       - created_at
       - group_id
       - group_name
@@ -15129,12 +17896,159 @@ components:
       - message_id
       - message_is_deleted
       - message_sender_id
+      - message_type
       - reason
       - reporter_id
       - resolution_note
       - resolved_at
       - resolved_by_id
       - status
+    DashboardPhoneVerification:
+      type: object
+      description: 'What staff see. The code is NOT here: it is returned once by ``claim``.'
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        user_name:
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PhoneVerificationStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        claimed_by_name:
+          type: string
+          readOnly: true
+        claimed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        code_generated:
+          type: boolean
+          readOnly: true
+        code_sent_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        attempts:
+          type: integer
+          readOnly: true
+        rejection_reason:
+          type: string
+          readOnly: true
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - attempts
+      - claimed_at
+      - claimed_by_name
+      - code_generated
+      - code_sent_at
+      - created_at
+      - expires_at
+      - id
+      - phone_number
+      - rejection_reason
+      - status
+      - user_id
+      - user_name
+      - verified_at
+    DashboardPhoneVerificationClaim:
+      type: object
+      description: 'What staff see. The code is NOT here: it is returned once by ``claim``.'
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        user_name:
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PhoneVerificationStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        claimed_by_name:
+          type: string
+          readOnly: true
+        claimed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        code_generated:
+          type: boolean
+          readOnly: true
+        code_sent_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        attempts:
+          type: integer
+          readOnly: true
+        rejection_reason:
+          type: string
+          readOnly: true
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        code:
+          type: string
+          readOnly: true
+      required:
+      - attempts
+      - claimed_at
+      - claimed_by_name
+      - code
+      - code_generated
+      - code_sent_at
+      - created_at
+      - expires_at
+      - id
+      - phone_number
+      - rejection_reason
+      - status
+      - user_id
+      - user_name
+      - verified_at
     DashboardPrintOrder:
       type: object
       properties:
@@ -15361,6 +18275,206 @@ components:
       - printing
       - support
       - users
+    DashboardStudent:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        student_number:
+          type: string
+          readOnly: true
+        verification_status:
+          type: string
+          readOnly: true
+        is_verified:
+          type: boolean
+          readOnly: true
+        university:
+          allOf:
+          - $ref: '#/components/schemas/NamedRef'
+          nullable: true
+          readOnly: true
+        faculty:
+          allOf:
+          - $ref: '#/components/schemas/NamedRef'
+          nullable: true
+          readOnly: true
+        major:
+          allOf:
+          - $ref: '#/components/schemas/NamedRef'
+          nullable: true
+          readOnly: true
+        academic_year:
+          allOf:
+          - $ref: '#/components/schemas/NamedRef'
+          nullable: true
+          readOnly: true
+        semester:
+          allOf:
+          - $ref: '#/components/schemas/NamedRef'
+          nullable: true
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        needs_term_confirmation:
+          type: boolean
+          readOnly: true
+        last_login:
+          type: string
+          format: date-time
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        groups_count:
+          type: integer
+          readOnly: true
+        pending_enrollments:
+          type: integer
+          readOnly: true
+      required:
+      - academic_year
+      - created_at
+      - email
+      - faculty
+      - full_name
+      - groups_count
+      - id
+      - is_active
+      - is_verified
+      - last_login
+      - major
+      - needs_term_confirmation
+      - pending_enrollments
+      - phone_number
+      - semester
+      - student_number
+      - university
+      - verification_status
+    DashboardSubject:
+      type: object
+      description: 'The dashboard list row: the subject plus how much content hangs
+        off it (annotated counts, no per-row queries).'
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        faculty:
+          type: integer
+        faculty_name:
+          type: string
+          readOnly: true
+        faculty_detail:
+          allOf:
+          - $ref: '#/components/schemas/SubjectFaculty'
+          readOnly: true
+        major:
+          type: integer
+          nullable: true
+        major_name:
+          type: string
+          nullable: true
+          readOnly: true
+        major_detail:
+          allOf:
+          - $ref: '#/components/schemas/Major'
+          readOnly: true
+          nullable: true
+        academic_year:
+          type: integer
+        academic_year_name:
+          type: string
+          readOnly: true
+        semester:
+          type: integer
+        semester_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 32
+        description:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        groups_count:
+          type: integer
+          readOnly: true
+        lectures_count:
+          type: integer
+          readOnly: true
+        files_count:
+          type: integer
+          readOnly: true
+      required:
+      - academic_year
+      - academic_year_name
+      - created_at
+      - faculty_detail
+      - faculty_name
+      - files_count
+      - groups_count
+      - id
+      - lectures_count
+      - major_detail
+      - major_name
+      - name
+      - semester
+      - semester_name
+      - updated_at
+    DashboardSubjectRequest:
+      type: object
+      description: 'The dashboard list row: the subject plus how much content hangs
+        off it (annotated counts, no per-row queries).'
+      properties:
+        faculty:
+          type: integer
+        major:
+          type: integer
+          nullable: true
+        academic_year:
+          type: integer
+        semester:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 32
+        description:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - academic_year
+      - name
+      - semester
     DashboardSupportTicket:
       type: object
       properties:
@@ -15446,6 +18560,9 @@ components:
           type: string
           readOnly: true
           nullable: true
+        job_title:
+          type: string
+          maxLength: 120
         email:
           type: string
           format: email
@@ -15509,6 +18626,9 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+        job_title:
+          type: string
+          maxLength: 120
         role:
           $ref: '#/components/schemas/UserRoleEnum'
       required:
@@ -15522,6 +18642,9 @@ components:
           maxLength: 255
         role:
           $ref: '#/components/schemas/UserRoleEnum'
+        job_title:
+          type: string
+          maxLength: 120
       required:
       - full_name
     DecisionActionEnum:
@@ -15534,6 +18657,14 @@ components:
         * `approve_all` - approve_all
         * `reject_all` - reject_all
         * `approve_selected` - approve_selected
+    DecisionEnum:
+      enum:
+      - approve
+      - reject
+      type: string
+      description: |-
+        * `approve` - approve
+        * `reject` - reject
     DecisionRequest:
       type: object
       properties:
@@ -15638,6 +18769,15 @@ components:
       required:
       - installation_id
       - platform
+    DeviceSwitchRequest:
+      type: object
+      properties:
+        device_switch_token:
+          type: string
+          minLength: 1
+          maxLength: 2048
+      required:
+      - device_switch_token
     DeviceToken:
       type: object
       properties:
@@ -15712,6 +18852,24 @@ components:
       description: |-
         * `allow` - Allow
         * `deny` - Deny
+    EndTermRequest:
+      type: object
+      properties:
+        confirm:
+          type: boolean
+        next_semester:
+          type: integer
+          minimum: 1
+        label:
+          type: string
+          default: ''
+          maxLength: 100
+        disable_whatsapp_links:
+          type: boolean
+          default: true
+      required:
+      - confirm
+      - next_semester
     EnrollmentCreateRequest:
       type: object
       properties:
@@ -16001,6 +19159,7 @@ components:
           maxLength: 255
         code:
           type: string
+          default: ''
           maxLength: 32
         is_active:
           type: boolean
@@ -16013,7 +19172,6 @@ components:
           format: date-time
           readOnly: true
       required:
-      - code
       - created_at
       - id
       - name
@@ -16031,11 +19189,11 @@ components:
           maxLength: 255
         code:
           type: string
+          default: ''
           maxLength: 32
         is_active:
           type: boolean
       required:
-      - code
       - name
       - university
     FeatureFlag:
@@ -16051,11 +19209,13 @@ components:
         enabled:
           type: boolean
         platform:
+          default: ''
           oneOf:
           - $ref: '#/components/schemas/MobilePlatformEnum'
           - $ref: '#/components/schemas/BlankEnum'
         role:
           type: string
+          default: ''
           maxLength: 32
         expose_to_mobile:
           type: boolean
@@ -16069,8 +19229,6 @@ components:
       required:
       - id
       - key
-      - platform
-      - role
       - updated_at
     FeatureFlagRequest:
       type: object
@@ -16083,11 +19241,13 @@ components:
         enabled:
           type: boolean
         platform:
+          default: ''
           oneOf:
           - $ref: '#/components/schemas/MobilePlatformEnum'
           - $ref: '#/components/schemas/BlankEnum'
         role:
           type: string
+          default: ''
           maxLength: 32
         expose_to_mobile:
           type: boolean
@@ -16096,8 +19256,6 @@ components:
           maxLength: 255
       required:
       - key
-      - platform
-      - role
     FeedbackKindEnum:
       enum:
       - rating
@@ -16178,6 +19336,7 @@ components:
         action_key:
           type: string
           readOnly: true
+          default: ''
         title:
           type: string
           readOnly: true
@@ -16577,6 +19736,16 @@ components:
       - name
       - university
       - updated_at
+    GroupKindEnum:
+      enum:
+      - subject
+      - faculty
+      - general
+      type: string
+      description: |-
+        * `subject` - subject
+        * `faculty` - faculty
+        * `general` - general
     GroupMembership:
       type: object
       properties:
@@ -16650,6 +19819,7 @@ components:
       - rejected
       - blocked
       - left
+      - term_ended
       type: string
       description: |-
         * `pending` - Pending
@@ -16657,6 +19827,7 @@ components:
         * `rejected` - Rejected
         * `blocked` - Blocked
         * `left` - Left
+        * `term_ended` - Term ended
     GroupSendMessagesPermissionEnum:
       enum:
       - all_members
@@ -16846,6 +20017,81 @@ components:
       - full_name
       - phone_number
       - template
+    JoinRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/GroupMembershipStatusEnum'
+          readOnly: true
+        user:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        group:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        reviewed_by:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        reviewed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        note:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - created_at
+      - group
+      - id
+      - note
+      - reviewed_at
+      - reviewed_by
+      - status
+      - user
+    JoinRequestBulkDecisionRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 100
+        decision:
+          $ref: '#/components/schemas/DecisionEnum'
+        note:
+          type: string
+          maxLength: 500
+      required:
+      - decision
+      - ids
+    JoinRequestSummary:
+      type: object
+      properties:
+        pending:
+          type: integer
+        approved_today:
+          type: integer
+        rejected_today:
+          type: integer
+      required:
+      - approved_today
+      - pending
+      - rejected_today
     Lecture:
       type: object
       properties:
@@ -17162,6 +20408,7 @@ components:
           maxLength: 255
         code:
           type: string
+          default: ''
           maxLength: 32
         is_active:
           type: boolean
@@ -17174,7 +20421,6 @@ components:
           format: date-time
           readOnly: true
       required:
-      - code
       - created_at
       - faculty
       - faculty_name
@@ -17193,11 +20439,11 @@ components:
           maxLength: 255
         code:
           type: string
+          default: ''
           maxLength: 32
         is_active:
           type: boolean
       required:
-      - code
       - faculty
       - name
     Message:
@@ -17307,6 +20553,19 @@ components:
         reply_to:
           type: integer
           nullable: true
+        duration_ms:
+          type: integer
+          maximum: 86400000
+          minimum: 0
+          nullable: true
+        waveform:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 255
+          maxItems: 128
+          nullable: true
     MessageReport:
       type: object
       properties:
@@ -17363,6 +20622,8 @@ components:
       properties:
         id:
           type: integer
+        user_id:
+          type: integer
         full_name:
           type: string
         title:
@@ -17370,24 +20631,32 @@ components:
           nullable: true
         is_staff:
           type: boolean
+        job_title:
+          type: string
         real_name:
           type: string
       required:
       - full_name
       - id
       - is_staff
+      - job_title
       - title
+      - user_id
     MessageTypeEnum:
       enum:
       - text
       - image
       - file
+      - voice
+      - audio
       - system
       type: string
       description: |-
         * `text` - Text
         * `image` - Image
         * `file` - File
+        * `voice` - Voice note
+        * `audio` - Audio file
         * `system` - System
     MetricTypeEnum:
       enum:
@@ -17446,6 +20715,7 @@ components:
           nullable: true
         is_active:
           type: boolean
+          default: true
         emergency_update_bypass:
           type: boolean
         updated_at:
@@ -17498,6 +20768,7 @@ components:
           nullable: true
         is_active:
           type: boolean
+          default: true
         emergency_update_bypass:
           type: boolean
       required:
@@ -17690,6 +20961,64 @@ components:
       description: |-
         * `link` - link
         * `temporary_password` - temporary_password
+    MuteForEnum:
+      enum:
+      - 8h
+      - 1w
+      - forever
+      type: string
+      description: |-
+        * `8h` - 8h
+        * `1w` - 1w
+        * `forever` - forever
+    MyPhoneVerification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PhoneVerificationStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        code_sent_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        attempts_remaining:
+          type: integer
+          readOnly: true
+        rejection_reason:
+          type: string
+          readOnly: true
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - attempts_remaining
+      - code_sent_at
+      - created_at
+      - expires_at
+      - id
+      - phone_number
+      - rejection_reason
+      - status
+      - verified_at
     NUpDirectionEnum:
       enum:
       - ltr
@@ -17698,6 +21027,16 @@ components:
       description: |-
         * `ltr` - Left to right
         * `rtl` - Right to left
+    NamedRef:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
     NormalUserRegisterRequest:
       type: object
       properties:
@@ -17868,12 +21207,26 @@ components:
             type: boolean
         quiet_hours:
           $ref: '#/components/schemas/QuietHours'
+        mute_communities:
+          type: boolean
         updated_at:
           type: string
           format: date-time
           readOnly: true
       required:
       - updated_at
+    OfflineSyncRequest:
+      type: object
+      properties:
+        license_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 64
+          maxItems: 500
+      required:
+      - license_ids
     OrderPayment:
       type: object
       properties:
@@ -18058,6 +21411,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuditLog'
+    PaginatedAvailableGroupList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailableGroup'
     PaginatedDashboardAccountDeletionList:
       type: object
       required:
@@ -18242,6 +21618,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DashboardMessageReport'
+    PaginatedDashboardPhoneVerificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardPhoneVerification'
     PaginatedDashboardPrintOrderList:
       type: object
       required:
@@ -18265,6 +21664,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DashboardPrintOrder'
+    PaginatedDashboardStudentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardStudent'
+    PaginatedDashboardSubjectList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardSubject'
     PaginatedDashboardSupportTicketList:
       type: object
       required:
@@ -18518,6 +21963,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/InventoryItem'
+    PaginatedJoinRequestList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JoinRequest'
     PaginatedLectureList:
       type: object
       required:
@@ -18978,6 +22446,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StockMovement'
+    PaginatedStudentSubjectListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentSubjectList'
     PaginatedSubjectList:
       type: object
       required:
@@ -19001,6 +22492,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Subject'
+    PaginatedSystemActivityList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SystemActivity'
+    PaginatedSystemActivityUserRollupList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SystemActivityUserRollup'
     PaginatedTermsVersionList:
       type: object
       required:
@@ -19149,6 +22686,7 @@ components:
           $ref: '#/components/schemas/ContextEnum'
         action_key:
           type: string
+          default: ''
           maxLength: 100
         title:
           type: string
@@ -19265,6 +22803,31 @@ components:
           writeOnly: true
         is_published:
           type: boolean
+    PatchedDashboardSubjectRequest:
+      type: object
+      description: 'The dashboard list row: the subject plus how much content hangs
+        off it (annotated counts, no per-row queries).'
+      properties:
+        faculty:
+          type: integer
+        major:
+          type: integer
+          nullable: true
+        academic_year:
+          type: integer
+        semester:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 32
+        description:
+          type: string
+        is_active:
+          type: boolean
     PatchedDashboardUserUpdateRequest:
       type: object
       description: The narrow PATCH surface for dashboard user administration.
@@ -19275,6 +22838,9 @@ components:
           maxLength: 255
         role:
           $ref: '#/components/schemas/UserRoleEnum'
+        job_title:
+          type: string
+          maxLength: 120
     PatchedDeviceInstallationRequest:
       type: object
       properties:
@@ -19364,6 +22930,7 @@ components:
           maxLength: 255
         code:
           type: string
+          default: ''
           maxLength: 32
         is_active:
           type: boolean
@@ -19378,11 +22945,13 @@ components:
         enabled:
           type: boolean
         platform:
+          default: ''
           oneOf:
           - $ref: '#/components/schemas/MobilePlatformEnum'
           - $ref: '#/components/schemas/BlankEnum'
         role:
           type: string
+          default: ''
           maxLength: 32
         expose_to_mobile:
           type: boolean
@@ -19614,6 +23183,7 @@ components:
           maxLength: 255
         code:
           type: string
+          default: ''
           maxLength: 32
         is_active:
           type: boolean
@@ -19658,6 +23228,7 @@ components:
           nullable: true
         is_active:
           type: boolean
+          default: true
         emergency_update_bypass:
           type: boolean
     PatchedNotificationPreferenceRequest:
@@ -19678,6 +23249,8 @@ components:
             type: boolean
         quiet_hours:
           $ref: '#/components/schemas/QuietHoursRequest'
+        mute_communities:
+          type: boolean
     PatchedPermissionTemplateRequest:
       type: object
       properties:
@@ -19778,6 +23351,44 @@ components:
           format: int64
         is_active:
           type: boolean
+    PatchedPrintExtraOptionRequest:
+      type: object
+      properties:
+        section:
+          $ref: '#/components/schemas/SectionEnum'
+        code:
+          type: string
+          minLength: 1
+          maxLength: 48
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 500
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        price_unit:
+          $ref: '#/components/schemas/PriceUnitEnum'
+        currency:
+          type: string
+          minLength: 1
+          default: SYP
+          maxLength: 8
+        color_hex:
+          type: string
+          description: 'Optional colour swatch, e.g. #1E3A8A.'
+          maxLength: 7
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_active:
+          type: boolean
     PatchedPrintJobStatusRequest:
       type: object
       properties:
@@ -19789,6 +23400,41 @@ components:
         error:
           type: string
           maxLength: 255
+    PatchedPrintOptionHelpRequest:
+      type: object
+      description: Staff view of a help entry; the image is uploaded as multipart
+        ``image`` (send an empty value to remove it).
+      properties:
+        topic:
+          type: string
+          minLength: 1
+          maxLength: 64
+        key:
+          type: string
+          description: Option code; empty = the whole topic.
+          maxLength: 64
+        title:
+          type: string
+          minLength: 1
+          maxLength: 150
+        body:
+          type: string
+          minLength: 1
+          description: Plain text; line breaks are kept.
+        image:
+          type: string
+          format: binary
+          nullable: true
+        image_caption:
+          type: string
+          maxLength: 255
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_active:
+          type: boolean
     PatchedPrintOrderAssignRequest:
       type: object
       properties:
@@ -19860,6 +23506,24 @@ components:
         rejected_reason:
           type: string
           maxLength: 2000
+    PatchedPrinterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        station:
+          type: string
+          description: Where it stands, e.g. the shop or location.
+          maxLength: 100
+        is_active:
+          type: boolean
+        is_default:
+          type: boolean
+        notes:
+          type: string
+          maxLength: 500
     PatchedPrivacyPolicyVersionRequest:
       type: object
       properties:
@@ -20002,33 +23666,6 @@ components:
         student_number:
           type: string
           maxLength: 64
-    PatchedSubjectRequest:
-      type: object
-      description: |-
-        A subject belongs to a faculty; ``major`` is an optional specialization tag.
-
-        On write, ``faculty`` is required unless ``major`` is given (the faculty is then derived from the major).
-      properties:
-        faculty:
-          type: integer
-        major:
-          type: integer
-          nullable: true
-        academic_year:
-          type: integer
-        semester:
-          type: integer
-        name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        code:
-          type: string
-          maxLength: 32
-        description:
-          type: string
-        is_active:
-          type: boolean
     PatchedSupportTicketPriorityRequest:
       type: object
       properties:
@@ -20086,6 +23723,9 @@ components:
           type: string
           nullable: true
           maxLength: 150
+        job_title:
+          type: string
+          maxLength: 120
     PaymentMethodEnum:
       enum:
       - cash
@@ -20199,6 +23839,56 @@ components:
       - name_ar
       - name_en
       - role
+    PhoneVerificationConfirmRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 6
+          pattern: ^\d{6}$
+      required:
+      - code
+    PhoneVerificationCreateRequest:
+      type: object
+      properties:
+        phone_number:
+          type: string
+          minLength: 1
+          maxLength: 32
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 128
+      required:
+      - password
+      - phone_number
+    PhoneVerificationRejectRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 255
+      required:
+      - reason
+    PhoneVerificationStatusEnum:
+      enum:
+      - pending_staff
+      - code_sent
+      - verified
+      - expired
+      - cancelled
+      - rejected
+      type: string
+      description: |-
+        * `pending_staff` - Waiting for staff
+        * `code_sent` - Code sent
+        * `verified` - Verified
+        * `expired` - Expired
+        * `cancelled` - Cancelled
+        * `rejected` - Rejected
     PolicyAcceptanceRequest:
       type: object
       properties:
@@ -20222,6 +23912,16 @@ components:
       description: |-
         * `per_copy` - A fixed price for every bound copy
         * `per_wire_kg` - By the weight of the wire used
+    PriceUnitEnum:
+      enum:
+      - per_copy
+      - per_50_sheets
+      - per_sheet
+      type: string
+      description: |-
+        * `per_copy` - Per copy
+        * `per_50_sheets` - Per 50 sheets of a copy (rounded up)
+        * `per_sheet` - Per printed sheet
     PrintBindingPrice:
       type: object
       properties:
@@ -20442,6 +24142,111 @@ components:
       required:
       - code
       - name
+    PrintExtraOption:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_deleted:
+          type: boolean
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        section:
+          $ref: '#/components/schemas/SectionEnum'
+        code:
+          type: string
+          maxLength: 48
+        name:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 500
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        price_unit:
+          $ref: '#/components/schemas/PriceUnitEnum'
+        currency:
+          type: string
+          default: SYP
+          maxLength: 8
+        color_hex:
+          type: string
+          description: 'Optional colour swatch, e.g. #1E3A8A.'
+          maxLength: 7
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_active:
+          type: boolean
+      required:
+      - code
+      - created_at
+      - deleted_at
+      - id
+      - is_deleted
+      - name
+      - section
+      - updated_at
+    PrintExtraOptionRequest:
+      type: object
+      properties:
+        section:
+          $ref: '#/components/schemas/SectionEnum'
+        code:
+          type: string
+          minLength: 1
+          maxLength: 48
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 500
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        price_unit:
+          $ref: '#/components/schemas/PriceUnitEnum'
+        currency:
+          type: string
+          minLength: 1
+          default: SYP
+          maxLength: 8
+        color_hex:
+          type: string
+          description: 'Optional colour swatch, e.g. #1E3A8A.'
+          maxLength: 7
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_active:
+          type: boolean
+      required:
+      - code
+      - name
+      - section
     PrintJob:
       type: object
       description: One finished print order as the cashier sees it.
@@ -20487,6 +24292,13 @@ components:
       - paid
       - sheets_count
       - total_price
+    PrintJobCancelRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          default: ''
+          maxLength: 255
     PrintJobStatusStatusEnum:
       enum:
       - printing
@@ -20497,6 +24309,100 @@ components:
         * `printing` - printing
         * `done` - done
         * `failed` - failed
+    PrintOptionHelp:
+      type: object
+      description: Staff view of a help entry; the image is uploaded as multipart
+        ``image`` (send an empty value to remove it).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        topic:
+          type: string
+          maxLength: 64
+        key:
+          type: string
+          description: Option code; empty = the whole topic.
+          maxLength: 64
+        title:
+          type: string
+          maxLength: 150
+        body:
+          type: string
+          description: Plain text; line breaks are kept.
+        image:
+          type: string
+          format: uri
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+          readOnly: true
+        image_caption:
+          type: string
+          maxLength: 255
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - body
+      - created_at
+      - id
+      - image_url
+      - title
+      - topic
+      - updated_at
+    PrintOptionHelpRequest:
+      type: object
+      description: Staff view of a help entry; the image is uploaded as multipart
+        ``image`` (send an empty value to remove it).
+      properties:
+        topic:
+          type: string
+          minLength: 1
+          maxLength: 64
+        key:
+          type: string
+          description: Option code; empty = the whole topic.
+          maxLength: 64
+        title:
+          type: string
+          minLength: 1
+          maxLength: 150
+        body:
+          type: string
+          minLength: 1
+          description: Plain text; line breaks are kept.
+        image:
+          type: string
+          format: binary
+          nullable: true
+        image_caption:
+          type: string
+          maxLength: 255
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_active:
+          type: boolean
+      required:
+      - body
+      - title
+      - topic
     PrintOrderCreateRequest:
       type: object
       properties:
@@ -20607,6 +24513,15 @@ components:
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
           readOnly: true
+        extras:
+          readOnly: true
+          description: 'Chosen paper option per section: {section: code}.'
+        extras_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Total of the chosen paper options for the whole item.
         product:
           type: integer
           readOnly: true
@@ -20646,6 +24561,8 @@ components:
       - cover_price
       - created_at
       - duplex_flip
+      - extras
+      - extras_price
       - file_size
       - file_type
       - has_uploaded_file
@@ -20694,6 +24611,9 @@ components:
         cover:
           type: string
           maxLength: 32
+        extras:
+          description: 'Chosen paper option per section: {section: code} (see /printing/options/
+            extras).'
         pages_per_sheet:
           allOf:
           - $ref: '#/components/schemas/PagesPerSheetEnum'
@@ -20754,6 +24674,9 @@ components:
         cover:
           type: string
           maxLength: 32
+        extras:
+          description: 'Chosen paper option per section: {section: code} (see /printing/options/
+            extras).'
         pages_per_sheet:
           allOf:
           - $ref: '#/components/schemas/PagesPerSheetEnum'
@@ -20982,6 +24905,10 @@ components:
         printer_name:
           type: string
           readOnly: true
+        printer:
+          type: integer
+          readOnly: true
+          nullable: true
         sides_printed:
           type: integer
           readOnly: true
@@ -21021,6 +24948,7 @@ components:
       - item_name
       - options
       - order_id
+      - printer
       - printer_name
       - sheets
       - sides_printed
@@ -21032,12 +24960,14 @@ components:
       - printing
       - done
       - failed
+      - cancelled
       type: string
       description: |-
         * `queued` - Queued
         * `printing` - Printing
         * `done` - Done
         * `failed` - Failed
+        * `cancelled` - Cancelled
     PrintQuote:
       type: object
       properties:
@@ -21072,6 +25002,108 @@ components:
             * `USD` - US Dollar
       required:
       - items
+    Printer:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        station:
+          type: string
+          description: Where it stands, e.g. the shop or location.
+          maxLength: 100
+        is_active:
+          type: boolean
+        is_default:
+          type: boolean
+        notes:
+          type: string
+          maxLength: 500
+        last_seen_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        last_status:
+          type: string
+          readOnly: true
+        last_detail:
+          type: string
+          readOnly: true
+        online:
+          type: boolean
+          readOnly: true
+        jobs:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - jobs
+      - last_detail
+      - last_seen_at
+      - last_status
+      - name
+      - online
+      - updated_at
+    PrinterHeartbeatRequest:
+      type: object
+      properties:
+        printer_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        status:
+          $ref: '#/components/schemas/PrinterHeartbeatStatusEnum'
+        detail:
+          type: string
+          default: ''
+          maxLength: 255
+      required:
+      - printer_name
+      - status
+    PrinterHeartbeatStatusEnum:
+      enum:
+      - idle
+      - busy
+      - error
+      type: string
+      description: |-
+        * `idle` - idle
+        * `busy` - busy
+        * `error` - error
+    PrinterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        station:
+          type: string
+          description: Where it stands, e.g. the shop or location.
+          maxLength: 100
+        is_active:
+          type: boolean
+        is_default:
+          type: boolean
+        notes:
+          type: string
+          maxLength: 500
+      required:
+      - name
     PrivacyPolicyVersion:
       type: object
       properties:
@@ -21684,6 +25716,28 @@ components:
       required:
       - item
       - quantity
+    SectionEnum:
+      enum:
+      - front_cover
+      - back_cover
+      - front_transparency_required
+      - front_transparency_optional
+      - back_transparency_required
+      - back_transparency_optional
+      - final_delivery
+      - finishing
+      - design_paper
+      type: string
+      description: |-
+        * `front_cover` - نوع الغلاف الأمامي
+        * `back_cover` - نوع الغلاف الخلفي
+        * `front_transparency_required` - الشفافية الأمامية - مطلوب
+        * `front_transparency_optional` - الشفافية الأمامية - غير مطلوبة
+        * `back_transparency_required` - الشفافية الخلفية - مطلوب
+        * `back_transparency_optional` - الشفافية الخلفية - غير مطلوبة
+        * `final_delivery` - التسليم النهائي
+        * `finishing` - الإخراج الفني
+        * `design_paper` - خدمات أخرى: نوع الورق
     SellableItem:
       type: object
       properties:
@@ -21813,7 +25867,10 @@ components:
       - purpose
     SessionVersionTokenRefreshRequest:
       type: object
-      description: Reject old refresh tokens before SimpleJWT rotates them.
+      description: |-
+        Reject old refresh tokens before SimpleJWT rotates them; students must refresh from their bound device.
+
+        ``DeviceBindingRefused`` is raised for a device mismatch; the view renders it (see ``TokenRefreshView``).
       properties:
         refresh:
           type: string
@@ -21912,6 +25969,20 @@ components:
       - max_sheets
       - min_sheets
       - weight_grams
+    StaffRevokeRequest:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          minimum: 1
+        lecture_id:
+          type: integer
+          minimum: 1
+        note:
+          type: string
+          maxLength: 200
+      required:
+      - user_id
     StockMovement:
       type: object
       properties:
@@ -22091,6 +26162,13 @@ components:
           format: date-time
           readOnly: true
           nullable: true
+        needs_term_confirmation:
+          type: boolean
+          readOnly: true
+        current_term:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -22102,6 +26180,7 @@ components:
       required:
       - academic_year_detail
       - created_at
+      - current_term
       - enrollment_year_code
       - enrollment_year_full
       - faculty_code_from_student_number
@@ -22109,6 +26188,7 @@ components:
       - has_card_image
       - id
       - major_detail
+      - needs_term_confirmation
       - semester_detail
       - student_serial_number
       - university_detail
@@ -22161,6 +26241,108 @@ components:
       - password
       - password_confirm
       - phone_number
+    StudentSubjectDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        academic_year:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        semester:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        major:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        faculty:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        in_current_term:
+          type: boolean
+          readOnly: true
+        is_enrolled:
+          type: boolean
+          readOnly: true
+        has_description:
+          type: boolean
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+      required:
+      - academic_year
+      - code
+      - description
+      - faculty
+      - has_description
+      - id
+      - in_current_term
+      - is_enrolled
+      - major
+      - name
+      - semester
+    StudentSubjectList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+        academic_year:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        semester:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        major:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        faculty:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        in_current_term:
+          type: boolean
+          readOnly: true
+        is_enrolled:
+          type: boolean
+          readOnly: true
+        has_description:
+          type: boolean
+          readOnly: true
+      required:
+      - academic_year
+      - code
+      - faculty
+      - has_description
+      - id
+      - in_current_term
+      - is_enrolled
+      - major
+      - name
+      - semester
     StudentVerificationStatusEnum:
       enum:
       - incomplete
@@ -22267,10 +26449,14 @@ components:
         semester_name:
           type: string
           readOnly: true
+        in_current_term:
+          type: boolean
+          readOnly: true
       required:
       - academic_year_name
       - code
       - id
+      - in_current_term
       - name
       - semester_name
     SubjectFaculty:
@@ -22286,6 +26472,7 @@ components:
         code:
           type: string
           readOnly: true
+          default: ''
         university:
           allOf:
           - $ref: '#/components/schemas/University'
@@ -22295,37 +26482,6 @@ components:
       - id
       - name
       - university
-    SubjectRequest:
-      type: object
-      description: |-
-        A subject belongs to a faculty; ``major`` is an optional specialization tag.
-
-        On write, ``faculty`` is required unless ``major`` is given (the faculty is then derived from the major).
-      properties:
-        faculty:
-          type: integer
-        major:
-          type: integer
-          nullable: true
-        academic_year:
-          type: integer
-        semester:
-          type: integer
-        name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        code:
-          type: string
-          maxLength: 32
-        description:
-          type: string
-        is_active:
-          type: boolean
-      required:
-      - academic_year
-      - name
-      - semester
     SupportTicketAddMessage:
       type: object
       properties:
@@ -22481,6 +26637,142 @@ components:
             minLength: 1
             maxLength: 64
           maxItems: 200
+    SystemActivity:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/ActivityUser'
+          nullable: true
+          readOnly: true
+        user_label:
+          type: string
+          readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/SystemActivityKindEnum'
+          readOnly: true
+        action_label:
+          type: string
+          readOnly: true
+        method:
+          type: string
+          readOnly: true
+        route:
+          type: string
+          readOnly: true
+        status_code:
+          type: integer
+          readOnly: true
+          nullable: true
+        object_type:
+          type: string
+          readOnly: true
+        object_id:
+          type: string
+          readOnly: true
+        ip:
+          type: string
+          readOnly: true
+        user_agent:
+          type: string
+          readOnly: true
+        duration_ms:
+          type: integer
+          readOnly: true
+          nullable: true
+        extra:
+          readOnly: true
+      required:
+      - action_label
+      - created_at
+      - duration_ms
+      - extra
+      - id
+      - ip
+      - kind
+      - method
+      - object_id
+      - object_type
+      - route
+      - status_code
+      - user
+      - user_agent
+      - user_label
+    SystemActivityKindEnum:
+      enum:
+      - request
+      - login_success
+      - login_failed
+      - logout
+      - denied
+      type: string
+      description: |-
+        * `request` - Request
+        * `login_success` - Login succeeded
+        * `login_failed` - Login failed
+        * `logout` - Logout
+        * `denied` - Denied
+    SystemActivitySummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        errors:
+          type: integer
+        failed_logins:
+          type: integer
+        active_users:
+          type: integer
+        by_kind:
+          type: object
+          additionalProperties:
+            type: integer
+        window:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+      required:
+      - active_users
+      - by_kind
+      - errors
+      - failed_logins
+      - total
+      - window
+    SystemActivityUserRollup:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/ActivityUser'
+        last_activity_at:
+          type: string
+          format: date-time
+        requests_24h:
+          type: integer
+        requests_7d:
+          type: integer
+        failed_logins_24h:
+          type: integer
+        last_action_label:
+          type: string
+        last_ip:
+          type: string
+      required:
+      - failed_logins_24h
+      - last_action_label
+      - last_activity_at
+      - last_ip
+      - requests_24h
+      - requests_7d
+      - user
     TargetUserTypeEnum:
       enum:
       - all
@@ -22495,6 +26787,21 @@ components:
         * `students` - Students
         * `verified_students` - Verified Students
         * `admins` - Admins
+    TermConfirmationRequest:
+      type: object
+      properties:
+        promoted:
+          type: boolean
+        academic_year:
+          type: integer
+          minimum: 1
+          nullable: true
+        semester:
+          type: integer
+          minimum: 1
+          nullable: true
+      required:
+      - promoted
     TermsVersion:
       type: object
       properties:
@@ -22642,6 +26949,9 @@ components:
           type: string
           nullable: true
           maxLength: 150
+        job_title:
+          type: string
+          maxLength: 120
         email:
           type: string
           format: email

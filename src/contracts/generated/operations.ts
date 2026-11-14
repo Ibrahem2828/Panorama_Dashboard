@@ -109,6 +109,15 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/auth/device/switch/",
+    "operationId": "v1_auth_device_switch_create",
+    "tags": [
+      "Auth"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "GET",
     "path": "/api/v1/auth/invitations/{token}/",
     "operationId": "v1_auth_invitations_retrieve",
@@ -177,6 +186,42 @@ export const API_OPERATIONS = [
     "operationId": "v1_auth_otp_verify_create",
     "tags": [
       "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/phone-verification/",
+    "operationId": "v1_auth_phone_verification_create",
+    "tags": [
+      "Auth"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/phone-verification/cancel/",
+    "operationId": "v1_auth_phone_verification_cancel_create",
+    "tags": [
+      "Auth"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/phone-verification/confirm/",
+    "operationId": "v1_auth_phone_verification_confirm_create",
+    "tags": [
+      "Auth"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/phone-verification/current/",
+    "operationId": "v1_auth_phone_verification_current_retrieve",
+    "tags": [
+      "Auth"
     ],
     "authenticated": true
   },
@@ -1406,6 +1451,24 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/lectures/offline-licenses/",
+    "operationId": "v1_dashboard_lectures_offline_licenses_retrieve",
+    "tags": [
+      "Dashboard lectures"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/lectures/offline-licenses/revoke/",
+    "operationId": "v1_dashboard_lectures_offline_licenses_revoke_create",
+    "tags": [
+      "Dashboard lectures"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/maintenance-modes/",
     "operationId": "v1_dashboard_maintenance_modes_list",
     "tags": [
@@ -1640,6 +1703,51 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/phone-verifications/",
+    "operationId": "v1_dashboard_phone_verifications_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/phone-verifications/{id}/",
+    "operationId": "v1_dashboard_phone_verifications_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/phone-verifications/{id}/claim/",
+    "operationId": "v1_dashboard_phone_verifications_claim_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/phone-verifications/{id}/mark-sent/",
+    "operationId": "v1_dashboard_phone_verifications_mark_sent_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/phone-verifications/{id}/reject/",
+    "operationId": "v1_dashboard_phone_verifications_reject_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/printing/binding-prices/",
     "operationId": "v1_dashboard_printing_binding_prices_list",
     "tags": [
@@ -1766,6 +1874,60 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/printing/extra-options/",
+    "operationId": "v1_dashboard_printing_extra_options_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/extra-options/",
+    "operationId": "v1_dashboard_printing_extra_options_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/extra-options/{id}/",
+    "operationId": "v1_dashboard_printing_extra_options_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/printing/extra-options/{id}/",
+    "operationId": "v1_dashboard_printing_extra_options_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/printing/extra-options/{id}/",
+    "operationId": "v1_dashboard_printing_extra_options_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/printing/extra-options/{id}/",
+    "operationId": "v1_dashboard_printing_extra_options_destroy",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/printing/jobs/",
     "operationId": "v1_dashboard_printing_jobs_list",
     "tags": [
@@ -1777,6 +1939,60 @@ export const API_OPERATIONS = [
     "method": "GET",
     "path": "/api/v1/dashboard/printing/jobs/{id}/",
     "operationId": "v1_dashboard_printing_jobs_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/option-help/",
+    "operationId": "v1_dashboard_printing_option_help_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/printing/option-help/",
+    "operationId": "v1_dashboard_printing_option_help_create",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/printing/option-help/{id}/",
+    "operationId": "v1_dashboard_printing_option_help_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/dashboard/printing/option-help/{id}/",
+    "operationId": "v1_dashboard_printing_option_help_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/dashboard/printing/option-help/{id}/",
+    "operationId": "v1_dashboard_printing_option_help_partial_update",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/dashboard/printing/option-help/{id}/",
+    "operationId": "v1_dashboard_printing_option_help_destroy",
     "tags": [
       "v1"
     ],
@@ -2738,6 +2954,24 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/users/{user_id}/account-devices/",
+    "operationId": "v1_dashboard_users_account_devices_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/users/{user_id}/account-devices/reset/",
+    "operationId": "v1_dashboard_users_account_devices_reset_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/users/{user_id}/activity/",
     "operationId": "v1_dashboard_users_activity_retrieve",
     "tags": [
@@ -3232,6 +3466,15 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/groups/{group_id}/messages/attachment-tickets/",
+    "operationId": "v1_groups_messages_attachment_tickets_create",
+    "tags": [
+      "Chat"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "GET",
     "path": "/api/v1/groups/{group_pk}/files/",
     "operationId": "v1_groups_files_list",
@@ -3430,6 +3673,42 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/lectures/{id}/offline-license/",
+    "operationId": "v1_lectures_offline_license_create",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/lectures/{id}/offline-license/",
+    "operationId": "v1_lectures_offline_license_destroy",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/lectures/{id}/offline-license/renew/",
+    "operationId": "v1_lectures_offline_license_renew_create",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/lectures/{id}/offline-package/",
+    "operationId": "v1_lectures_offline_package_retrieve",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "GET",
     "path": "/api/v1/lectures/{id}/processing-status/",
     "operationId": "v1_lectures_processing_status_retrieve",
@@ -3480,6 +3759,24 @@ export const API_OPERATIONS = [
     "operationId": "v1_lectures_viewer_session_create",
     "tags": [
       "Lecture viewer"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/lectures/offline-licenses/",
+    "operationId": "v1_lectures_offline_licenses_retrieve",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/lectures/offline-licenses/sync/",
+    "operationId": "v1_lectures_offline_licenses_sync_create",
+    "tags": [
+      "Lecture offline"
     ],
     "authenticated": true
   },
@@ -3721,6 +4018,15 @@ export const API_OPERATIONS = [
     "method": "POST",
     "path": "/api/v1/printing/items/{id}/access-ticket/",
     "operationId": "v1_printing_items_access_ticket_create",
+    "tags": [
+      "Printing"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/printing/option-help/",
+    "operationId": "v1_printing_option_help_retrieve",
     "tags": [
       "Printing"
     ],
