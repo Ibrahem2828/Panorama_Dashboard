@@ -155,7 +155,7 @@ export function LectureOfflineSummary({ lectureId }: { lectureId: number }) {
         <p className="mt-1 text-sm text-destructive" role="alert">{t("offlineLicenses.loadFailed")} <Button type="button" variant="link" size="sm" className="h-auto p-0" onClick={() => void list.refetch()}>{t("offlineLicenses.retry")}</Button></p>
       ) : (
         <>
-          <p className="mt-1 text-sm">{t("offlineLicenses.lectureCount", { licenses: formatNumber(active.length, locale), users: formatNumber(users.length, locale) })}{list.data.length >= STAFF_LIST_CAP ? ` (${t("offlineLicenses.capped", { count: STAFF_LIST_CAP })})` : ""}</p>
+          <p className="mt-1 text-sm">{active.length === 0 ? t("offlineLicenses.lectureNone") : t("offlineLicenses.lectureCount", { licenses: formatNumber(active.length, locale), users: formatNumber(users.length, locale) })}{list.data.length >= STAFF_LIST_CAP ? ` (${t("offlineLicenses.capped", { count: STAFF_LIST_CAP })})` : ""}</p>
           {users.length > 0 ? (
             <ul className="mt-2 flex flex-wrap gap-1.5">
               {users.slice(0, 12).map((id) => (
