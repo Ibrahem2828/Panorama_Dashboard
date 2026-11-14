@@ -247,7 +247,7 @@ export const RESOURCE_DEFINITIONS = {
         "type": "string",
         "input": "text",
         "format": null,
-        "required": true,
+        "required": false,
         "nullable": false,
         "readOnly": false,
         "writeOnly": false,
@@ -257,7 +257,7 @@ export const RESOURCE_DEFINITIONS = {
         "maximum": null,
         "pattern": null,
         "enum": null,
-        "defaultValue": null,
+        "defaultValue": "",
         "description": null
       },
       {
@@ -344,7 +344,7 @@ export const RESOURCE_DEFINITIONS = {
         "type": "string",
         "input": "text",
         "format": null,
-        "required": true,
+        "required": false,
         "nullable": false,
         "readOnly": false,
         "writeOnly": false,
@@ -354,7 +354,7 @@ export const RESOURCE_DEFINITIONS = {
         "maximum": null,
         "pattern": null,
         "enum": null,
-        "defaultValue": null,
+        "defaultValue": "",
         "description": null
       },
       {
@@ -2909,7 +2909,7 @@ export const RESOURCE_DEFINITIONS = {
         "type": "string",
         "input": "text",
         "format": null,
-        "required": true,
+        "required": false,
         "nullable": false,
         "readOnly": false,
         "writeOnly": false,
@@ -2919,7 +2919,7 @@ export const RESOURCE_DEFINITIONS = {
         "maximum": null,
         "pattern": null,
         "enum": null,
-        "defaultValue": null,
+        "defaultValue": "",
         "description": null
       },
       {
@@ -3419,7 +3419,7 @@ export const RESOURCE_DEFINITIONS = {
         "maximum": null,
         "pattern": null,
         "enum": null,
-        "defaultValue": null,
+        "defaultValue": true,
         "description": null
       },
       {
@@ -3747,7 +3747,7 @@ export const RESOURCE_DEFINITIONS = {
         "type": "string",
         "input": "select",
         "format": null,
-        "required": true,
+        "required": false,
         "nullable": false,
         "readOnly": false,
         "writeOnly": false,
@@ -3768,7 +3768,7 @@ export const RESOURCE_DEFINITIONS = {
         "type": "string",
         "input": "text",
         "format": null,
-        "required": true,
+        "required": false,
         "nullable": false,
         "readOnly": false,
         "writeOnly": false,
@@ -3778,7 +3778,7 @@ export const RESOURCE_DEFINITIONS = {
         "maximum": null,
         "pattern": null,
         "enum": null,
-        "defaultValue": null,
+        "defaultValue": "",
         "description": null
       },
       {
@@ -5135,6 +5135,7 @@ export const OPERATION_PATHS = {
   "v1_groups_messages_report_create": "/api/v1/groups/{group_id}/messages/{message_id}/report/",
   "v1_groups_messages_retrieve": "/api/v1/groups/{group_id}/messages/{id}/",
   "v1_groups_messages_destroy": "/api/v1/groups/{group_id}/messages/{id}/",
+  "v1_groups_messages_attachment_tickets_create": "/api/v1/groups/{group_id}/messages/attachment-tickets/",
   "v1_groups_files_list": "/api/v1/groups/{group_pk}/files/",
   "v1_groups_retrieve": "/api/v1/groups/{id}/",
   "v1_groups_join_create": "/api/v1/groups/{id}/join/",

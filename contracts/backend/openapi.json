@@ -2573,6 +2573,9 @@
                                 "inventory_item_changed",
                                 "lecture_deleted",
                                 "lecture_note_updated",
+                                "lecture_offline_license_issued",
+                                "lecture_offline_license_renewed",
+                                "lecture_offline_license_revoked",
                                 "lecture_processing_retried",
                                 "lecture_processing_updated",
                                 "lecture_updated",
@@ -2640,7 +2643,7 @@
                                 "verification_submitted"
                             ]
                         },
-                        "description": "* `user_registered` - User Registered\n* `user_invited` - User Invited\n* `user_invitation_accepted` - User Invitation Accepted\n* `user_invitation_revoked` - User Invitation Revoked\n* `user_sessions_ended` - User Sessions Ended\n* `permission_template_changed` - Permission Template Changed\n* `enrollment_submitted` - Enrollment Submitted\n* `enrollment_reviewed` - Enrollment Reviewed\n* `enrollment_cancelled` - Enrollment Cancelled\n* `enrollment_screenshot_accessed` - Enrollment Screenshot Accessed\n* `user_role_changed` - User Role Changed\n* `user_status_changed` - User Status Changed\n* `user_permission_override_changed` - User Permission Override Changed\n* `student_profile_updated` - Student Profile Updated\n* `account_locked` - Account Locked After Failed Logins\n* `account_login_unlocked` - Account Login Unlocked\n* `password_changed` - Password Changed\n* `password_reset_completed` - Password Reset Completed\n* `otp_sent` - OTP Sent\n* `otp_verified` - OTP Verified\n* `otp_failed` - OTP Failed\n* `verification_submitted` - Verification Submitted\n* `verification_approved` - Verification Approved\n* `verification_rejected` - Verification Rejected\n* `verification_needs_update` - Verification Needs Update\n* `verification_card_accessed` - Verification Card Accessed\n* `group_created` - Group Created\n* `group_updated` - Group Updated\n* `group_deleted` - Group Deleted\n* `group_membership_approved` - Group Membership Approved\n* `group_membership_rejected` - Group Membership Rejected\n* `group_membership_blocked` - Group Membership Blocked\n* `group_external_channel_updated` - External Channel Updated\n* `group_external_channel_ticket_issued` - External Channel Ticket Issued\n* `group_external_channel_opened` - External Channel Opened\n* `file_uploaded` - File Uploaded\n* `file_updated` - File Updated\n* `file_deleted` - File Deleted\n* `file_access_ticket_issued` - File Access Ticket Issued\n* `lecture_uploaded` - Lecture Uploaded\n* `lecture_processing_updated` - Lecture Processing Updated\n* `lecture_viewed` - Lecture Viewed\n* `lecture_note_updated` - Lecture Note Updated\n* `lecture_updated` - Lecture Updated\n* `lecture_deleted` - Lecture Deleted\n* `lecture_processing_retried` - Lecture Processing Retried\n* `announcement_created` - Announcement Created\n* `announcement_updated` - Announcement Updated\n* `announcement_deleted` - Announcement Deleted\n* `print_order_created` - Print Order Created\n* `print_order_status_changed` - Print Order Status Changed\n* `print_order_assigned` - Print Order Assigned\n* `print_order_note_updated` - Print Order Note Updated\n* `print_pricing_changed` - Print Pricing Changed\n* `print_job_created` - Print Job Created\n* `print_job_status_changed` - Print Job Status Changed\n* `print_job_cancelled` - Print Job Cancelled\n* `printer_changed` - Printer Changed\n* `print_file_prepared` - Print-ready File Prepared\n* `stationery_sale_recorded` - Stationery Sale Recorded\n* `finance_rate_changed` - Exchange Rate Changed\n* `finance_expense_changed` - Expense Changed\n* `inventory_item_changed` - Inventory Item Changed\n* `stock_movement_recorded` - Stock Movement Recorded\n* `payment_recorded` - Payment Recorded\n* `payment_voided` - Payment Voided\n* `support_ticket_created` - Support Ticket Created\n* `support_ticket_status_changed` - Support Ticket Status Changed\n* `support_ticket_assigned` - Support Ticket Assigned\n* `support_ticket_priority_changed` - Support Ticket Priority Changed\n* `message_deleted` - Message Deleted\n* `message_report_resolved` - Message Report Resolved\n* `feedback_submitted` - Feedback Submitted\n* `feedback_workflow_updated` - Feedback Workflow Updated\n* `feedback_privacy_requested` - Feedback Privacy Requested\n* `mobile_release_policy_updated` - Mobile Release Policy Updated\n* `maintenance_mode_updated` - Maintenance Mode Updated\n* `feature_flag_updated` - Feature Flag Updated\n* `device_installation_registered` - Device Installation Registered\n* `device_installation_revoked` - Device Installation Revoked\n* `policy_accepted` - Policy Accepted\n* `account_deletion_requested` - Account Deletion Requested\n* `account_deletion_cancelled` - Account Deletion Cancelled\n* `account_deletion_completed` - Account Deletion Completed\n* `notification_campaign_created` - Notification Campaign Created\n* `academic_entity_created` - Academic Entity Created\n* `academic_entity_updated` - Academic Entity Updated\n* `academic_entity_deleted` - Academic Entity Deleted\n* `policy_version_published` - Policy Version Published\n* `policy_version_updated` - Policy Version Updated\n* `policy_version_unpublished` - Policy Version Unpublished\n* `current_term_changed` - Current Term Changed\n* `term_ended` - Term Ended\n* `term_rollover_undone` - Term Rollover Undone\n* `term_whatsapp_list_exported` - Term WhatsApp Removal List Exported\n* `student_term_confirmed` - Student Term Confirmed\n* `group_members_exported` - Group Members Exported\n* `user_profile_updated` - User Profile Updated\n* `account_device_bound` - Account Device Bound\n* `account_device_mismatch` - Account Device Mismatch\n* `account_device_switched` - Account Device Switched\n* `account_device_switch_refused` - Account Device Switch Refused\n* `account_device_reset` - Account Device Reset\n* `phone_verification_requested` - Phone Verification Requested\n* `phone_verification_code_issued` - Phone Verification Code Issued\n* `phone_verification_code_sent` - Phone Verification Code Sent\n* `phone_verification_verified` - Phone Verification Verified\n* `phone_verification_failed` - Phone Verification Failed\n* `phone_verification_rejected` - Phone Verification Rejected\n* `phone_verification_cancelled` - Phone Verification Cancelled\n* `phone_verification_expired` - Phone Verification Expired\n* `community_auto_joined` - Community Auto Joined"
+                        "description": "* `user_registered` - User Registered\n* `user_invited` - User Invited\n* `user_invitation_accepted` - User Invitation Accepted\n* `user_invitation_revoked` - User Invitation Revoked\n* `user_sessions_ended` - User Sessions Ended\n* `permission_template_changed` - Permission Template Changed\n* `enrollment_submitted` - Enrollment Submitted\n* `enrollment_reviewed` - Enrollment Reviewed\n* `enrollment_cancelled` - Enrollment Cancelled\n* `enrollment_screenshot_accessed` - Enrollment Screenshot Accessed\n* `user_role_changed` - User Role Changed\n* `user_status_changed` - User Status Changed\n* `user_permission_override_changed` - User Permission Override Changed\n* `student_profile_updated` - Student Profile Updated\n* `account_locked` - Account Locked After Failed Logins\n* `account_login_unlocked` - Account Login Unlocked\n* `password_changed` - Password Changed\n* `password_reset_completed` - Password Reset Completed\n* `otp_sent` - OTP Sent\n* `otp_verified` - OTP Verified\n* `otp_failed` - OTP Failed\n* `verification_submitted` - Verification Submitted\n* `verification_approved` - Verification Approved\n* `verification_rejected` - Verification Rejected\n* `verification_needs_update` - Verification Needs Update\n* `verification_card_accessed` - Verification Card Accessed\n* `group_created` - Group Created\n* `group_updated` - Group Updated\n* `group_deleted` - Group Deleted\n* `group_membership_approved` - Group Membership Approved\n* `group_membership_rejected` - Group Membership Rejected\n* `group_membership_blocked` - Group Membership Blocked\n* `group_external_channel_updated` - External Channel Updated\n* `group_external_channel_ticket_issued` - External Channel Ticket Issued\n* `group_external_channel_opened` - External Channel Opened\n* `file_uploaded` - File Uploaded\n* `file_updated` - File Updated\n* `file_deleted` - File Deleted\n* `file_access_ticket_issued` - File Access Ticket Issued\n* `lecture_uploaded` - Lecture Uploaded\n* `lecture_processing_updated` - Lecture Processing Updated\n* `lecture_viewed` - Lecture Viewed\n* `lecture_note_updated` - Lecture Note Updated\n* `lecture_updated` - Lecture Updated\n* `lecture_deleted` - Lecture Deleted\n* `lecture_processing_retried` - Lecture Processing Retried\n* `lecture_offline_license_issued` - Lecture Offline License Issued\n* `lecture_offline_license_renewed` - Lecture Offline License Renewed\n* `lecture_offline_license_revoked` - Lecture Offline License Revoked\n* `announcement_created` - Announcement Created\n* `announcement_updated` - Announcement Updated\n* `announcement_deleted` - Announcement Deleted\n* `print_order_created` - Print Order Created\n* `print_order_status_changed` - Print Order Status Changed\n* `print_order_assigned` - Print Order Assigned\n* `print_order_note_updated` - Print Order Note Updated\n* `print_pricing_changed` - Print Pricing Changed\n* `print_job_created` - Print Job Created\n* `print_job_status_changed` - Print Job Status Changed\n* `print_job_cancelled` - Print Job Cancelled\n* `printer_changed` - Printer Changed\n* `print_file_prepared` - Print-ready File Prepared\n* `stationery_sale_recorded` - Stationery Sale Recorded\n* `finance_rate_changed` - Exchange Rate Changed\n* `finance_expense_changed` - Expense Changed\n* `inventory_item_changed` - Inventory Item Changed\n* `stock_movement_recorded` - Stock Movement Recorded\n* `payment_recorded` - Payment Recorded\n* `payment_voided` - Payment Voided\n* `support_ticket_created` - Support Ticket Created\n* `support_ticket_status_changed` - Support Ticket Status Changed\n* `support_ticket_assigned` - Support Ticket Assigned\n* `support_ticket_priority_changed` - Support Ticket Priority Changed\n* `message_deleted` - Message Deleted\n* `message_report_resolved` - Message Report Resolved\n* `feedback_submitted` - Feedback Submitted\n* `feedback_workflow_updated` - Feedback Workflow Updated\n* `feedback_privacy_requested` - Feedback Privacy Requested\n* `mobile_release_policy_updated` - Mobile Release Policy Updated\n* `maintenance_mode_updated` - Maintenance Mode Updated\n* `feature_flag_updated` - Feature Flag Updated\n* `device_installation_registered` - Device Installation Registered\n* `device_installation_revoked` - Device Installation Revoked\n* `policy_accepted` - Policy Accepted\n* `account_deletion_requested` - Account Deletion Requested\n* `account_deletion_cancelled` - Account Deletion Cancelled\n* `account_deletion_completed` - Account Deletion Completed\n* `notification_campaign_created` - Notification Campaign Created\n* `academic_entity_created` - Academic Entity Created\n* `academic_entity_updated` - Academic Entity Updated\n* `academic_entity_deleted` - Academic Entity Deleted\n* `policy_version_published` - Policy Version Published\n* `policy_version_updated` - Policy Version Updated\n* `policy_version_unpublished` - Policy Version Unpublished\n* `current_term_changed` - Current Term Changed\n* `term_ended` - Term Ended\n* `term_rollover_undone` - Term Rollover Undone\n* `term_whatsapp_list_exported` - Term WhatsApp Removal List Exported\n* `student_term_confirmed` - Student Term Confirmed\n* `group_members_exported` - Group Members Exported\n* `user_profile_updated` - User Profile Updated\n* `account_device_bound` - Account Device Bound\n* `account_device_mismatch` - Account Device Mismatch\n* `account_device_switched` - Account Device Switched\n* `account_device_switch_refused` - Account Device Switch Refused\n* `account_device_reset` - Account Device Reset\n* `phone_verification_requested` - Phone Verification Requested\n* `phone_verification_code_issued` - Phone Verification Code Issued\n* `phone_verification_code_sent` - Phone Verification Code Sent\n* `phone_verification_verified` - Phone Verification Verified\n* `phone_verification_failed` - Phone Verification Failed\n* `phone_verification_rejected` - Phone Verification Rejected\n* `phone_verification_cancelled` - Phone Verification Cancelled\n* `phone_verification_expired` - Phone Verification Expired\n* `community_auto_joined` - Community Auto Joined"
                     },
                     {
                         "in": "query",
@@ -8590,6 +8593,85 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/DashboardLecture"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/lectures/offline-licenses/": {
+            "get": {
+                "operationId": "v1_dashboard_lectures_offline_licenses_retrieve",
+                "description": "Staff view of one student's (or one lecture's) offline licenses. Capability: ``lectures.manage``.",
+                "tags": [
+                    "Dashboard lectures"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/lectures/offline-licenses/revoke/": {
+            "post": {
+                "operationId": "v1_dashboard_lectures_offline_licenses_revoke_create",
+                "tags": [
+                    "Dashboard lectures"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StaffRevokeRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StaffRevokeRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StaffRevokeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
                                 }
                             }
                         },
@@ -20256,6 +20338,66 @@
                 }
             }
         },
+        "/api/v1/groups/{group_id}/messages/attachment-tickets/": {
+            "post": {
+                "operationId": "v1_groups_messages_attachment_tickets_create",
+                "description": "Tickets for up to ``BATCH_TICKET_LIMIT`` messages at once, so a screen of thumbnails costs one request.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "group_id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AttachmentTicketBatchRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AttachmentTicketBatchRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AttachmentTicketBatchRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/groups/{group_pk}/files/": {
             "get": {
                 "operationId": "v1_groups_files_list",
@@ -21279,6 +21421,169 @@
                 }
             }
         },
+        "/api/v1/lectures/{id}/offline-license/": {
+            "post": {
+                "operationId": "v1_lectures_offline_license_create",
+                "description": "``POST`` issues or refreshes the license for this device and returns the content key; ``DELETE`` releases it.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Lecture offline"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "v1_lectures_offline_license_destroy",
+                "description": "``POST`` issues or refreshes the license for this device and returns the content key; ``DELETE`` releases it.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Lecture offline"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/lectures/{id}/offline-license/renew/": {
+            "post": {
+                "operationId": "v1_lectures_offline_license_renew_create",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Lecture offline"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/lectures/{id}/offline-package/": {
+            "get": {
+                "operationId": "v1_lectures_offline_package_retrieve",
+                "description": "Streams the AES-GCM *ciphertext* package. Plaintext never leaves the server on this route.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Lecture offline"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Encrypted package"
+                    },
+                    "206": {
+                        "description": "Range"
+                    }
+                }
+            }
+        },
         "/api/v1/lectures/{id}/processing-status/": {
             "get": {
                 "operationId": "v1_lectures_processing_status_retrieve",
@@ -21508,6 +21813,85 @@
                 ],
                 "responses": {
                     "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/lectures/offline-licenses/": {
+            "get": {
+                "operationId": "v1_lectures_offline_licenses_retrieve",
+                "description": "The caller's licenses on this device (state included) so the app can see what must be purged.",
+                "tags": [
+                    "Lecture offline"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/lectures/offline-licenses/sync/": {
+            "post": {
+                "operationId": "v1_lectures_offline_licenses_sync_create",
+                "tags": [
+                    "Lecture offline"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OfflineSyncRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OfflineSyncRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OfflineSyncRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -23187,6 +23571,14 @@
                             "format": "uuid"
                         },
                         "required": true
+                    },
+                    {
+                        "in": "query",
+                        "name": "variant",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "`thumb` for the <=480px WebP preview of an image."
                     }
                 ],
                 "tags": [
@@ -23203,6 +23595,15 @@
                 "responses": {
                     "200": {
                         "description": "Inline chat attachment"
+                    },
+                    "206": {
+                        "description": "Byte range of the attachment (audio seeking)"
+                    },
+                    "304": {
+                        "description": "Unchanged (If-None-Match)"
+                    },
+                    "416": {
+                        "description": "Range not satisfiable"
                     }
                 }
             }
@@ -25143,6 +25544,22 @@
                     "kind"
                 ]
             },
+            "AttachmentTicketBatchRequest": {
+                "type": "object",
+                "properties": {
+                    "message_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        "maxItems": 20
+                    }
+                },
+                "required": [
+                    "message_ids"
+                ]
+            },
             "AuditLog": {
                 "type": "object",
                 "properties": {
@@ -25285,6 +25702,9 @@
                     "lecture_updated",
                     "lecture_deleted",
                     "lecture_processing_retried",
+                    "lecture_offline_license_issued",
+                    "lecture_offline_license_renewed",
+                    "lecture_offline_license_revoked",
                     "announcement_created",
                     "announcement_updated",
                     "announcement_deleted",
@@ -25353,7 +25773,7 @@
                     "community_auto_joined"
                 ],
                 "type": "string",
-                "description": "* `user_registered` - User Registered\n* `user_invited` - User Invited\n* `user_invitation_accepted` - User Invitation Accepted\n* `user_invitation_revoked` - User Invitation Revoked\n* `user_sessions_ended` - User Sessions Ended\n* `permission_template_changed` - Permission Template Changed\n* `enrollment_submitted` - Enrollment Submitted\n* `enrollment_reviewed` - Enrollment Reviewed\n* `enrollment_cancelled` - Enrollment Cancelled\n* `enrollment_screenshot_accessed` - Enrollment Screenshot Accessed\n* `user_role_changed` - User Role Changed\n* `user_status_changed` - User Status Changed\n* `user_permission_override_changed` - User Permission Override Changed\n* `student_profile_updated` - Student Profile Updated\n* `account_locked` - Account Locked After Failed Logins\n* `account_login_unlocked` - Account Login Unlocked\n* `password_changed` - Password Changed\n* `password_reset_completed` - Password Reset Completed\n* `otp_sent` - OTP Sent\n* `otp_verified` - OTP Verified\n* `otp_failed` - OTP Failed\n* `verification_submitted` - Verification Submitted\n* `verification_approved` - Verification Approved\n* `verification_rejected` - Verification Rejected\n* `verification_needs_update` - Verification Needs Update\n* `verification_card_accessed` - Verification Card Accessed\n* `group_created` - Group Created\n* `group_updated` - Group Updated\n* `group_deleted` - Group Deleted\n* `group_membership_approved` - Group Membership Approved\n* `group_membership_rejected` - Group Membership Rejected\n* `group_membership_blocked` - Group Membership Blocked\n* `group_external_channel_updated` - External Channel Updated\n* `group_external_channel_ticket_issued` - External Channel Ticket Issued\n* `group_external_channel_opened` - External Channel Opened\n* `file_uploaded` - File Uploaded\n* `file_updated` - File Updated\n* `file_deleted` - File Deleted\n* `file_access_ticket_issued` - File Access Ticket Issued\n* `lecture_uploaded` - Lecture Uploaded\n* `lecture_processing_updated` - Lecture Processing Updated\n* `lecture_viewed` - Lecture Viewed\n* `lecture_note_updated` - Lecture Note Updated\n* `lecture_updated` - Lecture Updated\n* `lecture_deleted` - Lecture Deleted\n* `lecture_processing_retried` - Lecture Processing Retried\n* `announcement_created` - Announcement Created\n* `announcement_updated` - Announcement Updated\n* `announcement_deleted` - Announcement Deleted\n* `print_order_created` - Print Order Created\n* `print_order_status_changed` - Print Order Status Changed\n* `print_order_assigned` - Print Order Assigned\n* `print_order_note_updated` - Print Order Note Updated\n* `print_pricing_changed` - Print Pricing Changed\n* `print_job_created` - Print Job Created\n* `print_job_status_changed` - Print Job Status Changed\n* `print_job_cancelled` - Print Job Cancelled\n* `printer_changed` - Printer Changed\n* `print_file_prepared` - Print-ready File Prepared\n* `stationery_sale_recorded` - Stationery Sale Recorded\n* `finance_rate_changed` - Exchange Rate Changed\n* `finance_expense_changed` - Expense Changed\n* `inventory_item_changed` - Inventory Item Changed\n* `stock_movement_recorded` - Stock Movement Recorded\n* `payment_recorded` - Payment Recorded\n* `payment_voided` - Payment Voided\n* `support_ticket_created` - Support Ticket Created\n* `support_ticket_status_changed` - Support Ticket Status Changed\n* `support_ticket_assigned` - Support Ticket Assigned\n* `support_ticket_priority_changed` - Support Ticket Priority Changed\n* `message_deleted` - Message Deleted\n* `message_report_resolved` - Message Report Resolved\n* `feedback_submitted` - Feedback Submitted\n* `feedback_workflow_updated` - Feedback Workflow Updated\n* `feedback_privacy_requested` - Feedback Privacy Requested\n* `mobile_release_policy_updated` - Mobile Release Policy Updated\n* `maintenance_mode_updated` - Maintenance Mode Updated\n* `feature_flag_updated` - Feature Flag Updated\n* `device_installation_registered` - Device Installation Registered\n* `device_installation_revoked` - Device Installation Revoked\n* `policy_accepted` - Policy Accepted\n* `account_deletion_requested` - Account Deletion Requested\n* `account_deletion_cancelled` - Account Deletion Cancelled\n* `account_deletion_completed` - Account Deletion Completed\n* `notification_campaign_created` - Notification Campaign Created\n* `academic_entity_created` - Academic Entity Created\n* `academic_entity_updated` - Academic Entity Updated\n* `academic_entity_deleted` - Academic Entity Deleted\n* `policy_version_published` - Policy Version Published\n* `policy_version_updated` - Policy Version Updated\n* `policy_version_unpublished` - Policy Version Unpublished\n* `current_term_changed` - Current Term Changed\n* `term_ended` - Term Ended\n* `term_rollover_undone` - Term Rollover Undone\n* `term_whatsapp_list_exported` - Term WhatsApp Removal List Exported\n* `student_term_confirmed` - Student Term Confirmed\n* `group_members_exported` - Group Members Exported\n* `user_profile_updated` - User Profile Updated\n* `account_device_bound` - Account Device Bound\n* `account_device_mismatch` - Account Device Mismatch\n* `account_device_switched` - Account Device Switched\n* `account_device_switch_refused` - Account Device Switch Refused\n* `account_device_reset` - Account Device Reset\n* `phone_verification_requested` - Phone Verification Requested\n* `phone_verification_code_issued` - Phone Verification Code Issued\n* `phone_verification_code_sent` - Phone Verification Code Sent\n* `phone_verification_verified` - Phone Verification Verified\n* `phone_verification_failed` - Phone Verification Failed\n* `phone_verification_rejected` - Phone Verification Rejected\n* `phone_verification_cancelled` - Phone Verification Cancelled\n* `phone_verification_expired` - Phone Verification Expired\n* `community_auto_joined` - Community Auto Joined"
+                "description": "* `user_registered` - User Registered\n* `user_invited` - User Invited\n* `user_invitation_accepted` - User Invitation Accepted\n* `user_invitation_revoked` - User Invitation Revoked\n* `user_sessions_ended` - User Sessions Ended\n* `permission_template_changed` - Permission Template Changed\n* `enrollment_submitted` - Enrollment Submitted\n* `enrollment_reviewed` - Enrollment Reviewed\n* `enrollment_cancelled` - Enrollment Cancelled\n* `enrollment_screenshot_accessed` - Enrollment Screenshot Accessed\n* `user_role_changed` - User Role Changed\n* `user_status_changed` - User Status Changed\n* `user_permission_override_changed` - User Permission Override Changed\n* `student_profile_updated` - Student Profile Updated\n* `account_locked` - Account Locked After Failed Logins\n* `account_login_unlocked` - Account Login Unlocked\n* `password_changed` - Password Changed\n* `password_reset_completed` - Password Reset Completed\n* `otp_sent` - OTP Sent\n* `otp_verified` - OTP Verified\n* `otp_failed` - OTP Failed\n* `verification_submitted` - Verification Submitted\n* `verification_approved` - Verification Approved\n* `verification_rejected` - Verification Rejected\n* `verification_needs_update` - Verification Needs Update\n* `verification_card_accessed` - Verification Card Accessed\n* `group_created` - Group Created\n* `group_updated` - Group Updated\n* `group_deleted` - Group Deleted\n* `group_membership_approved` - Group Membership Approved\n* `group_membership_rejected` - Group Membership Rejected\n* `group_membership_blocked` - Group Membership Blocked\n* `group_external_channel_updated` - External Channel Updated\n* `group_external_channel_ticket_issued` - External Channel Ticket Issued\n* `group_external_channel_opened` - External Channel Opened\n* `file_uploaded` - File Uploaded\n* `file_updated` - File Updated\n* `file_deleted` - File Deleted\n* `file_access_ticket_issued` - File Access Ticket Issued\n* `lecture_uploaded` - Lecture Uploaded\n* `lecture_processing_updated` - Lecture Processing Updated\n* `lecture_viewed` - Lecture Viewed\n* `lecture_note_updated` - Lecture Note Updated\n* `lecture_updated` - Lecture Updated\n* `lecture_deleted` - Lecture Deleted\n* `lecture_processing_retried` - Lecture Processing Retried\n* `lecture_offline_license_issued` - Lecture Offline License Issued\n* `lecture_offline_license_renewed` - Lecture Offline License Renewed\n* `lecture_offline_license_revoked` - Lecture Offline License Revoked\n* `announcement_created` - Announcement Created\n* `announcement_updated` - Announcement Updated\n* `announcement_deleted` - Announcement Deleted\n* `print_order_created` - Print Order Created\n* `print_order_status_changed` - Print Order Status Changed\n* `print_order_assigned` - Print Order Assigned\n* `print_order_note_updated` - Print Order Note Updated\n* `print_pricing_changed` - Print Pricing Changed\n* `print_job_created` - Print Job Created\n* `print_job_status_changed` - Print Job Status Changed\n* `print_job_cancelled` - Print Job Cancelled\n* `printer_changed` - Printer Changed\n* `print_file_prepared` - Print-ready File Prepared\n* `stationery_sale_recorded` - Stationery Sale Recorded\n* `finance_rate_changed` - Exchange Rate Changed\n* `finance_expense_changed` - Expense Changed\n* `inventory_item_changed` - Inventory Item Changed\n* `stock_movement_recorded` - Stock Movement Recorded\n* `payment_recorded` - Payment Recorded\n* `payment_voided` - Payment Voided\n* `support_ticket_created` - Support Ticket Created\n* `support_ticket_status_changed` - Support Ticket Status Changed\n* `support_ticket_assigned` - Support Ticket Assigned\n* `support_ticket_priority_changed` - Support Ticket Priority Changed\n* `message_deleted` - Message Deleted\n* `message_report_resolved` - Message Report Resolved\n* `feedback_submitted` - Feedback Submitted\n* `feedback_workflow_updated` - Feedback Workflow Updated\n* `feedback_privacy_requested` - Feedback Privacy Requested\n* `mobile_release_policy_updated` - Mobile Release Policy Updated\n* `maintenance_mode_updated` - Maintenance Mode Updated\n* `feature_flag_updated` - Feature Flag Updated\n* `device_installation_registered` - Device Installation Registered\n* `device_installation_revoked` - Device Installation Revoked\n* `policy_accepted` - Policy Accepted\n* `account_deletion_requested` - Account Deletion Requested\n* `account_deletion_cancelled` - Account Deletion Cancelled\n* `account_deletion_completed` - Account Deletion Completed\n* `notification_campaign_created` - Notification Campaign Created\n* `academic_entity_created` - Academic Entity Created\n* `academic_entity_updated` - Academic Entity Updated\n* `academic_entity_deleted` - Academic Entity Deleted\n* `policy_version_published` - Policy Version Published\n* `policy_version_updated` - Policy Version Updated\n* `policy_version_unpublished` - Policy Version Unpublished\n* `current_term_changed` - Current Term Changed\n* `term_ended` - Term Ended\n* `term_rollover_undone` - Term Rollover Undone\n* `term_whatsapp_list_exported` - Term WhatsApp Removal List Exported\n* `student_term_confirmed` - Student Term Confirmed\n* `group_members_exported` - Group Members Exported\n* `user_profile_updated` - User Profile Updated\n* `account_device_bound` - Account Device Bound\n* `account_device_mismatch` - Account Device Mismatch\n* `account_device_switched` - Account Device Switched\n* `account_device_switch_refused` - Account Device Switch Refused\n* `account_device_reset` - Account Device Reset\n* `phone_verification_requested` - Phone Verification Requested\n* `phone_verification_code_issued` - Phone Verification Code Issued\n* `phone_verification_code_sent` - Phone Verification Code Sent\n* `phone_verification_verified` - Phone Verification Verified\n* `phone_verification_failed` - Phone Verification Failed\n* `phone_verification_rejected` - Phone Verification Rejected\n* `phone_verification_cancelled` - Phone Verification Cancelled\n* `phone_verification_expired` - Phone Verification Expired\n* `community_auto_joined` - Community Auto Joined"
             },
             "AvailableGroup": {
                 "type": "object",
@@ -26712,6 +27132,7 @@
                     },
                     "action_key": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 100
                     },
                     "title": {
@@ -26778,7 +27199,6 @@
                     }
                 },
                 "required": [
-                    "action_key",
                     "context",
                     "created_at",
                     "id",
@@ -26795,6 +27215,7 @@
                     },
                     "action_key": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 100
                     },
                     "title": {
@@ -26853,7 +27274,6 @@
                     "verification_statuses": {}
                 },
                 "required": [
-                    "action_key",
                     "context",
                     "question",
                     "title"
@@ -27249,6 +27669,20 @@
                         "type": "string",
                         "readOnly": true
                     },
+                    "message_type": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "attachment_meta": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
+                    },
+                    "attachment_ticket_endpoint": {
+                        "type": "string",
+                        "nullable": true,
+                        "readOnly": true
+                    },
                     "message_is_deleted": {
                         "type": "boolean",
                         "readOnly": true
@@ -27274,6 +27708,8 @@
                     }
                 },
                 "required": [
+                    "attachment_meta",
+                    "attachment_ticket_endpoint",
                     "created_at",
                     "group_id",
                     "group_name",
@@ -27282,6 +27718,7 @@
                     "message_id",
                     "message_is_deleted",
                     "message_sender_id",
+                    "message_type",
                     "reason",
                     "reporter_id",
                     "resolution_note",
@@ -28927,6 +29364,7 @@
                     },
                     "code": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 32
                     },
                     "is_active": {
@@ -28944,7 +29382,6 @@
                     }
                 },
                 "required": [
-                    "code",
                     "created_at",
                     "id",
                     "name",
@@ -28966,6 +29403,7 @@
                     },
                     "code": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 32
                     },
                     "is_active": {
@@ -28973,7 +29411,6 @@
                     }
                 },
                 "required": [
-                    "code",
                     "name",
                     "university"
                 ]
@@ -28994,6 +29431,7 @@
                         "type": "boolean"
                     },
                     "platform": {
+                        "default": "",
                         "oneOf": [
                             {
                                 "$ref": "#/components/schemas/MobilePlatformEnum"
@@ -29005,6 +29443,7 @@
                     },
                     "role": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 32
                     },
                     "expose_to_mobile": {
@@ -29023,8 +29462,6 @@
                 "required": [
                     "id",
                     "key",
-                    "platform",
-                    "role",
                     "updated_at"
                 ]
             },
@@ -29041,6 +29478,7 @@
                         "type": "boolean"
                     },
                     "platform": {
+                        "default": "",
                         "oneOf": [
                             {
                                 "$ref": "#/components/schemas/MobilePlatformEnum"
@@ -29052,6 +29490,7 @@
                     },
                     "role": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 32
                     },
                     "expose_to_mobile": {
@@ -29063,9 +29502,7 @@
                     }
                 },
                 "required": [
-                    "key",
-                    "platform",
-                    "role"
+                    "key"
                 ]
             },
             "FeedbackKindEnum": {
@@ -29163,7 +29600,8 @@
                     },
                     "action_key": {
                         "type": "string",
-                        "readOnly": true
+                        "readOnly": true,
+                        "default": ""
                     },
                     "title": {
                         "type": "string",
@@ -30541,6 +30979,7 @@
                     },
                     "code": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 32
                     },
                     "is_active": {
@@ -30558,7 +30997,6 @@
                     }
                 },
                 "required": [
-                    "code",
                     "created_at",
                     "faculty",
                     "faculty_name",
@@ -30581,6 +31019,7 @@
                     },
                     "code": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 32
                     },
                     "is_active": {
@@ -30588,7 +31027,6 @@
                     }
                 },
                 "required": [
-                    "code",
                     "faculty",
                     "name"
                 ]
@@ -30733,6 +31171,22 @@
                     "reply_to": {
                         "type": "integer",
                         "nullable": true
+                    },
+                    "duration_ms": {
+                        "type": "integer",
+                        "maximum": 86400000,
+                        "minimum": 0,
+                        "nullable": true
+                    },
+                    "waveform": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 255
+                        },
+                        "maxItems": 128,
+                        "nullable": true
                     }
                 }
             },
@@ -30841,10 +31295,12 @@
                     "text",
                     "image",
                     "file",
+                    "voice",
+                    "audio",
                     "system"
                 ],
                 "type": "string",
-                "description": "* `text` - Text\n* `image` - Image\n* `file` - File\n* `system` - System"
+                "description": "* `text` - Text\n* `image` - Image\n* `file` - File\n* `voice` - Voice note\n* `audio` - Audio file\n* `system` - System"
             },
             "MetricTypeEnum": {
                 "enum": [
@@ -30915,7 +31371,8 @@
                         "nullable": true
                     },
                     "is_active": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": true
                     },
                     "emergency_update_bypass": {
                         "type": "boolean"
@@ -30988,7 +31445,8 @@
                         "nullable": true
                     },
                     "is_active": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": true
                     },
                     "emergency_update_bypass": {
                         "type": "boolean"
@@ -31579,6 +32037,23 @@
                 },
                 "required": [
                     "updated_at"
+                ]
+            },
+            "OfflineSyncRequest": {
+                "type": "object",
+                "properties": {
+                    "license_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64
+                        },
+                        "maxItems": 500
+                    }
+                },
+                "required": [
+                    "license_ids"
                 ]
             },
             "OrderPayment": {
@@ -33530,6 +34005,7 @@
                     },
                     "action_key": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 100
                     },
                     "title": {
@@ -33861,6 +34337,7 @@
                     },
                     "code": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 32
                     },
                     "is_active": {
@@ -33881,6 +34358,7 @@
                         "type": "boolean"
                     },
                     "platform": {
+                        "default": "",
                         "oneOf": [
                             {
                                 "$ref": "#/components/schemas/MobilePlatformEnum"
@@ -33892,6 +34370,7 @@
                     },
                     "role": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 32
                     },
                     "expose_to_mobile": {
@@ -34212,6 +34691,7 @@
                     },
                     "code": {
                         "type": "string",
+                        "default": "",
                         "maxLength": 32
                     },
                     "is_active": {
@@ -34274,7 +34754,8 @@
                         "nullable": true
                     },
                     "is_active": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": true
                     },
                     "emergency_update_bypass": {
                         "type": "boolean"
@@ -37860,6 +38341,26 @@
                     "weight_grams"
                 ]
             },
+            "StaffRevokeRequest": {
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "lecture_id": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "note": {
+                        "type": "string",
+                        "maxLength": 200
+                    }
+                },
+                "required": [
+                    "user_id"
+                ]
+            },
             "StockMovement": {
                 "type": "object",
                 "properties": {
@@ -38496,7 +38997,8 @@
                     },
                     "code": {
                         "type": "string",
-                        "readOnly": true
+                        "readOnly": true,
+                        "default": ""
                     },
                     "university": {
                         "allOf": [

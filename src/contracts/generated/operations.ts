@@ -3466,6 +3466,15 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/groups/{group_id}/messages/attachment-tickets/",
+    "operationId": "v1_groups_messages_attachment_tickets_create",
+    "tags": [
+      "Chat"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "GET",
     "path": "/api/v1/groups/{group_pk}/files/",
     "operationId": "v1_groups_files_list",
