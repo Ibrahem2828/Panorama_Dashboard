@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   BODY_MAX, BODY_NEAR, IMAGE_MAX_BYTES, TITLE_MAX,
   bodyGuidance, emptyForm, extraSectionLabelKey, filterRows, formFromRow, groupByTopic, groupOfTopic, helpFields, helpProblems,
-  imageProblem, isValidTopic, keyHints, missingKeys, multipartEntries, optionHelpPath, parseOptionHelp, previewParagraphs, topicChoices,
+  helpImageSrc, imageProblem, isValidTopic, keyHints, missingKeys, multipartEntries, optionHelpPath, parseOptionHelp, previewParagraphs, topicChoices,
   type OptionHelpRow,
 } from "@/features/printing/option-help-rules";
 import { CATALOG_SECTIONS, resolveSection } from "@/features/printing/printing-home-rules";
@@ -50,10 +50,20 @@ describe("key hints", () => {
   });
 });
 
+describe("helpImageSrc", () => {
+  it("routes the picture through the same-origin BFF and keeps the cache buster", () => {
+    expect(helpImageSrc(7, "https://api.example/api/v1/printing/option-help/7/image/?v=1700000000")).toBe("/api/backend/api/v1/printing/option-help/7/image/?v=1700000000");
+    expect(helpImageSrc(7, "https://api.example/api/v1/printing/option-help/7/image/")).toBe("/api/backend/api/v1/printing/option-help/7/image/");
+  });
+  it("never trusts a odd version or the backend host", () => {
+    expect(helpImageSrc(7, "https://evil.example/x?v=a%22%3E%3Cscript%3E")).toBe("/api/backend/api/v1/printing/option-help/7/image/");
+  });
+});
+
 describe("parseOptionHelp", () => {
   it("reads a server row and defaults the optional parts", () => {
-    expect(parseOptionHelp({ id: 4, topic: "binding", key: "spiral", title: "سلك", body: "نص", image_url: "http://x/y.png", image_caption: "c", sort_order: 3, is_active: false }))
-      .toEqual({ id: 4, topic: "binding", key: "spiral", title: "سلك", body: "نص", imageUrl: "http://x/y.png", imageCaption: "c", sortOrder: 3, isActive: false });
+    expect(parseOptionHelp({ id: 4, topic: "binding", key: "spiral", title: "سلك", body: "نص", image_url: "https://api.example/api/v1/printing/option-help/4/image/?v=170", image_caption: "c", sort_order: 3, is_active: false }))
+      .toEqual({ id: 4, topic: "binding", key: "spiral", title: "سلك", body: "نص", imageUrl: "/api/backend/api/v1/printing/option-help/4/image/?v=170", imageCaption: "c", sortOrder: 3, isActive: false });
     expect(parseOptionHelp({ id: 5, topic: "cover" })).toMatchObject({ key: "", title: "", imageUrl: null, sortOrder: 0, isActive: true });
   });
   it("drops rows it cannot draw", () => {

@@ -104,6 +104,22 @@ function text(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+/**
+ * Same-origin URL of a help picture. The backend serves it only to a signed-in staff member (Bearer token, no public /media/), and a
+ * browser <img> cannot send the token, so the picture goes through the BFF proxy, which adds the session token. The backend's `?v=` cache
+ * buster is kept so a replaced picture is fetched again.
+ */
+export function helpImageSrc(id: number, backendUrl: string): string {
+  let version = "";
+  try {
+    version = new URL(backendUrl, "http://placeholder.invalid").searchParams.get("v") ?? "";
+  } catch {
+    version = "";
+  }
+  const base = `/api/backend/api/v1/printing/option-help/${id}/image/`;
+  return /^[0-9A-Za-z_-]{1,32}$/u.test(version) ? `${base}?v=${version}` : base;
+}
+
 /** One server row, or null when it cannot be drawn (no id or topic). */
 export function parseOptionHelp(raw: unknown): OptionHelpRow | null {
   if (!raw || typeof raw !== "object") return null;
@@ -118,7 +134,7 @@ export function parseOptionHelp(raw: unknown): OptionHelpRow | null {
     key: text(row.key),
     title: text(row.title),
     body: text(row.body),
-    imageUrl: typeof row.image_url === "string" && row.image_url ? row.image_url : null,
+    imageUrl: typeof row.image_url === "string" && row.image_url ? helpImageSrc(id, row.image_url) : null,
     imageCaption: text(row.image_caption),
     sortOrder: Number.isFinite(sort) ? sort : 0,
     isActive: row.is_active !== false,
