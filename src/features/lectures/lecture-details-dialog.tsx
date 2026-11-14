@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { isGeneralLecture, isStalled, type LectureRow } from "@/features/lectures/lecture-rules";
+import { LectureOfflineSummary } from "@/features/lectures/offline-licenses-panel";
 import { LectureStatusBadge } from "@/features/lectures/lecture-status-badge";
 import { useI18n } from "@/i18n/provider";
 import { formatDate, formatFileSize, formatNumber } from "@/lib/utils";
@@ -53,6 +54,7 @@ export function LectureDetailsDialog({ lecture, now, onOpenChange }: { lecture: 
             <Item label={t("lectures.details.updated")}>{formatDate(lecture.updated_at, locale)}</Item>
             <Item label={t("lectures.details.publishedAt")}>{formatDate(lecture.published_at, locale)}</Item>
             <Item label={t("lectures.details.uploader")}>{lecture.uploaded_by ?? "—"}</Item>
+            <LectureOfflineSummary lectureId={lecture.id} />
           </dl>
         ) : null}
       </DialogContent>

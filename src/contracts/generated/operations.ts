@@ -1406,6 +1406,24 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/lectures/offline-licenses/",
+    "operationId": "v1_dashboard_lectures_offline_licenses_retrieve",
+    "tags": [
+      "Dashboard lectures"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/lectures/offline-licenses/revoke/",
+    "operationId": "v1_dashboard_lectures_offline_licenses_revoke_create",
+    "tags": [
+      "Dashboard lectures"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/maintenance-modes/",
     "operationId": "v1_dashboard_maintenance_modes_list",
     "tags": [
@@ -3430,6 +3448,42 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/lectures/{id}/offline-license/",
+    "operationId": "v1_lectures_offline_license_create",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/lectures/{id}/offline-license/",
+    "operationId": "v1_lectures_offline_license_destroy",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/lectures/{id}/offline-license/renew/",
+    "operationId": "v1_lectures_offline_license_renew_create",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/lectures/{id}/offline-package/",
+    "operationId": "v1_lectures_offline_package_retrieve",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "GET",
     "path": "/api/v1/lectures/{id}/processing-status/",
     "operationId": "v1_lectures_processing_status_retrieve",
@@ -3480,6 +3534,24 @@ export const API_OPERATIONS = [
     "operationId": "v1_lectures_viewer_session_create",
     "tags": [
       "Lecture viewer"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/lectures/offline-licenses/",
+    "operationId": "v1_lectures_offline_licenses_retrieve",
+    "tags": [
+      "Lecture offline"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/lectures/offline-licenses/sync/",
+    "operationId": "v1_lectures_offline_licenses_sync_create",
+    "tags": [
+      "Lecture offline"
     ],
     "authenticated": true
   },
