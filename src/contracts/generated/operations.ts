@@ -4034,6 +4034,15 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/printing/option-help/{id}/image/",
+    "operationId": "v1_printing_option_help_image_retrieve",
+    "tags": [
+      "Printing"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/printing/options/",
     "operationId": "v1_printing_options_retrieve",
     "tags": [

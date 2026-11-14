@@ -5198,6 +5198,7 @@ export const OPERATION_PATHS = {
   "v1_printing_convert_retrieve": "/api/v1/printing/convert/{token}/",
   "v1_printing_items_access_ticket_create": "/api/v1/printing/items/{id}/access-ticket/",
   "v1_printing_option_help_retrieve": "/api/v1/printing/option-help/",
+  "v1_printing_option_help_image_retrieve": "/api/v1/printing/option-help/{id}/image/",
   "v1_printing_options_retrieve": "/api/v1/printing/options/",
   "v1_printing_orders_create": "/api/v1/printing/orders/",
   "v1_printing_orders_cancel_create": "/api/v1/printing/orders/{id}/cancel/",
