@@ -6,10 +6,10 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { displayServerMessage } from "@/features/printing/server-errors";
+import { displayServerMessage, fieldError } from "@/features/printing/server-errors";
 import { statusLabelKey, statusTone, storeErrorKey, storeImageSrc, type StatusTone, type StockLevel } from "@/features/store/store-rules";
 import { useI18n } from "@/i18n/provider";
-import { apiErrorText, fieldError } from "@/lib/api/error-message";
+import { apiErrorText } from "@/lib/api/error-message";
 import { AppApiError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 
