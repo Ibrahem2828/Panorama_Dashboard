@@ -175,7 +175,14 @@ export const academicSubNavigation: NavigationItem[] = [
   { key: "subjects", label: "nav.subjects", href: "/dashboard/academic/subjects", icon: BookOpenCheck, capability: CAPABILITIES.academic },
 ];
 
-export const allNavigationItems = [...navigationGroups.flatMap((group) => group.items), ...accountNavigation, ...academicSubNavigation];
+/** The screens inside «المتجر»: reached from the store's own tab strip (and from links), never as separate sidebar entries. */
+export const storeSubNavigation: NavigationItem[] = [
+  { key: "storeOrders", label: "store.tab.orders", href: "/dashboard/store/orders", icon: ClipboardCheck, capability: CAPABILITIES.store, keywords: ["طلبات المتجر", "store orders"] },
+  { key: "storeProducts", label: "store.tab.products", href: "/dashboard/store/products", icon: Boxes, capability: CAPABILITIES.store, keywords: ["منتجات", "ماركات", "أصناف", "products", "brands"] },
+  { key: "storeReviews", label: "store.tab.reviews", href: "/dashboard/store/reviews", icon: MessageSquareText, capability: CAPABILITIES.store, keywords: ["تقييمات", "reviews"] },
+];
+
+export const allNavigationItems = [...navigationGroups.flatMap((group) => group.items), ...accountNavigation, ...academicSubNavigation, ...storeSubNavigation];
 
 /** Whether the signed-in capabilities open a navigation item (a single `capability` or any of `anyCapability`). */
 export function navigationItemAllowed(item: Pick<NavigationItem, "capability" | "anyCapability">, capabilities: readonly string[] | undefined): boolean {
