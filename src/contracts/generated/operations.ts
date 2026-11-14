@@ -109,6 +109,15 @@ export const API_OPERATIONS = [
     "authenticated": true
   },
   {
+    "method": "POST",
+    "path": "/api/v1/auth/device/switch/",
+    "operationId": "v1_auth_device_switch_create",
+    "tags": [
+      "Auth"
+    ],
+    "authenticated": true
+  },
+  {
     "method": "GET",
     "path": "/api/v1/auth/invitations/{token}/",
     "operationId": "v1_auth_invitations_retrieve",
@@ -177,6 +186,42 @@ export const API_OPERATIONS = [
     "operationId": "v1_auth_otp_verify_create",
     "tags": [
       "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/phone-verification/",
+    "operationId": "v1_auth_phone_verification_create",
+    "tags": [
+      "Auth"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/phone-verification/cancel/",
+    "operationId": "v1_auth_phone_verification_cancel_create",
+    "tags": [
+      "Auth"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/phone-verification/confirm/",
+    "operationId": "v1_auth_phone_verification_confirm_create",
+    "tags": [
+      "Auth"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/phone-verification/current/",
+    "operationId": "v1_auth_phone_verification_current_retrieve",
+    "tags": [
+      "Auth"
     ],
     "authenticated": true
   },
@@ -1640,6 +1685,51 @@ export const API_OPERATIONS = [
   },
   {
     "method": "GET",
+    "path": "/api/v1/dashboard/phone-verifications/",
+    "operationId": "v1_dashboard_phone_verifications_list",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/phone-verifications/{id}/",
+    "operationId": "v1_dashboard_phone_verifications_retrieve",
+    "tags": [
+      "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/phone-verifications/{id}/claim/",
+    "operationId": "v1_dashboard_phone_verifications_claim_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/phone-verifications/{id}/mark-sent/",
+    "operationId": "v1_dashboard_phone_verifications_mark_sent_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/phone-verifications/{id}/reject/",
+    "operationId": "v1_dashboard_phone_verifications_reject_create",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/dashboard/printing/binding-prices/",
     "operationId": "v1_dashboard_printing_binding_prices_list",
     "tags": [
@@ -2841,6 +2931,24 @@ export const API_OPERATIONS = [
     "operationId": "v1_dashboard_users_unlock_login_create",
     "tags": [
       "v1"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/dashboard/users/{user_id}/account-devices/",
+    "operationId": "v1_dashboard_users_account_devices_retrieve",
+    "tags": [
+      "Dashboard"
+    ],
+    "authenticated": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/dashboard/users/{user_id}/account-devices/reset/",
+    "operationId": "v1_dashboard_users_account_devices_reset_create",
+    "tags": [
+      "Dashboard"
     ],
     "authenticated": true
   },

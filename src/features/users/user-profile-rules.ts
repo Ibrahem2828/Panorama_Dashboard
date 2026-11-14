@@ -2,7 +2,7 @@
  * Types and pure helpers of the user profile page (`GET /api/v1/dashboard/users/<id>/student-detail/`).
  * The response types live here, next to the feature, until the generated contracts are re-synced.
  */
-export const PROFILE_TABS = ["overview", "groups", "enrollments", "files", "orders", "tickets", "verification"] as const;
+export const PROFILE_TABS = ["overview", "groups", "enrollments", "files", "orders", "tickets", "verification", "devices"] as const;
 export type ProfileTab = (typeof PROFILE_TABS)[number];
 
 /** `?tab=` value to a tab; anything unknown falls back to the overview. */
