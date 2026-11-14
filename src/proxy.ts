@@ -42,13 +42,23 @@ function applyRequestSecurityHeaders(response: NextResponse, nonce: string, csp:
   response.headers.set("x-nonce", nonce);
   return response;
 }
+/** Origin of the backend: its uploaded pictures (for example print option help) are public files served from there, not through the BFF. */
+function backendImageOrigin(): string | null {
+  try {
+    return new URL(process.env.BACKEND_API_BASE_URL ?? "https://api.xn--mgbaab0cxheq.tech").origin;
+  } catch {
+    return null;
+  }
+}
+
 function contentSecurityPolicy(nonce: string) {
   const dev = process.env.NODE_ENV !== "production";
+  const imageOrigin = backendImageOrigin();
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    `img-src 'self' data: blob:${imageOrigin ? ` ${imageOrigin}` : ""}`,
     "font-src 'self' data:",
     "connect-src 'self'",
     "media-src 'self' blob:",
