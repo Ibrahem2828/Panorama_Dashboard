@@ -121,16 +121,20 @@ function Timeline({ order }: { order: StoreOrder }) {
   const { t, locale } = useI18n();
   const history = sortedHistory(order.history);
   const label = (status: string) => t(statusLabelKey(status));
+  // The backend already records the creation as the first trail entry (no previous status); then it is not drawn twice.
+  const startsTrail = history.some((entry) => !entry.old_status);
   return (
     <Card>
       <CardHeader className="pb-3"><CardTitle className="text-base">{t("store.orders.timeline")}</CardTitle></CardHeader>
       <CardContent>
         <ol className="relative space-y-4 border-s ps-5">
+          {startsTrail ? null : (
           <li className="relative">
             <span className="absolute -start-[1.65rem] top-1 size-3 rounded-full border-2 border-background bg-primary" aria-hidden="true" />
             <p className="text-sm font-semibold">{t("store.orders.created")}</p>
             <p className="text-xs text-muted-foreground"><bdi>{formatDate(order.created_at, locale)}</bdi></p>
           </li>
+          )}
           {history.map((entry, index) => (
             <li key={`${entry.created_at}-${index}`} className="relative">
               <span className={`absolute -start-[1.65rem] top-1 size-3 rounded-full border-2 border-background ${entry.new_status === "cancelled" ? "bg-destructive" : "bg-primary"}`} aria-hidden="true" />
