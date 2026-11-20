@@ -45,6 +45,8 @@ function DetailsForm({ product, onSaved }: { product: StoreProduct | null; onSav
   const categories = useAllCategories();
   const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : EMPTY_PRODUCT);
   const [creating, setCreating] = useState<"brand" | "category" | null>(null);
+  // A brand/category made from this form is picked only once the refreshed list contains it (a select cannot hold a value it has no option for).
+  const [pendingPick, setPendingPick] = useState<{ kind: "brand" | "category"; id: string } | null>(null);
   const [show, setShow] = useState(false);
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   const problems = validateProduct(form);
@@ -60,6 +62,14 @@ function DetailsForm({ product, onSaved }: { product: StoreProduct | null; onSav
     },
     onError(error) { setServerErrors(serverFields(error, ["name", "description", "brand", "category", "specs", "price_syp", "price_usd", "sort_order"])); toast.error(errorText(error)); },
   });
+  // Adjusting state while rendering: the pick is applied in the render that first sees the new option.
+  if (pendingPick) {
+    const list = pendingPick.kind === "brand" ? brands.data?.results : categories.data?.results;
+    if (list?.some((item) => String(item.id) === pendingPick.id)) {
+      setForm((current) => ({ ...current, [pendingPick.kind]: pendingPick.id }));
+      setPendingPick(null);
+    }
+  }
   const submit = () => { setShow(true); if (Object.keys(problems).length === 0) save.mutate(); };
 
   const specsError = show && problems.specs ? t(`store.product.specsProblem.${problems.specs}` as "store.product.specsProblem.tooMany", { max: SPEC_MAX_ROWS }) : serverErrors.specs ?? null;
@@ -136,8 +146,8 @@ function DetailsForm({ product, onSaved }: { product: StoreProduct | null; onSav
       </div>
       <DialogFooter className="gap-2"><Button type="submit" disabled={save.isPending}>{product ? t("common.save") : t("store.product.createAndContinue")}</Button></DialogFooter>
     </form>
-    {creating === "category" ? <CategoryDialog category={null} onClose={() => setCreating(null)} onSaved={(saved) => set({ category: String(saved.id) })} /> : null}
-    {creating === "brand" ? <BrandDialog brand={null} onClose={() => setCreating(null)} onSaved={(saved) => set({ brand: String(saved.id) })} /> : null}
+    {creating === "category" ? <CategoryDialog category={null} onClose={() => setCreating(null)} onSaved={(saved) => setPendingPick({ kind: "category", id: String(saved.id) })} /> : null}
+    {creating === "brand" ? <BrandDialog brand={null} onClose={() => setCreating(null)} onSaved={(saved) => setPendingPick({ kind: "brand", id: String(saved.id) })} /> : null}
     </>
   );
 }
