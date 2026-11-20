@@ -1,4 +1,4 @@
-import { Boxes, CalendarRange, ClipboardCheck, Headphones, ListChecks, MessageSquareWarning, Printer, ShoppingCart, Store, UserCheck, UserPlus, UploadCloud, Users, Wallet } from "lucide-react";
+import { Boxes, CalendarRange, ClipboardCheck, Headphones, ListChecks, MessageSquareWarning, Printer, ShoppingBag, ShoppingCart, Store, UserCheck, UserPlus, UploadCloud, Users, Wallet } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import type { MessageKey } from "@/i18n/messages";
@@ -26,6 +26,7 @@ export const ATTENTION_ACTIONS: QuickAction[] = [
   { key: "verifications", label: "quick.verifications", hint: "quick.verificationsHint", icon: ClipboardCheck, href: "/dashboard/verifications", capability: CAPABILITIES.verification, count: "verification_pending", keywords: ["توثيق", "بطاقة", "verification"] },
   { key: "chatReports", label: "quick.chatReports", hint: "quick.chatReportsHint", icon: MessageSquareWarning, href: "/dashboard/chat-reports", capability: CAPABILITIES.groups, count: "chat_reports_open", keywords: ["بلاغ", "دردشة", "report"] },
   { key: "printOrders", label: "quick.printOrders", hint: "quick.printOrdersHint", icon: Printer, href: "/dashboard/printing", capability: CAPABILITIES.printing, count: "print_orders_new", keywords: ["طباعة", "طلب", "print"] },
+  { key: "storeOrders", label: "quick.storeOrders", hint: "quick.storeOrdersHint", icon: ShoppingBag, href: "/dashboard/store/orders?status=pending", capability: CAPABILITIES.store, count: "store_orders_new", onlyWhenCounted: true, keywords: ["متجر", "طلبات المتجر", "قرطاسية", "store", "shop"] },
   { key: "support", label: "quick.support", hint: "quick.supportHint", icon: Headphones, href: "/dashboard/support", capability: CAPABILITIES.support, count: "support_open", keywords: ["دعم", "تذكرة", "support"] },
   { key: "lowStock", label: "quick.lowStock", hint: "quick.lowStockHint", icon: Boxes, href: "/dashboard/finance/stock", capability: CAPABILITIES.printing, count: "low_stock", keywords: ["مخزون", "نفاد", "stock"] },
   { key: "reminders", label: "quick.reminders", hint: "quick.remindersHint", icon: Wallet, href: "/dashboard/finance/purchases", capability: CAPABILITIES.finance, count: "purchase_reminders_due", keywords: ["تذكير", "شراء", "حبر", "reminder"] },

@@ -40,6 +40,8 @@ export interface QuickAccessCounts {
   verification_pending?: number;
   chat_reports_open?: number;
   print_orders_new?: number;
+  /** New stationery-store orders waiting for staff (only sent to holders of `store.manage`). */
+  store_orders_new?: number;
   low_stock?: number;
   support_open?: number;
   purchase_reminders_due?: number;

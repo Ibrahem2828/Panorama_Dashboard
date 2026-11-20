@@ -9,6 +9,7 @@ import { BarChart3,
   PhoneCall,
   Inbox,
   MailCheck,
+  ShoppingBag,
   ShoppingCart,
   Store,
   ListChecks,
@@ -106,6 +107,7 @@ export const navigationGroups: NavigationGroup[] = [
     label: "nav.operations",
     items: [
       { key: "printing", label: "nav.printing", href: "/dashboard/printing", icon: Printer, capability: CAPABILITIES.printing },
+      { key: "store", label: "nav.store", href: "/dashboard/store", icon: ShoppingBag, capability: CAPABILITIES.store, keywords: ["متجر", "قرطاسية", "منتجات", "طلبات المتجر", "تقييمات", "store", "shop", "products", "orders", "reviews"] },
       { key: "shop", label: "nav.shop", href: "/dashboard/shop", icon: Store, capability: CAPABILITIES.printing },
       { key: "support", label: "nav.support", href: "/dashboard/support", icon: Headphones, capability: CAPABILITIES.support },
       { key: "feedback", label: "nav.feedback", href: "/dashboard/feedback", icon: MessageSquareText, capability: CAPABILITIES.feedback },
@@ -173,7 +175,14 @@ export const academicSubNavigation: NavigationItem[] = [
   { key: "subjects", label: "nav.subjects", href: "/dashboard/academic/subjects", icon: BookOpenCheck, capability: CAPABILITIES.academic },
 ];
 
-export const allNavigationItems = [...navigationGroups.flatMap((group) => group.items), ...accountNavigation, ...academicSubNavigation];
+/** The screens inside «المتجر»: reached from the store's own tab strip (and from links), never as separate sidebar entries. */
+export const storeSubNavigation: NavigationItem[] = [
+  { key: "storeOrders", label: "store.tab.orders", href: "/dashboard/store/orders", icon: ClipboardCheck, capability: CAPABILITIES.store, keywords: ["طلبات المتجر", "store orders"] },
+  { key: "storeProducts", label: "store.tab.products", href: "/dashboard/store/products", icon: Boxes, capability: CAPABILITIES.store, keywords: ["منتجات", "ماركات", "تصنيفات", "أصناف", "products", "brands"] },
+  { key: "storeReviews", label: "store.tab.reviews", href: "/dashboard/store/reviews", icon: MessageSquareText, capability: CAPABILITIES.store, keywords: ["تقييمات", "reviews"] },
+];
+
+export const allNavigationItems = [...navigationGroups.flatMap((group) => group.items), ...accountNavigation, ...academicSubNavigation, ...storeSubNavigation];
 
 /** Whether the signed-in capabilities open a navigation item (a single `capability` or any of `anyCapability`). */
 export function navigationItemAllowed(item: Pick<NavigationItem, "capability" | "anyCapability">, capabilities: readonly string[] | undefined): boolean {

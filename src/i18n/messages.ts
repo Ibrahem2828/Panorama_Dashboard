@@ -1,4 +1,5 @@
 import { printingAr, printingEn } from "@/features/printing/printing-messages";
+import { storeAr, storeEn } from "@/features/store/store-messages";
 
 export const ar = {
   "app.name": "لوحة تحكم بانوراما",
@@ -2456,6 +2457,7 @@ export const ar = {
   "term.copyFailed": "تعذّر النسخ. حدّد القائمة يدويًا.",
   "term.downloadCsv": "تنزيل CSV",
   ...printingAr,
+  ...storeAr,
   "nav.systemActivity": "نشاط النظام",
   "sysActivity.title": "نشاط النظام",
   "sysActivity.subtitle": "كل مستخدم وماذا طلب من النظام: الطلبات، وتسجيلات الدخول، والمحاولات المرفوضة.",
@@ -4996,6 +4998,7 @@ export const en: Record<keyof typeof ar, string> = {
   "term.copyFailed": "Copying failed. Select the list by hand.",
   "term.downloadCsv": "Download CSV",
   ...printingEn,
+  ...storeEn,
   "nav.systemActivity": "System activity",
   "sysActivity.title": "System activity",
   "sysActivity.subtitle": "Every user and what they asked of the system: requests, sign-ins and refused attempts.",
