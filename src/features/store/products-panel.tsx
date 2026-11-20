@@ -159,7 +159,14 @@ function ProductsTable() {
                 </tbody>
               </table>
             </div>
-            {!query.data.results.length ? <div className="p-10 text-center text-muted-foreground">{filtered ? t("store.noMatches") : t("store.product.empty")}</div> : null}
+            {!query.data.results.length ? (
+              <div className="space-y-3 p-10 text-center text-muted-foreground">
+                <p>{filtered ? t("store.noMatches") : t("store.product.empty")}</p>
+                {filtered ? null : categories.data && categories.data.results.length === 0 ? (
+                  <Button onClick={() => router.replace("?section=categories", { scroll: false })}><Plus />{t("store.category.addFirst")}</Button>
+                ) : <Button onClick={() => updateUrl({ product: "new", tab: null })}><Plus />{t("store.product.addFirst")}</Button>}
+              </div>
+            ) : null}
           </div>
           <Pagination page={page} pageSize={pageSize} count={query.data.count} onPage={(next) => updateUrl({ page: next })} onPageSize={(next) => updateUrl({ page_size: next, page: 1 })} />
         </>
@@ -182,6 +189,7 @@ export function CatalogPanel() {
           {SECTIONS.map((value) => <TabsTrigger key={value} value={value} className="px-4 py-2">{labels[value]}</TabsTrigger>)}
         </TabsList>
       </Tabs>
+      <p className="rounded-xl border bg-muted/30 px-4 py-2 text-xs leading-6 text-muted-foreground">{t("store.catalog.order")}</p>
       {section === "products" ? <ProductsTable /> : section === "brands" ? <BrandsPanel /> : <CategoriesPanel />}
     </div>
   );

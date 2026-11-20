@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { KEYS, useAllBrands, useAllCategories, type StoreProduct } from "@/features/store/catalog-api";
+import { BrandDialog, CategoryDialog } from "@/features/store/taxonomy-panels";
 import { ImagesSection } from "@/features/store/images-section";
 import { Field, useServerFieldErrors, useStoreErrorText } from "@/features/store/store-ui";
 import {
@@ -43,6 +44,7 @@ function DetailsForm({ product, onSaved }: { product: StoreProduct | null; onSav
   const brands = useAllBrands();
   const categories = useAllCategories();
   const [form, setForm] = useState<ProductForm>(product ? fromProduct(product) : EMPTY_PRODUCT);
+  const [creating, setCreating] = useState<"brand" | "category" | null>(null);
   const [show, setShow] = useState(false);
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   const problems = validateProduct(form);
@@ -64,22 +66,30 @@ function DetailsForm({ product, onSaved }: { product: StoreProduct | null; onSav
   const nameError = (show && problems.name ? (problems.name === "required" ? t("store.problem.required") : t("store.problem.tooLong", { max: PRODUCT_NAME_MAX })) : null) || serverErrors.name || null;
 
   return (
+    <>
     <form className="space-y-5" noValidate onSubmit={(event) => { event.preventDefault(); submit(); }}>
       <Field label={t("store.field.name")} htmlFor="product-name" error={nameError}>
         <Input id="product-name" dir="auto" className="h-11" value={form.name} onChange={(event) => set({ name: event.target.value })} aria-invalid={Boolean(nameError)} />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t("store.product.category")} htmlFor="product-category" error={(show && problems.category ? t("store.problem.required") : null) || serverErrors.category || null}>
+          <div className="flex gap-2">
           <Select value={form.category || undefined} onValueChange={(category) => set({ category })}>
             <SelectTrigger id="product-category" className="h-11" aria-invalid={show && Boolean(problems.category)}><SelectValue placeholder={categories.isPending ? t("app.loading") : t("store.product.pickCategory")} /></SelectTrigger>
             <SelectContent>{(categories.data?.results ?? []).map((category) => <SelectItem key={category.id} value={String(category.id)}>{category.name}</SelectItem>)}</SelectContent>
           </Select>
+          <Button type="button" variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label={t("store.category.add")} title={t("store.category.add")} onClick={() => setCreating("category")}><Plus /></Button>
+          </div>
+          {categories.data && categories.data.results.length === 0 ? <p className="text-xs font-medium text-amber-700 dark:text-amber-300">{t("store.product.needCategory")}</p> : null}
         </Field>
         <Field label={t("store.product.brand")} htmlFor="product-brand" optional={t("counter.optional")} error={serverErrors.brand ?? null}>
+          <div className="flex gap-2">
           <Select value={form.brand || NONE} onValueChange={(brand) => set({ brand: brand === NONE ? "" : brand })}>
             <SelectTrigger id="product-brand" className="h-11"><SelectValue /></SelectTrigger>
             <SelectContent><SelectItem value={NONE}>{t("store.product.noBrand")}</SelectItem>{(brands.data?.results ?? []).map((brand) => <SelectItem key={brand.id} value={String(brand.id)}>{brand.name}</SelectItem>)}</SelectContent>
           </Select>
+          <Button type="button" variant="outline" size="icon" className="h-11 w-11 shrink-0" aria-label={t("store.brand.add")} title={t("store.brand.add")} onClick={() => setCreating("brand")}><Plus /></Button>
+          </div>
         </Field>
       </div>
       <Field label={t("store.product.description")} htmlFor="product-description" optional={t("counter.optional")} error={serverErrors.description ?? null}>
@@ -126,6 +136,9 @@ function DetailsForm({ product, onSaved }: { product: StoreProduct | null; onSav
       </div>
       <DialogFooter className="gap-2"><Button type="submit" disabled={save.isPending}>{product ? t("common.save") : t("store.product.createAndContinue")}</Button></DialogFooter>
     </form>
+    {creating === "category" ? <CategoryDialog category={null} onClose={() => setCreating(null)} onSaved={(saved) => set({ category: String(saved.id) })} /> : null}
+    {creating === "brand" ? <BrandDialog brand={null} onClose={() => setCreating(null)} onSaved={(saved) => set({ brand: String(saved.id) })} /> : null}
+    </>
   );
 }
 

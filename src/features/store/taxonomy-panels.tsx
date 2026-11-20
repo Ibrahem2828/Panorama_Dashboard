@@ -19,7 +19,7 @@ import {
   categoryFields, imageProblem, storePath, suggestSlug, validateBrand, validateCategory, type BrandForm, type CategoryForm, type LogoChange,
 } from "@/features/store/store-rules";
 import { useI18n } from "@/i18n/provider";
-import { apiFetch } from "@/lib/api/browser-client";
+import { apiFetch, unwrap } from "@/lib/api/browser-client";
 
 type Translate = ReturnType<typeof useI18n>["t"];
 
@@ -90,7 +90,7 @@ function LogoPicker({ existingUrl, change, onChange }: { existingUrl: string | n
   );
 }
 
-function BrandDialog({ brand, onClose }: { brand: StoreBrand | null; onClose: () => void }) {
+export function BrandDialog({ brand, onClose, onSaved }: { brand: StoreBrand | null; onClose: () => void; onSaved?: (saved: { id: number }) => void }) {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const errorText = useStoreErrorText();
@@ -111,9 +111,9 @@ function BrandDialog({ brand, onClose }: { brand: StoreBrand | null; onClose: ()
         for (const [name, value] of entries) data.append(name, value);
         body = data;
       }
-      await apiFetch(brand ? storePath("brands", brand.id) : storePath("brands"), { method: brand ? "PATCH" : "POST", body });
+      return (await unwrap<{ id: number }>(apiFetch(brand ? storePath("brands", brand.id) : storePath("brands"), { method: brand ? "PATCH" : "POST", body }))) as { id: number };
     },
-    onSuccess() { toast.success(t("store.saved")); void queryClient.invalidateQueries({ queryKey: [KEYS.brands] }); onClose(); },
+    onSuccess(saved) { toast.success(t("store.saved")); void queryClient.invalidateQueries({ queryKey: [KEYS.brands] }); onSaved?.(saved); onClose(); },
     onError(error) { setServerErrors(serverFields(error, ["name", "logo", "sort_order"])); toast.error(errorText(error)); },
   });
   const submit = () => { setShow(true); if (Object.keys(problems).length === 0) save.mutate(); };
@@ -179,7 +179,7 @@ export function BrandsPanel() {
               </tbody>
             </table>
           </div>
-          {!rows.length ? <div className="p-10 text-center text-muted-foreground">{search ? t("store.noMatches") : t("store.brand.empty")}</div> : null}
+          {!rows.length ? <div className="space-y-3 p-10 text-center text-muted-foreground"><p>{search ? t("store.noMatches") : t("store.brand.empty")}</p>{search ? null : <Button onClick={() => setEditing("new")}><Plus />{t("store.brand.addFirst")}</Button>}</div> : null}
         </div>
       )}
       {editing ? <BrandDialog key={editing === "new" ? "new" : editing.id} brand={editing === "new" ? null : editing} onClose={() => setEditing(null)} /> : null}
@@ -189,7 +189,7 @@ export function BrandsPanel() {
 
 // ---- categories ---------------------------------------------------------------------------------------------------------
 
-function CategoryDialog({ category, onClose }: { category: StoreCategory | null; onClose: () => void }) {
+export function CategoryDialog({ category, onClose, onSaved }: { category: StoreCategory | null; onClose: () => void; onSaved?: (saved: { id: number }) => void }) {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const errorText = useStoreErrorText();
@@ -202,8 +202,8 @@ function CategoryDialog({ category, onClose }: { category: StoreCategory | null;
   const set = (patch: Partial<CategoryForm>) => setForm((current) => ({ ...current, ...patch }));
 
   const save = useMutation({
-    mutationFn: async () => { await apiFetch(category ? storePath("categories", category.id) : storePath("categories"), { method: category ? "PATCH" : "POST", body: categoryFields(form) }); },
-    onSuccess() { toast.success(t("store.saved")); void queryClient.invalidateQueries({ queryKey: [KEYS.categories] }); onClose(); },
+    mutationFn: async () => (await unwrap<{ id: number }>(apiFetch(category ? storePath("categories", category.id) : storePath("categories"), { method: category ? "PATCH" : "POST", body: categoryFields(form) }))) as { id: number },
+    onSuccess(saved) { toast.success(t("store.saved")); void queryClient.invalidateQueries({ queryKey: [KEYS.categories] }); onSaved?.(saved); onClose(); },
     onError(error) { setServerErrors(serverFields(error, ["name", "slug", "sort_order"])); toast.error(errorText(error)); },
   });
   const submit = () => { setShow(true); if (Object.keys(problems).length === 0) save.mutate(); };
@@ -267,7 +267,7 @@ export function CategoriesPanel() {
               </tbody>
             </table>
           </div>
-          {!categories.data.results.length ? <div className="p-10 text-center text-muted-foreground">{t("store.category.empty")}</div> : null}
+          {!categories.data.results.length ? <div className="space-y-3 p-10 text-center text-muted-foreground"><p>{t("store.category.empty")}</p><Button onClick={() => setEditing("new")}><Plus />{t("store.category.addFirst")}</Button></div> : null}
         </div>
       )}
       {editing ? <CategoryDialog key={editing === "new" ? "new" : editing.id} category={editing === "new" ? null : editing} onClose={() => setEditing(null)} /> : null}
